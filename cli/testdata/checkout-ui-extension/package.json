@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "esbuild": "0.12.20",
+    "typescript": "^4.1.0"
+  },
+  "scripts": {
+    "development": "node development.js",
+    "production": "node production.js"
+  },
+  "dependencies": {
+    "@shopify/checkout-ui-extensions-react": "0.12.0",
+    "react": "^17.0.0"
+  }
+}
