@@ -4,8 +4,8 @@
     "typescript": "^4.1.0"
   },
   "scripts": {
-    "development": "node development.js",
-    "production": "node production.js"
+    "serve": "NODE_ENV=development node scripts/build.js",
+    "build": "NODE_ENV=production node scripts/build.js"
   },
   "dependencies": {
     "@shopify/checkout-ui-extensions-react": "0.12.0",

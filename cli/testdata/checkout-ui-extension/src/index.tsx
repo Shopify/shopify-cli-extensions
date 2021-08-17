@@ -15,7 +15,6 @@ function App({extensionPoint}: {extensionPoint: string}) {
       <TextBlock>Welcome to the {extensionPoint} extension!</TextBlock>
       <TextBlock>My custom environment variable is: {process.env.SOME_VAR}</TextBlock>
       <TextBlock>My custom NODE_ENV is: {process.env.NODE_ENV}</TextBlock>
-      <TextBlock>{window.test}</TextBlock>
       <TextField
         label="Order note"
         onChange={(value) => {
