@@ -9,31 +9,36 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/gorilla/mux"
 )
 
 type api struct {
-	manifest *Manifest
+	*core.ExtensionService
 	*mux.Router
 }
 
-func NewApi(manifest *Manifest) *api {
-	mux := mux.NewRouter()
-	api := &api{manifest, mux}
+func NewApi(service *core.ExtensionService) *api {
+	api := &api{service, mux.NewRouter()}
 
-	mux.HandleFunc("/manifest", api.GenerateManifest)
-	mux.PathPrefix("/assets/").Handler(
+	api.HandleFunc("/", api.extensionsHandler)
+	api.PathPrefix("/assets/").Handler(
 		http.StripPrefix(
 			"/assets/",
-			http.FileServer(http.Dir(manifest.Development.BuildDir)),
+			http.FileServer(http.Dir(service.Extensions[0].Development.BuildDir)),
 		),
 	)
 
 	return api
 }
 
-func (api *api) GenerateManifest(rw http.ResponseWriter, r *http.Request) {
+func (api *api) extensionsHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(rw)
-	encoder.Encode(api.manifest)
+	encoder.Encode(extensionsResponse{api.Extensions, api.Version})
+}
+
+type extensionsResponse struct {
+	Extensions []core.Extension `json:"extensions"`
+	Version    string           `json:"version"`
 }

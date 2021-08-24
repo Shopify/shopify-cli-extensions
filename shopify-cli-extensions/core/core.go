@@ -1,19 +1,29 @@
-package api
+package core
 
-func NewManifest(buildDir string) *Manifest {
-	return &Manifest{
-		Assets: make([]Asset, 0),
-		User: User{
-			Metafields: make([]Metafield, 0),
-		},
-		Development: Development{
-			BuildDir: buildDir,
-		},
-		App: make(App),
+func NewExtensionService(buildDir string) *ExtensionService {
+	service := ExtensionService{
+		Version: "0.1.0",
+		Extensions: []Extension{{
+			Assets: make([]Asset, 0),
+			User: User{
+				Metafields: make([]Metafield, 0),
+			},
+			Development: Development{
+				BuildDir: buildDir,
+			},
+			App: make(App),
+		}},
 	}
+
+	return &service
 }
 
-type Manifest struct {
+type ExtensionService struct {
+	Extensions []Extension
+	Version    string
+}
+
+type Extension struct {
 	Type        string      `json:"type"`
 	UUID        string      `json:"uuid"`
 	Assets      []Asset     `json:"assets"`
