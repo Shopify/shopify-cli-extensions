@@ -1,0 +1,1 @@
+{"version":3,"file":"plain-worker.d.ts","sourceRoot":"","sources":["../../../src/create/plain-worker.ts"],"names":[],"mappings":"AAEA,OAAO,EAAkB,oBAAoB,EAAC,MAAM,aAAa,CAAC;AAElE,MAAM,WAAW,kBAAkB;IACjC,QAAQ,CAAC,GAAG,CAAC,EAAE,GAAG,CAAC;IACnB,IAAI,MAAM,CAAC;CACZ;AAED,wBAAgB,wBAAwB,CACtC,MAAM,EAAE,oBAAoB,CAAC,OAAO,CAAC,GACpC,kBAAkB,CA6BpB"}
