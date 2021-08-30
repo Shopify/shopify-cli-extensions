@@ -10,6 +10,7 @@ import (
 	"github.com/Shopify/shopify-cli-extensions/api"
 	"github.com/Shopify/shopify-cli-extensions/build"
 	"github.com/Shopify/shopify-cli-extensions/core"
+	"github.com/Shopify/shopify-cli-extensions/create"
 )
 
 func main() {
@@ -50,7 +51,11 @@ func (cli *CLI) build(args ...string) {
 }
 
 func (cli *CLI) create(args ...string) {
-	panic("not implemented")
+	extension := cli.config.Extensions[0]
+	err := create.NewExtensionProject(extension)
+	if err != nil {
+		panic(fmt.Errorf("failed to create a new extension: %w", err))
+	}
 }
 
 func (cli *CLI) serve(args ...string) {

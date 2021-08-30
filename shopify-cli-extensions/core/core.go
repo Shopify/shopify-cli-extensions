@@ -60,15 +60,18 @@ type Asset struct {
 }
 
 type Development struct {
-	Home     Url      `json:"home"`
-	Manifest Url      `json:"manifest"`
-	Status   Url      `json:"status"`
-	Mobile   Url      `json:"mobile"`
-	Resource Url      `json:"resource"`
-	Renderer Renderer `json:"renderer"`
-	Hidden   bool     `json:"hidden"`
-	Focused  bool     `json:"focused"`
-	BuildDir string   `json:"-" yaml:"build_dir"`
+	Home     Url               `json:"home"`
+	Manifest Url               `json:"manifest"`
+	Status   Url               `json:"status"`
+	Mobile   Url               `json:"mobile"`
+	Resource Url               `json:"resource"`
+	Renderer Renderer          `json:"renderer"`
+	Hidden   bool              `json:"hidden"`
+	Focused  bool              `json:"focused"`
+	BuildDir string            `json:"-" yaml:"build_dir"`
+	RootDir  string            `json:"-" yaml:"root_dir"`
+	Template string            `json:"-"`
+	Entries  map[string]string `json:"-"`
 }
 
 type Renderer struct {
