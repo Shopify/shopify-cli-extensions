@@ -1,7 +1,9 @@
+---
 extensions:
   - uuid: 00000000-0000-0000-0000-000000000000
     type: checkout_ui_extension
     user:
       metafields: []
     development:
-      build_dir: "testdata/build/"
+      root_dir: "testdata"
+      build_dir: "build"
