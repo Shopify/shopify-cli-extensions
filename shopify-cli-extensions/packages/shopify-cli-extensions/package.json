@@ -1,17 +1,20 @@
 {
   "name": "@shopify/shopify-cli-extensions",
   "author": "Shopify <app-extensions@shopify.com>",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.3",
   "description": "A command line tool to build UI extensions",
   "license": "MIT",
   "bin": {
     "shopify-cli-extensions": "./cli.js"
   },
+  "main": "./cli.js",
   "scripts": {
     "build": "tsc --build tsconfig.json",
     "check": "prettier --check \"*.(ts|json)\"",
     "format": "prettier --write \"*.(ts|json)\"",
-    "clean": "git clean --exclude node_modules -xdf ./; rm -rf ./build"
+    "clean": "git clean --exclude node_modules -xdf ./; rm -rf ./build",
+    "version-bump": "npm version --preid=alpha",
+    "deploy": "npm publish"
   },
   "publishConfig": {
     "access": "public",
@@ -25,13 +28,15 @@
     "arrowParens": "always"
   },
   "devDependencies": {
-    "@luckycatfactory/esbuild-graphql-loader": "^3.6.0",
     "@types/js-yaml": "^4.0.3",
     "@types/node": "^16.7.1",
-    "esbuild": "^0.12.22",
-    "js-yaml": "^4.1.0",
     "prettier": "^2.3.2",
     "ts-node": "^10.2.1",
     "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "@luckycatfactory/esbuild-graphql-loader": "^3.6.0",
+    "esbuild": "^0.12.22",
+    "js-yaml": "^4.1.0"
   }
 }
