@@ -44,19 +44,31 @@ type CLI struct {
 
 func (cli *CLI) build(args ...string) {
 	build_errors := 0
+	active_builders := len(cli.config.Extensions)
 
 	for _, e := range cli.config.Extensions {
-		b := build.NewBuilder(e.Development.RootDir)
-
+		b := build.NewBuilder(e)
 		log.Printf("Building %s, id: %s", e.Type, e.UUID)
 
-		result := b.Build(ctx)
+		ch := make(chan build.Result)
 
-		if result.Success {
-			log.Printf("Extension %s built successfully!", e.UUID)
-		} else {
-			build_errors += 1
-			log.Printf("Extension %s failed to build: %s", e.UUID, result.Error.Error())
+		go b.Build(ctx, func(result build.Result) {
+			ch <- result
+		})
+
+		for result := range ch {
+			active_builders--
+
+			if result.Success {
+				log.Printf("Extension %s built successfully!", result.UUID)
+			} else {
+				build_errors += 1
+				log.Printf("Extension %s failed to build: %s", result.UUID, result.Error.Error())
+			}
+
+			if active_builders == 0 {
+				close(ch)
+			}
 		}
 	}
 
@@ -80,5 +92,66 @@ func (cli *CLI) create(args ...string) {
 
 func (cli *CLI) serve(args ...string) {
 	fmt.Println("Shopify CLI Extensions Server is now available at http://localhost:8000/")
-	http.ListenAndServe(":8000", api.New(cli.config))
+
+	api := api.New(cli.config)
+
+	var active_watchers int
+	var active_builders int
+
+	watcher_monitor := make(chan build.Result)
+	builder_monitor := make(chan build.Result)
+
+	for _, e := range cli.config.Extensions {
+		go cli.develop(e, active_builders, builder_monitor)
+		go cli.watch(e, active_watchers, watcher_monitor)
+	}
+
+	http.ListenAndServe(":8000", api)
+
+	<-watcher_monitor
+	<-builder_monitor
+}
+
+func (cli *CLI) develop(e core.Extension, active_builders int, ch chan build.Result) {
+	b := build.NewBuilder(e)
+	log.Printf("Run develop for extension %s", e.UUID)
+	go b.Develop(ctx, func(result build.Result) {
+		ch <- result
+	})
+
+	for result := range ch {
+		active_builders--
+
+		if result.Success {
+			log.Printf("Successfully running develop for extension %s", result.UUID)
+		} else {
+			log.Printf("Failed to run develop for extension %s, error: %s", result.UUID, result.Error.Error())
+		}
+	}
+
+	if active_builders == 0 {
+		close(ch)
+	}
+}
+
+func (cli *CLI) watch(e core.Extension, active_watchers int, ch chan build.Result) {
+	b := build.NewBuilder(e)
+	log.Printf("Watching extension %s", e.UUID)
+	go b.Watch(ctx, func(result build.Result) {
+		ch <- result
+	})
+
+	for result := range ch {
+		active_watchers--
+
+		if result.Success {
+			log.Printf("Watching extension %s...", result.UUID)
+		} else {
+			log.Printf("Error watching extension %s, error: %s", result.UUID, result.Error.Error())
+		}
+	}
+
+	if active_watchers == 0 {
+		close(ch)
+	}
 }
