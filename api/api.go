@@ -15,19 +15,20 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func New(config *core.Config) http.Handler {
+func New(config *core.Config) *ExtensionsApi {
 	mux := mux.NewRouter()
 
 	mux.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		http.Redirect(rw, r, "/extensions", http.StatusMovedPermanently)
 	})
-	configureExtensionsApi(config, mux)
 
-	return mux
+	api := configureExtensionsApi(config, mux)
+
+	return api
 }
 
-func configureExtensionsApi(config *core.Config, router *mux.Router) *extensionsApi {
-	api := &extensionsApi{core.NewExtensionService(config.Extensions), router}
+func configureExtensionsApi(config *core.Config, router *mux.Router) *ExtensionsApi {
+	api := &ExtensionsApi{core.NewExtensionService(config.Extensions), router, make(chan core.StatusUpdate)}
 
 	api.HandleFunc("/extensions/", api.extensionsHandler)
 	for _, extension := range api.Extensions {
@@ -41,15 +42,20 @@ func configureExtensionsApi(config *core.Config, router *mux.Router) *extensions
 	return api
 }
 
-type extensionsApi struct {
-	*core.ExtensionService
-	*mux.Router
-}
-
-func (api *extensionsApi) extensionsHandler(rw http.ResponseWriter, r *http.Request) {
+func (api *ExtensionsApi) extensionsHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(rw)
 	encoder.Encode(extensionsResponse{api.Extensions, api.Version})
+}
+
+func (api *ExtensionsApi) Notify(statusUpdate core.StatusUpdate) {
+	api.updates <- statusUpdate
+}
+
+type ExtensionsApi struct {
+	*core.ExtensionService
+	*mux.Router
+	updates chan core.StatusUpdate
 }
 
 type extensionsResponse struct {

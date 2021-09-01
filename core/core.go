@@ -96,3 +96,8 @@ type App map[string]interface{}
 type Url struct {
 	Url string `json:"url" yaml:"url"`
 }
+
+type StatusUpdate struct {
+	Type       string      `json:"type"`
+	Extensions []Extension `json:"extensions"`
+}

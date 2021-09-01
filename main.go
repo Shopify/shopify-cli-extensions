@@ -44,7 +44,7 @@ type CLI struct {
 
 func (cli *CLI) build(args ...string) {
 	build_errors := 0
-	active_builders := len(cli.config.Extensions)
+	activeBuilders := len(cli.config.Extensions)
 
 	for _, e := range cli.config.Extensions {
 		b := build.NewBuilder(e)
@@ -57,7 +57,7 @@ func (cli *CLI) build(args ...string) {
 		})
 
 		for result := range ch {
-			active_builders--
+			activeBuilders--
 
 			if result.Success {
 				log.Printf("Extension %s built successfully!", result.UUID)
@@ -66,7 +66,7 @@ func (cli *CLI) build(args ...string) {
 				log.Printf("Extension %s failed to build: %s", result.UUID, result.Error.Error())
 			}
 
-			if active_builders == 0 {
+			if activeBuilders == 0 {
 				close(ch)
 			}
 		}
@@ -95,15 +95,15 @@ func (cli *CLI) serve(args ...string) {
 
 	api := api.New(cli.config)
 
-	var active_watchers int
-	var active_builders int
+	var activeWatchers int
+	var activeBuilders int
 
 	watcher_monitor := make(chan build.Result)
 	builder_monitor := make(chan build.Result)
 
 	for _, e := range cli.config.Extensions {
-		go cli.develop(e, active_builders, builder_monitor)
-		go cli.watch(e, active_watchers, watcher_monitor)
+		go cli.develop(e, activeBuilders, builder_monitor, api.Notify)
+		go cli.watch(e, activeWatchers, watcher_monitor)
 	}
 
 	http.ListenAndServe(":8000", api)
@@ -112,37 +112,44 @@ func (cli *CLI) serve(args ...string) {
 	<-builder_monitor
 }
 
-func (cli *CLI) develop(e core.Extension, active_builders int, ch chan build.Result) {
-	b := build.NewBuilder(e)
-	log.Printf("Run develop for extension %s", e.UUID)
+func (cli *CLI) develop(
+	extension core.Extension,
+	activeBuilders int,
+	channel chan build.Result,
+	notify func(core.StatusUpdate),
+) {
+	b := build.NewBuilder(extension)
+	log.Printf("Run develop for extension %s", extension.UUID)
 	go b.Develop(ctx, func(result build.Result) {
-		ch <- result
+		channel <- result
 	})
 
-	for result := range ch {
-		active_builders--
+	for result := range channel {
+		activeBuilders--
 
 		if result.Success {
 			log.Printf("Successfully running develop for extension %s", result.UUID)
+			notify(core.StatusUpdate{Type: "Build success", Extensions: []core.Extension{extension}})
 		} else {
 			log.Printf("Failed to run develop for extension %s, error: %s", result.UUID, result.Error.Error())
+			notify(core.StatusUpdate{Type: "Build error", Extensions: []core.Extension{extension}})
 		}
 	}
 
-	if active_builders == 0 {
-		close(ch)
+	if activeBuilders == 0 {
+		close(channel)
 	}
 }
 
-func (cli *CLI) watch(e core.Extension, active_watchers int, ch chan build.Result) {
-	b := build.NewBuilder(e)
-	log.Printf("Watching extension %s", e.UUID)
+func (cli *CLI) watch(extension core.Extension, activeWatchers int, channel chan build.Result) {
+	b := build.NewBuilder(extension)
+	log.Printf("Watching extension %s", extension.UUID)
 	go b.Watch(ctx, func(result build.Result) {
-		ch <- result
+		channel <- result
 	})
 
-	for result := range ch {
-		active_watchers--
+	for result := range channel {
+		activeWatchers--
 
 		if result.Success {
 			log.Printf("Watching extension %s...", result.UUID)
@@ -151,7 +158,7 @@ func (cli *CLI) watch(e core.Extension, active_watchers int, ch chan build.Resul
 		}
 	}
 
-	if active_watchers == 0 {
-		close(ch)
+	if activeWatchers == 0 {
+		close(channel)
 	}
 }

@@ -96,3 +96,30 @@ func TestServeAssets(t *testing.T) {
 		t.Log(rec.Body)
 	}
 }
+
+func TestNotify(t *testing.T) {
+	api := New(config)
+	expectedUpdate := core.StatusUpdate{Type: "Some message", Extensions: config.Extensions}
+
+	go api.Notify(expectedUpdate)
+
+	update := <-api.updates
+
+	if update.Type != expectedUpdate.Type {
+		t.Errorf("Unexpected Type in update event, received %v, expected %v", update.Type, expectedUpdate.Type)
+	}
+
+	expectedResult, err := json.Marshal(expectedUpdate.Extensions)
+	if err != nil {
+		t.Error("Cannot convert Extensions in expected update event to JSON", err)
+	}
+
+	result, err := json.Marshal(update.Extensions)
+	if err != nil {
+		t.Error("Cannot convert Extensions in update event to JSON", err)
+	}
+
+	if string(result) != string(expectedResult) {
+		t.Errorf("Unexpected extensions in update event, received %v, expected %v", string(result), string(expectedResult))
+	}
+}
