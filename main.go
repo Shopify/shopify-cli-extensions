@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/Shopify/shopify-cli-extensions/api"
@@ -42,7 +43,7 @@ type CLI struct {
 }
 
 func (cli *CLI) build(args ...string) {
-	api := api.New(cli.config, ctx)
+	api := api.New(cli.config)
 	build_workers := len(cli.config.Extensions)
 	build_chan := make(chan build.Result)
 
@@ -70,7 +71,7 @@ func (cli *CLI) create(args ...string) {
 
 func (cli *CLI) serve(args ...string) {
 	log.Printf("Shopify CLI Extensions Server is now available at http://localhost:%d/", cli.config.Port)
-	api := api.New(cli.config, ctx)
+	api := api.New(cli.config)
 
 	develop_workers := len(cli.config.Extensions)
 	watch_workers := len(cli.config.Extensions)
@@ -94,7 +95,10 @@ func (cli *CLI) serve(args ...string) {
 		go cli.monitor(watch_workers, watch_chan, "Watch", api, e)
 	}
 
-	go api.Start(ctx)
+	addr := fmt.Sprintf(":%d", cli.config.Port)
+	if err := http.ListenAndServe(addr, api); err != nil {
+		panic(err)
+	}
 
 	<-develop_chan
 	<-watch_chan
@@ -106,10 +110,10 @@ func (cli *CLI) monitor(active_workers int, ch chan build.Result, action string,
 
 		if result.Success {
 			log.Printf("[%s] event for extension: %s", action, result.UUID)
-			go a.Notify(api.StatusUpdate{Type: "Success", Extensions: []core.Extension{e}})
+			go a.Notify(api.StatusUpdate{Type: "success", Extensions: []core.Extension{e}})
 		} else {
 			log.Printf("[%s] error for extension %s, error: %s", action, result.UUID, result.Error.Error())
-			go a.Notify(api.StatusUpdate{Type: "Success", Extensions: []core.Extension{e}})
+			go a.Notify(api.StatusUpdate{Type: "error", Extensions: []core.Extension{e}})
 		}
 	}
 
