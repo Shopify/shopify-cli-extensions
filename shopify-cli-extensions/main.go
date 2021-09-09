@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -16,18 +17,25 @@ import (
 
 var ctx context.Context
 
+//go:generate sh -c "git tag -l | sort | tail -n 1 | xargs -I {} sed -r -i '' 's/^const version = .*$/const version = \"{}\"/' main.go"
+const version = "v0.0.0"
+
 func init() {
 	ctx = context.Background()
 }
 
 func main() {
-	config, err := core.LoadConfig(os.Stdin)
-	if err != nil {
-		panic(err)
-	}
-
+	cli := CLI{}
 	cmd, args := os.Args[1], os.Args[2:]
-	cli := CLI{config}
+
+	if len(args) > 0 {
+		config, err := loadConfigFrom(args[0])
+		if err != nil {
+			panic(err)
+		}
+		cli.config = config
+		args = args[1:]
+	}
 
 	switch cmd {
 	case "build":
@@ -36,6 +44,8 @@ func main() {
 		cli.create(args...)
 	case "serve":
 		cli.serve(args...)
+	case "version":
+		fmt.Printf("%s\n", version)
 	}
 }
 
@@ -132,4 +142,25 @@ func (cli *CLI) monitor(wg sync.WaitGroup, ch chan build.Result, action string, 
 			go a.Notify(api.StatusUpdate{Type: "error", Extensions: []core.Extension{e}})
 		}
 	}
+}
+
+func loadConfigFrom(path string) (config *core.Config, err error) {
+	var configSource io.ReadCloser
+
+	if path == "-" {
+		configSource = os.Stdin
+	} else {
+		configSource, err = os.Open(path)
+		if err != nil {
+			return
+		}
+		defer configSource.Close()
+	}
+
+	config, err = core.LoadConfig(configSource)
+	if err != nil {
+		panic(err)
+	}
+
+	return
 }
