@@ -70,7 +70,7 @@ func (cli *CLI) build(args ...string) {
 
 			if !result.Success {
 				errors++
-				log.Printf("[Build] Error: %s, Extension: %s", result.Error, result.UUID)
+				panic(fmt.Errorf("[Build] Error: %s, Extension: %s", result.Error, result.UUID))
 			} else {
 				log.Printf("[Build] Success! Extension: %s", result.UUID)
 			}
@@ -82,7 +82,7 @@ func (cli *CLI) build(args ...string) {
 	wg.Wait()
 
 	if errors > 0 {
-		os.Exit(1)
+		panic("Please check build errors")
 	} else {
 		os.Exit(0)
 	}
