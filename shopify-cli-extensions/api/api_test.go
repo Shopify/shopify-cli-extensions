@@ -3,11 +3,13 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/gorilla/websocket"
@@ -129,7 +131,7 @@ func TestWebsocketNotify(t *testing.T) {
 	}
 }
 
-func TestWebsocketConnection(t *testing.T) {
+func TestWebsocketConnectionStartAndShutdown(t *testing.T) {
 	api := New(config)
 	server := httptest.NewServer(api)
 	ws, err := createWebsocket(server)
@@ -141,11 +143,34 @@ func TestWebsocketConnection(t *testing.T) {
 		t.Error(err)
 	}
 
+	ws.SetCloseHandler(func(code int, text string) error {
+		ws.Close()
+		return nil
+	})
+
 	api.Shutdown()
 
-	_, _, err = ws.ReadMessage()
-	if !websocket.IsCloseError(err, websocket.CloseAbnormalClosure) {
-		t.Error("Expected connection to be terminated")
+	if err := verifyConnectionShutdown(api, ws); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestWebsocketConnectionClientClose(t *testing.T) {
+	api := New(config)
+	server := httptest.NewServer(api)
+	ws, err := createWebsocket(server)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := verifyWebsocketMessage(ws, StatusUpdate{Type: "connected", Extensions: api.Extensions}); err != nil {
+		t.Error(err)
+	}
+
+	ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(1000, "client close connection"))
+
+	if err := verifyConnectionShutdown(api, ws); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -155,6 +180,7 @@ func verifyWebsocketMessage(ws *websocket.Conn, expectedMessage StatusUpdate) er
 	ws.ReadJSON(&message)
 
 	if message.Type != expectedMessage.Type {
+		log.Printf("%v, %v", message, expectedMessage)
 		return fmt.Errorf("Could not connect to websocket")
 	}
 
@@ -173,6 +199,21 @@ func verifyWebsocketMessage(ws *websocket.Conn, expectedMessage StatusUpdate) er
 		return fmt.Errorf("Unexpected extensions in message, received %v, expected %v", string(result), string(expectedResult))
 	}
 
+	return nil
+}
+
+func verifyConnectionShutdown(api *ExtensionsApi, ws *websocket.Conn) error {
+	// TODO: Break out of this 1 second wait if the client responds correctly to the close message
+	// Currently the test will fail without the wait since the channel and connection is still open
+	<-time.After(time.Second * 1)
+
+	api.Notify(StatusUpdate{Type: "Some message"})
+	_, message, err := ws.ReadMessage()
+	if !websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+		notification := StatusUpdate{}
+		json.Unmarshal(message, &notification)
+		return fmt.Errorf("Expected connection to be terminated but the read error returned: %v and the connection received the notification: %v", err, notification)
+	}
 	return nil
 }
 

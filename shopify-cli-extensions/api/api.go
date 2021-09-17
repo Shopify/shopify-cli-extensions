@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/gorilla/mux"
@@ -30,15 +31,15 @@ func New(config *core.Config) *ExtensionsApi {
 }
 
 func (api *ExtensionsApi) Notify(statusUpdate StatusUpdate) {
-	api.connections.Range(func(_, notify interface{}) bool {
-		notify.(notificationHandler)(statusUpdate)
+	api.connections.Range(func(_, clientHandlers interface{}) bool {
+		clientHandlers.(client).notify(statusUpdate)
 		return true
 	})
 }
 
 func (api *ExtensionsApi) Shutdown() {
-	api.connections.Range(func(connection, _ interface{}) bool {
-		api.unregisterClient(connection.(*websocket.Conn))
+	api.connections.Range(func(_, clientHandlers interface{}) bool {
+		clientHandlers.(client).close(1000, "server shut down")
 		return true
 	})
 }
@@ -80,32 +81,43 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 		},
 	}
 
-	websocket, err := upgrader.Upgrade(rw, r, nil)
+	connection, err := upgrader.Upgrade(rw, r, nil)
 	if err != nil {
 		return
 	}
 
 	notifications := make(chan StatusUpdate)
 
-	websocket.SetCloseHandler(func(code int, text string) error {
+	close := func(closeCode int, message string) error {
+		api.unregisterClient(connection, closeCode, message)
 		close(notifications)
-		api.unregisterClient(websocket)
 		return nil
-	})
+	}
 
-	go func() {
-		for notification := range notifications {
-			encoder := json.NewEncoder(rw)
-			encoder.Encode(extensionsResponse{api.Extensions, api.Version})
-			websocket.WriteJSON(&notification)
-		}
-	}()
+	connection.SetCloseHandler(close)
 
-	api.registerClient(websocket, func(update StatusUpdate) {
+	api.registerClient(connection, func(update StatusUpdate) {
 		notifications <- update
-	})
+	}, close)
 
-	websocket.WriteJSON(StatusUpdate{Type: "connected", Extensions: api.Extensions})
+	err = api.writeJSONMessage(connection, &StatusUpdate{Type: "connected", Extensions: api.Extensions})
+
+	if err != nil {
+		close(websocket.CloseNoStatusReceived, "cannot establish connection to client")
+		return
+	}
+
+	go handleClientMessages(connection)
+
+	for notification := range notifications {
+		encoder := json.NewEncoder(rw)
+		encoder.Encode(extensionsResponse{api.Extensions, api.Version})
+
+		err = api.writeJSONMessage(connection, &notification)
+		if err != nil {
+			break
+		}
+	}
 }
 
 func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request) {
@@ -114,14 +126,39 @@ func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request
 	encoder.Encode(extensionsResponse{api.Extensions, api.Version})
 }
 
-func (api *ExtensionsApi) registerClient(connection *websocket.Conn, notify notificationHandler) bool {
-	api.connections.Store(connection, notify)
+func (api *ExtensionsApi) registerClient(connection *websocket.Conn, notify notificationHandler, close closeHandler) bool {
+	api.connections.Store(connection, client{notify, close})
 	return true
 }
 
-func (api *ExtensionsApi) unregisterClient(connection *websocket.Conn) {
+func (api *ExtensionsApi) unregisterClient(connection *websocket.Conn, closeCode int, message string) {
+	duration := 1 * time.Second
+	deadline := time.Now().Add(duration)
+
+	connection.SetWriteDeadline(deadline)
+	connection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, message))
+
+	// TODO: Break out of this 1 second wait if the client responds correctly to the close message
+	<-time.After(duration)
 	connection.Close()
 	api.connections.Delete(connection)
+}
+
+func (api *ExtensionsApi) writeJSONMessage(connection *websocket.Conn, statusUpdate *StatusUpdate) error {
+	connection.SetWriteDeadline(time.Now().Add(1 * time.Second))
+	return connection.WriteJSON(statusUpdate)
+}
+
+func handleClientMessages(connection *websocket.Conn) {
+	// TODO: Handle messages from the client
+	// Currently we don't do anything with the messages
+	// but the code is needed to establish a two-way connection
+	for {
+		_, _, err := connection.ReadMessage()
+		if err != nil {
+			break
+		}
+	}
 }
 
 type ExtensionsApi struct {
@@ -140,4 +177,11 @@ type extensionsResponse struct {
 	Version    string           `json:"version"`
 }
 
+type client struct {
+	notify notificationHandler
+	close  closeHandler
+}
+
 type notificationHandler func(StatusUpdate)
+
+type closeHandler func(code int, text string) error
