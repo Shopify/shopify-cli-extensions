@@ -37,9 +37,13 @@ func New(config *core.Config, apiRoot string) *ExtensionsApi {
 	return api
 }
 
-func (api *ExtensionsApi) notifyClients(statusUpdate StatusUpdate) {
-	api.connections.Range(func(_, clientHandlers interface{}) bool {
-		clientHandlers.(client).notify(statusUpdate)
+func (api *ExtensionsApi) sendUpdateEvent(extensions []core.Extension) {
+	api.connections.Range(func(connection, clientHandlers interface{}) bool {
+		rootUrl := connection.(*websocketConnection).rootUrl
+		clientHandlers.(client).notify(StatusUpdate{
+			Event:      "update",
+			Extensions: getExtensionsWithUrl(extensions, rootUrl),
+		})
 		return true
 	})
 }
@@ -55,7 +59,8 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 	for _, extension := range extensions {
 		updateData, found := api.updates.Load(extension.UUID)
 		if found {
-			if err := mergo.Merge(&updateData, &extensions); err != nil {
+			castedData := updateData.(core.Extension)
+			if err := mergeWithOverwrite(&castedData, &extensions); err != nil {
 				log.Printf("failed to merge update data %v", err)
 			}
 		} else {
@@ -67,7 +72,8 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 	for index := range api.Extensions {
 		updateData, found := api.updates.LoadAndDelete(api.Extensions[index].UUID)
 		if found {
-			err := mergo.Merge(&api.Extensions[index], updateData)
+			castedData := updateData.(core.Extension)
+			err := mergeWithOverwrite(&api.Extensions[index], &castedData)
 			if err != nil {
 				log.Printf("failed to merge update data %v", err)
 			}
@@ -78,7 +84,7 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 		return
 	}
 
-	api.notifyClients(StatusUpdate{Event: "update", Extensions: updatedExtensions})
+	api.sendUpdateEvent(updatedExtensions)
 }
 
 func configureExtensionsApi(config *core.Config, router *mux.Router, apiRoot string) *ExtensionsApi {
@@ -122,11 +128,12 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 		},
 	}
 
-	connection, err := upgrader.Upgrade(rw, r, nil)
+	upgradedConnection, err := upgrader.Upgrade(rw, r, nil)
 	if err != nil {
 		return
 	}
 
+	connection := &websocketConnection{upgradedConnection, api.getApiRootFromRequest(r)}
 	notifications := make(chan StatusUpdate)
 
 	close := func(closeCode int, message string) error {
@@ -141,7 +148,7 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 		notifications <- update
 	}, close)
 
-	err = api.writeJSONMessage(connection, &StatusUpdate{Event: "connected", Extensions: api.Extensions})
+	err = api.writeJSONMessage(connection, &StatusUpdate{Event: "connected", Extensions: getExtensionsWithUrl(api.Extensions, connection.rootUrl)})
 
 	if err != nil {
 		close(websocket.CloseNoStatusReceived, "cannot establish connection to client")
@@ -153,13 +160,14 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 	for notification := range notifications {
 		err = api.writeJSONMessage(connection, &notification)
 		if err != nil {
+			log.Printf("error writing JSON message: %v", err)
 			break
 		}
 	}
 
 }
 
-func (api *ExtensionsApi) getAbsoluteUrl(r *http.Request, path string) string {
+func (api *ExtensionsApi) getApiRootFromRequest(r *http.Request) string {
 	var protocol string
 	if isSecureRequest(r) {
 		protocol = "https"
@@ -167,22 +175,24 @@ func (api *ExtensionsApi) getAbsoluteUrl(r *http.Request, path string) string {
 		protocol = "http"
 	}
 
-	apiRoot := fmt.Sprintf("%s://%s%s", protocol, r.Host, api.apiRoot)
-	return fmt.Sprintf("%s%s", apiRoot, path)
+	return fmt.Sprintf("%s://%s%s", protocol, r.Host, api.apiRoot)
+}
+
+func getExtensionsWithUrl(extensions []core.Extension, rootUrl string) []core.Extension {
+	updatedCopy := []core.Extension{}
+	for _, extension := range extensions {
+		updatedCopy = append(updatedCopy, setExtensionUrls(extension, rootUrl))
+	}
+	return updatedCopy
 }
 
 func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(rw)
 
-	for index := range api.Extensions {
-		api.setExtensionUrls(&api.Extensions[index], r)
-	}
-
 	encoder.Encode(extensionsResponse{
-		api.App,
-		api.Extensions,
-		api.Version,
+		&Response{api.App, api.Version},
+		getExtensionsWithUrl(api.Extensions, api.getApiRootFromRequest(r)),
 	})
 }
 
@@ -206,11 +216,10 @@ func (api *ExtensionsApi) extensionRootHandler(rw http.ResponseWriter, r *http.R
 
 	for _, extension := range api.Extensions {
 		if extension.UUID == uuid {
-			api.setExtensionUrls(&extension, r)
-
+			extensionWithUrls := setExtensionUrls(extension, api.getApiRootFromRequest(r))
 			rw.Header().Add("Content-Type", "application/json")
 			encoder := json.NewEncoder(rw)
-			encoder.Encode(singleExtensionResponse{api.App, extension, api.Version})
+			encoder.Encode(singleExtensionResponse{&Response{api.App, api.Version}, extensionWithUrls})
 			return
 		}
 	}
@@ -218,12 +227,12 @@ func (api *ExtensionsApi) extensionRootHandler(rw http.ResponseWriter, r *http.R
 	rw.Write([]byte(fmt.Sprintf("not found: %v", err)))
 }
 
-func (api *ExtensionsApi) registerClient(connection *websocket.Conn, notify notificationHandler, close closeHandler) bool {
+func (api *ExtensionsApi) registerClient(connection *websocketConnection, notify notificationHandler, close closeHandler) bool {
 	api.connections.Store(connection, client{notify, close})
 	return true
 }
 
-func (api *ExtensionsApi) unregisterClient(connection *websocket.Conn, closeCode int, message string) {
+func (api *ExtensionsApi) unregisterClient(connection *websocketConnection, closeCode int, message string) {
 	duration := 1 * time.Second
 	deadline := time.Now().Add(duration)
 
@@ -236,7 +245,7 @@ func (api *ExtensionsApi) unregisterClient(connection *websocket.Conn, closeCode
 	api.connections.Delete(connection)
 }
 
-func (api *ExtensionsApi) writeJSONMessage(connection *websocket.Conn, statusUpdate *StatusUpdate) error {
+func (api *ExtensionsApi) writeJSONMessage(connection *websocketConnection, statusUpdate *StatusUpdate) error {
 	connection.SetWriteDeadline(time.Now().Add(1 * time.Second))
 	websocketMessage := WebsocketMessage{
 		Event: statusUpdate.Event,
@@ -250,9 +259,9 @@ func (api *ExtensionsApi) writeJSONMessage(connection *websocket.Conn, statusUpd
 	return connection.WriteJSON(websocketMessage)
 }
 
-func (api *ExtensionsApi) handleClientMessages(connection *websocket.Conn) {
+func (api *ExtensionsApi) handleClientMessages(ws *websocketConnection) {
 	for {
-		_, message, err := connection.ReadMessage()
+		_, message, err := ws.ReadMessage()
 		if err != nil {
 			break
 		}
@@ -269,8 +278,11 @@ func (api *ExtensionsApi) handleClientMessages(connection *websocket.Conn) {
 			if jsonMessage.Data.App != nil {
 				app := formatData(jsonMessage.Data.App, strcase.ToSnake)
 				if app["api_key"] == api.App["api_key"] {
-					mergeData(api.App, app)
-					go api.notifyClients(StatusUpdate{Event: "update", Extensions: []core.Extension{}})
+					err := mergo.MapWithOverwrite(&api.App, app)
+					if err != nil {
+						break
+					}
+					go api.sendUpdateEvent([]core.Extension{})
 				}
 			}
 			go api.Notify(jsonMessage.Data.Extensions)
@@ -281,8 +293,14 @@ func (api *ExtensionsApi) handleClientMessages(connection *websocket.Conn) {
 	}
 }
 
-func (api *ExtensionsApi) setExtensionUrls(extension *core.Extension, r *http.Request) {
-	extension.Development.Root.Url = api.getAbsoluteUrl(r, extension.UUID)
+func setExtensionUrls(original core.Extension, rootUrl string) core.Extension {
+	extension := core.Extension{}
+	err := mergeWithOverwrite(&extension, &original)
+	if err != nil {
+		return original
+	}
+
+	extension.Development.Root.Url = fmt.Sprintf("%s%s", rootUrl, extension.UUID)
 
 	keys := make([]string, 0, len(extension.Development.Entries))
 	for key := range extension.Development.Entries {
@@ -296,17 +314,15 @@ func (api *ExtensionsApi) setExtensionUrls(extension *core.Extension, r *http.Re
 			Name: name,
 		}
 	}
+	return extension
 }
 
 func isSecureRequest(r *http.Request) bool {
 	// TODO: Find a better way to handle this - looks like there's no easy way to get the request protocol
-	return !strings.HasPrefix(r.Host, "localhost")
-}
+	re := regexp.MustCompile(`:([0-9])+$`)
+	hasPort := re.MatchString(r.Host)
+	return !strings.HasPrefix(r.Host, "localhost") && !hasPort
 
-func mergeData(source map[string]interface{}, data map[string]interface{}) {
-	forEachValueInMap(data, func(key string, value interface{}) {
-		source[key] = value
-	})
 }
 
 func formatData(data map[string]interface{}, formatter func(str string) string) map[string]interface{} {
@@ -325,6 +341,15 @@ func forEachValueInMap(data map[string]interface{}, onEachValue func(key string,
 	for entry := range keys {
 		onEachValue(keys[entry], data[keys[entry]])
 	}
+}
+
+func mergeWithOverwrite(source interface{}, destination interface{}) error {
+	// Allow overwriting existing data and allow setting booleans to false
+	// There is a weird quirk in the library where false is treated as empty
+	// We need to use a custom transformer to fix this issue because universally allowing
+	// overwriting with empty values leads to unexpected results overriding arrays and maps
+	// https://github.com/imdario/mergo/issues/89#issuecomment-562954181
+	return mergo.Merge(source, destination, mergo.WithOverride, mergo.WithTransformers(core.Extension{}))
 }
 
 type ExtensionsApi struct {
@@ -351,16 +376,24 @@ type WebsocketMessage struct {
 	Version string        `json:"version"`
 }
 
+type Response struct {
+	App     core.App `json:"app" yaml:"-"`
+	Version string   `json:"version"`
+}
+
+type websocketConnection struct {
+	*websocket.Conn
+	rootUrl string
+}
+
 type extensionsResponse struct {
-	App        core.App         `json:"app" yaml:"-"`
+	*Response
 	Extensions []core.Extension `json:"extensions"`
-	Version    string           `json:"version"`
 }
 
 type singleExtensionResponse struct {
-	App       core.App       `json:"app" yaml:"-"`
+	*Response
 	Extension core.Extension `json:"extension"`
-	Version   string         `json:"version"`
 }
 
 type client struct {

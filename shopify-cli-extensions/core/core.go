@@ -2,13 +2,17 @@ package core
 
 import (
 	"io"
+	"reflect"
 
 	"gopkg.in/yaml.v3"
 )
 
 func NewExtensionService(config *Config, apiRoot string) *ExtensionService {
-	for index := range config.Extensions {
-		config.Extensions[index].Assets = make(map[string]Asset)
+	// Create a copy so we don't mutate the configs
+	extensions := []Extension{}
+	for _, extension := range config.Extensions {
+		extension.Assets = make(map[string]Asset)
+		extensions = append(extensions, extension)
 	}
 	// TODO: Improve this when we need to read more app configs,
 	// for now we only know and care about api_key
@@ -18,7 +22,7 @@ func NewExtensionService(config *Config, apiRoot string) *ExtensionService {
 	service := ExtensionService{
 		App:        app,
 		Version:    "0.1.0",
-		Extensions: config.Extensions,
+		Extensions: extensions,
 		Port:       config.Port,
 		Store:      config.Store,
 	}
@@ -72,7 +76,6 @@ type Development struct {
 	Resource Url               `json:"resource"`
 	Renderer Renderer          `json:"-" yaml:"renderer"`
 	Hidden   bool              `json:"hidden"`
-	Focused  bool              `json:"focused"`
 	BuildDir string            `json:"-" yaml:"build_dir"`
 	RootDir  string            `json:"-" yaml:"root_dir"`
 	Template string            `json:"-"`
@@ -98,4 +101,14 @@ type App map[string]interface{}
 
 type Url struct {
 	Url string `json:"url" yaml:"url"`
+}
+
+func (t Extension) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
+	if typ.Kind() == reflect.Bool {
+		return func(dst, src reflect.Value) error {
+			dst.SetBool(src.Bool())
+			return nil
+		}
+	}
+	return nil
 }
