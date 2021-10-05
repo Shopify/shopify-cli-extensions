@@ -39,10 +39,11 @@ func init() {
 }
 
 func TestGetExtensions(t *testing.T) {
+	host := "123.ngrok-url"
 	api := New(config, apiRoot)
 	response := extensionsResponse{}
 
-	getJSONResponse(api, t, "/extensions/", &response)
+	getJSONResponse(api, t, host, "/extensions/", &response)
 
 	if response.App == nil || response.App["api_key"] != "app_api_key" {
 		t.Errorf("Expected app to have api_key \"app_api_key\" but got %v", response.App)
@@ -66,24 +67,31 @@ func TestGetExtensions(t *testing.T) {
 		t.Errorf("expect an asset with the name main, got %s", extension.Assets["main"].Name)
 	}
 
-	if extension.Assets["main"].Url != fmt.Sprintf("http://localhost:8000/extensions/%s/assets/main.js", extension.UUID) {
+	if extension.Assets["main"].Url != "https://123.ngrok-url/extensions/00000000-0000-0000-0000-000000000000/assets/main.js" {
 		t.Errorf("expect a main asset url, got %s", extension.Assets["main"].Url)
 	}
 
-	if extension.Development.Root.Url != fmt.Sprintf("http://localhost:8000/extensions/%s", extension.UUID) {
+	if extension.Development.Root.Url != "https://123.ngrok-url/extensions/00000000-0000-0000-0000-000000000000" {
 		t.Errorf("expect an extension root url, got %s", extension.Development.Root.Url)
 	}
 
-	if extension.User.Metafields == nil {
-		t.Error("Expected user metafields to not be null")
+	metafields := core.Metafield{Namespace: "my-namespace", Key: "my-key"}
+
+	if extension.User.Metafields[0] != metafields {
+		t.Errorf("expected user metafields to be %v but got %v", metafields, extension.User.Metafields[0])
+	}
+
+	if api.Extensions[0].Development.Root.Url != "" || api.Extensions[0].Assets["main"].Url != "" {
+		t.Error("expect extension API data urls to not to be mutated")
 	}
 }
 
 func TestGetSingleExtension(t *testing.T) {
+	host := "123.ngrok-url"
 	api := New(config, apiRoot)
 	response := singleExtensionResponse{}
 
-	getJSONResponse(api, t, "/extensions/00000000-0000-0000-0000-000000000000", &response)
+	getJSONResponse(api, t, host, "/extensions/00000000-0000-0000-0000-000000000000", &response)
 
 	if response.Version != "0.1.0" {
 		t.Errorf("expect service version to be 0.1.0 but got %s", response.Version)
@@ -103,16 +111,26 @@ func TestGetSingleExtension(t *testing.T) {
 		t.Errorf("expect an asset with the name main, got %s", extension.Assets["main"].Name)
 	}
 
-	if extension.Assets["main"].Url != fmt.Sprintf("http://localhost:8000/extensions/%s/assets/main.js", extension.UUID) {
+	if extension.Assets["main"].Url != fmt.Sprintf("https://%s/extensions/%s/assets/main.js", host, extension.UUID) {
 		t.Errorf("expect a main asset url, got %s", extension.Assets["main"].Url)
 	}
 
-	if extension.Development.Root.Url != fmt.Sprintf("http://localhost:8000/extensions/%s", extension.UUID) {
+	if extension.Development.Root.Url != fmt.Sprintf("https://%s/extensions/%s", host, extension.UUID) {
 		t.Errorf("expect an extension root url, got %s", extension.Development.Root.Url)
 	}
 
 	if extension.User.Metafields == nil {
-		t.Error("Expected user metafields to not be null")
+		t.Errorf("expected user metafields to be an an array")
+	}
+
+	metafields := core.Metafield{Namespace: "my-namespace", Key: "my-key"}
+
+	if extension.User.Metafields[0] != metafields {
+		t.Errorf("expected user metafields to be %v but got %v", metafields, extension.User.Metafields[0])
+	}
+
+	if api.Extensions[0].Development.Root.Url != "" || api.Extensions[0].Assets["main"].Url != "" {
+		t.Error("expect extension API data urls to not to be mutated")
 	}
 }
 
@@ -150,9 +168,13 @@ func TestWebsocketNotify(t *testing.T) {
 	firstConnection.ReadJSON(&WebsocketMessage{})
 	secondConnection.ReadJSON(&WebsocketMessage{})
 
+	expectedExtensions := []core.Extension{
+		getExpectedExtensionWithUrls(api.Extensions[0], server.URL),
+		getExpectedExtensionWithUrls(api.Extensions[1], server.URL),
+	}
 	expectedUpdate := WebsocketMessage{
 		Event: "update",
-		Data:  WebsocketData{Extensions: api.Extensions, App: api.App},
+		Data:  WebsocketData{Extensions: expectedExtensions, App: api.App},
 	}
 
 	api.Notify(api.Extensions)
@@ -174,9 +196,10 @@ func TestWebsocketConnectionStartAndShutdown(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	expectedExtensions := []core.Extension{getExpectedExtensionWithUrls(api.Extensions[0], server.URL), getExpectedExtensionWithUrls(api.Extensions[1], server.URL)}
 	expectedMessage := WebsocketMessage{
 		Event: "connected",
-		Data:  WebsocketData{Extensions: api.Extensions, App: api.App},
+		Data:  WebsocketData{Extensions: expectedExtensions, App: api.App},
 	}
 
 	if err := verifyWebsocketMessage(ws, expectedMessage); err != nil {
@@ -203,9 +226,14 @@ func TestWebsocketConnectionClientClose(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	expectedExtensions := []core.Extension{
+		getExpectedExtensionWithUrls(api.Extensions[0], server.URL),
+		getExpectedExtensionWithUrls(api.Extensions[1], server.URL),
+	}
+
 	expectedMessage := WebsocketMessage{
 		Event: "connected",
-		Data:  WebsocketData{Extensions: api.Extensions, App: api.App},
+		Data:  WebsocketData{Extensions: expectedExtensions, App: api.App},
 	}
 
 	if err := verifyWebsocketMessage(ws, expectedMessage); err != nil {
@@ -259,18 +287,22 @@ func TestWebsocketClientUpdateAppEvent(t *testing.T) {
 	}
 
 	response := extensionsResponse{}
-	getJSONResponse(api, t, "/extensions/", &response)
+	getJSONResponse(api, t, server.URL, "/extensions/", &response)
 
 	if response.App == nil {
 		t.Error("Expected app to not be null")
 	}
 
 	if response.App["api_key"] != "app_api_key" {
-		t.Errorf("expected App[\"api_key\"] to be `\"app_api_key\"` but got %v", api.App["api_key"])
+		t.Errorf("expected App[\"api_key\"] to be `\"app_api_key\"` but got %v", response.App["api_key"])
 	}
 
 	if response.App["title"] != "my app" {
-		t.Errorf("expected App[\"title\"] to be updated to `\"my app\"` but got %v", api.App["title"])
+		t.Errorf("expected App[\"title\"] to be updated to `\"my app\"` but got %v", response.App["title"])
+	}
+
+	if api.App["title"] != "my app" {
+		t.Errorf("expected API app title to to be updated to `\"my app\"` but got %v", api.App["title"])
 	}
 }
 
@@ -286,7 +318,7 @@ func TestWebsocketClientUpdateMatchingExtensionsEvent(t *testing.T) {
 	// First message received is the connected message which can be ignored
 	ws.ReadJSON(&WebsocketMessage{})
 
-	updatedExtensions := append([]core.Extension{}, api.Extensions[0])
+	updatedExtensions := []core.Extension{getExpectedExtensionWithUrls(api.Extensions[0], server.URL)}
 	updatedExtensions[0].Development.Hidden = true
 	updatedExtensions[0].Development.Status = "error"
 
@@ -321,26 +353,97 @@ func TestWebsocketClientUpdateMatchingExtensionsEvent(t *testing.T) {
 		t.Error(err)
 	}
 
+	apiUpdatedExtension := api.Extensions[0]
 	updated := singleExtensionResponse{}
-	getJSONResponse(api, t, "/extensions/00000000-0000-0000-0000-000000000000", &updated)
+	getJSONResponse(api, t, server.URL, "/extensions/00000000-0000-0000-0000-000000000000", &updated)
 
-	if !updated.Extension.Development.Hidden {
-		t.Errorf("expected extension Development.Hidden to be true but got %v", updated.Extension.Development.Hidden)
+	if updated.Extension.Development.Hidden != true {
+		t.Errorf("expected response for extension 00000000-0000-0000-0000-000000000000 Development.Hidden to be true but got %v", updated.Extension.Development.Hidden)
 	}
 
 	if updated.Extension.Development.Status != "error" {
-		t.Errorf("expected extension Development.Status to be \"error\" but got %v", updated.Extension.Development.Hidden)
+		t.Errorf("expected response for extension 00000000-0000-0000-0000-000000000000 Development.Status to be \"error\" but got %v", updated.Extension.Development.Status)
 	}
 
-	unchanged := singleExtensionResponse{}
-	getJSONResponse(api, t, "/extensions/00000000-0000-0000-0000-000000000001", &unchanged)
+	if apiUpdatedExtension.Development.Hidden != true {
+		t.Errorf("expected API extension 00000000-0000-0000-0000-000000000000 Development.Hidden to be true  but got %v", apiUpdatedExtension.Development.Hidden)
+	}
 
-	if unchanged.Extension.Development.Hidden {
-		t.Errorf("expected extension Development.Hidden to be unchanged but got %v", unchanged.Extension.Development.Hidden)
+	if apiUpdatedExtension.Development.Status != "error" {
+		t.Errorf("expected API extension 00000000-0000-0000-0000-000000000000 Development.Status to be \"error\" but got %v", apiUpdatedExtension.Development.Status)
+	}
+
+	apiUnchangedExtension := api.Extensions[1]
+	unchanged := singleExtensionResponse{}
+	getJSONResponse(api, t, server.URL, "/extensions/00000000-0000-0000-0000-000000000001", &unchanged)
+
+	if unchanged.Extension.Development.Hidden != false {
+		t.Errorf("expected response for extension 00000000-0000-0000-0000-000000000001 Development.Hidden to be unchanged but got %v", unchanged.Extension.Development.Hidden)
 	}
 
 	if unchanged.Extension.Development.Status != "" {
-		t.Errorf("expected extension Development.Status to be unchanged but got %v", unchanged.Extension.Development.Status)
+		t.Errorf("expected response for extension 00000000-0000-0000-0000-000000000001 Development.Status to be unchanged but got %v", unchanged.Extension.Development.Status)
+	}
+
+	if apiUnchangedExtension.Development.Hidden != false {
+		t.Errorf("expected API extension 00000000-0000-0000-0000-000000000001 Development.Hidden to be unchanged but got %v", apiUpdatedExtension.Development.Hidden)
+	}
+
+	if apiUnchangedExtension.Development.Status != "" {
+		t.Errorf("expected API extension 00000000-0000-0000-0000-000000000001 Development.Status to be unchanged but got %v", apiUpdatedExtension.Development.Status)
+	}
+}
+
+func TestWebsocketClientUpdateBooleanValue(t *testing.T) {
+	api := New(config, apiRoot)
+	api.Extensions[0].Development.Hidden = true
+
+	server := httptest.NewServer(api)
+
+	ws, err := createWebsocket(server)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// First message received is the connected message which can be ignored
+	ws.ReadJSON(&WebsocketMessage{})
+
+	duration := 1 * time.Second
+	deadline := time.Now().Add(duration)
+
+	ws.SetWriteDeadline(deadline)
+	ws.WriteJSON(WebsocketMessage{Event: "update", Data: WebsocketData{
+		Extensions: append([]core.Extension{}, core.Extension{
+			UUID: "00000000-0000-0000-0000-000000000000",
+			Development: core.Development{
+				Hidden: false,
+			},
+		}),
+	}})
+
+	<-time.After(duration)
+
+	updatedExtensions := []core.Extension{getExpectedExtensionWithUrls(api.Extensions[0], server.URL)}
+	updatedExtensions[0].Development.Hidden = false
+
+	expectedUpdate := WebsocketMessage{
+		Event: "update",
+		Data:  WebsocketData{Extensions: updatedExtensions, App: api.App},
+	}
+
+	if err := verifyWebsocketMessage(ws, expectedUpdate); err != nil {
+		t.Error(err)
+	}
+
+	apiUpdatedExtension := api.Extensions[0]
+	updated := singleExtensionResponse{}
+	getJSONResponse(api, t, server.URL, "/extensions/00000000-0000-0000-0000-000000000000", &updated)
+
+	if updated.Extension.Development.Hidden != false {
+		t.Errorf("expected response for extension 00000000-0000-0000-0000-000000000000 Development.Hidden to be false but got %v", updated.Extension.Development.Hidden)
+	}
+	if apiUpdatedExtension.Development.Hidden != false {
+		t.Errorf("expected API extension 00000000-0000-0000-0000-000000000000 Development.Hidden to be false but got %v", apiUpdatedExtension.Development.Hidden)
 	}
 }
 
@@ -357,16 +460,16 @@ func verifyWebsocketMessage(ws *websocket.Conn, expectedMessage WebsocketMessage
 	result, err := json.Marshal(message.Data.Extensions)
 
 	if err != nil {
-		return fmt.Errorf("Converting Extensions in message to JSON failed with error: %v", err)
+		return fmt.Errorf("converting extensions in message to JSON failed with error: %v", err)
 	}
 
 	expectedResult, err := json.Marshal(expectedMessage.Data.Extensions)
 	if err != nil {
-		return fmt.Errorf("Converting Extensions in expected message to JSON failed with error: %v", err)
+		return fmt.Errorf("converting extensions in expected message to JSON failed with error: %v", err)
 	}
 
 	if string(result) != string(expectedResult) {
-		return fmt.Errorf("Unexpected extensions in message, received %v, expected %v", string(result), string(expectedResult))
+		return fmt.Errorf("unexpected extensions in message, received %v, expected %v", string(result), string(expectedResult))
 	}
 
 	return nil
@@ -378,6 +481,10 @@ func verifyConnectionShutdown(api *ExtensionsApi, ws *websocket.Conn) error {
 	<-time.After(time.Second * 1)
 
 	api.Notify([]core.Extension{})
+
+	// Need to reset the deadline otherwise reading the message will fail
+	// with a timeout error instead of the expected websocket closed message
+	ws.SetReadDeadline(time.Time{})
 	_, message, err := ws.ReadMessage()
 	if !websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 		notification := StatusUpdate{}
@@ -393,9 +500,9 @@ func createWebsocket(server *httptest.Server) (*websocket.Conn, error) {
 	return connection, err
 }
 
-func getJSONResponse(api *ExtensionsApi, t *testing.T, requestUri string, response interface{}) interface{} {
+func getJSONResponse(api *ExtensionsApi, t *testing.T, host, requestUri string, response interface{}) interface{} {
 	req, err := http.NewRequest("GET", requestUri, nil)
-	req.Host = "localhost:8000"
+	req.Host = host
 	req.RequestURI = requestUri
 
 	if err != nil {
@@ -416,4 +523,10 @@ func getJSONResponse(api *ExtensionsApi, t *testing.T, requestUri string, respon
 
 	t.Logf("%+v\n", response)
 	return response
+}
+
+func getExpectedExtensionWithUrls(extension core.Extension, host string) core.Extension {
+	extension.Development.Root.Url = fmt.Sprintf("%s/extensions/%s", host, extension.UUID)
+	extension.Assets["main"] = core.Asset{Name: "main", Url: fmt.Sprintf("%s/extensions/%s/assets/main.js", host, extension.UUID)}
+	return extension
 }
