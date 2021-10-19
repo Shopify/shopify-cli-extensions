@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["src/*"],
+      "@shopify/ui-extensions-dev-console": ["../dev-console/src"],
+    }
+  },
+  "exclude": ["tests/**/*", "src/**/*.test.tsx", "src/**/*.test.ts"],
+  "include": ["src/**/*", "src/**/*.json"],
+  "references": [{"path": "../dev-console"}]
+}
