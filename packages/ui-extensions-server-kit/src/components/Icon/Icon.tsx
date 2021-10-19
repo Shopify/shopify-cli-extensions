@@ -59,7 +59,7 @@ export interface IconProps {
   accessibilityLabel?: string;
 }
 
-export function Icon({source, size, kind, accessibilityLabel}: IconProps) {
+export function Icon({source, size = 'base', kind = 'base', accessibilityLabel}: IconProps) {
   if (kind && typeof source !== 'function') {
     // eslint-disable-next-line no-console
     console.warn(
@@ -70,7 +70,6 @@ export function Icon({source, size, kind, accessibilityLabel}: IconProps) {
   const className = classNames(
     styles.Icon,
     kind && styles[variationName('color', kind)],
-    kind && styles.applyKind,
     size && styles[variationName('size', size)],
   );
 
