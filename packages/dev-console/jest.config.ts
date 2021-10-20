@@ -10,6 +10,8 @@ const config: Config.InitialOptions = {
     },
   },
 
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 
   testEnvironment: 'jsdom',
@@ -21,6 +23,7 @@ const config: Config.InitialOptions = {
   moduleDirectories: ['node_modules', 'src'],
 
   transform: {
+    '^.+\\.scss$': '<rootDir>/tests/css-transform.ts',
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
 };

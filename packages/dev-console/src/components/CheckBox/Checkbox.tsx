@@ -1,10 +1,7 @@
-import React, {PropsWithChildren, forwardRef, useRef, useImperativeHandle, useState} from 'react';
-import {TickSmallMinor} from '@shopify/polaris-icons';
-import {classNames} from '@shopify/css-utilities';
+import React, {PropsWithChildren} from 'react';
 
-import {useUniqueId} from '../hooks/useUniqueId';
-import {Choice} from '../Choice';
-import {Icon} from '../Icon';
+import {classNames, variationName, useUniqueId} from '../../utilities';
+import {Icon, TickSmallMinor} from '../Icon';
 
 import styles from './Checkbox.scss';
 
@@ -31,89 +28,70 @@ interface CheckboxPropsBase {
   onChange?: (value: boolean) => void;
 }
 
-export interface CheckboxHandles {
-  focus(): void;
-}
-
 export type CheckboxProps = PropsWithChildren<CheckboxPropsBase>;
 
-export const Checkbox = forwardRef<CheckboxHandles, CheckboxProps>(function Checkbox(
-  {
-    checked = false,
-    value = checked,
-    disabled,
-    id: explicitId,
-    children,
-    name,
-    onChange,
-  }: CheckboxProps,
-  ref,
-) {
-  const inputNode = useRef<HTMLInputElement>(null);
+export function Checkbox({
+  id: explicitId,
+  name,
+  accessibilityLabel,
+  disabled,
+  children,
+  ...rest
+}: CheckboxProps) {
   const id = useUniqueId('DevConsole-Checkbox', explicitId);
-  const [keyFocused, setKeyFocused] = useState(false);
 
-  useImperativeHandle(ref, () => ({
-    focus: () => {
-      if (inputNode.current) {
-        inputNode.current.focus();
-      }
-    },
-  }));
-
-  const handleInput = () => {
-    if (onChange == null || inputNode.current == null || disabled) {
-      return;
-    }
-    onChange(!inputNode.current.checked);
-    inputNode.current.focus();
-  };
-
-  const handleKeyUp = (event: React.KeyboardEvent) => {
-    if (!keyFocused) {
-      setKeyFocused(true);
-    }
-    if (event.key === 'Space') {
-      handleInput();
-    }
-  };
-
-  const isChecked = Boolean(checked || value);
-
-  const inputClassName = classNames(styles.Input, keyFocused && styles.keyFocused);
+  const labelClassName = classNames(styles.Label, disabled && styles['Label-isDisabled']);
 
   return (
-    /* eslint-disable jsx-a11y/no-redundant-roles */
-    <Choice id={id} label={children} disabled={disabled} onClick={handleInput}>
-      <span className={styles.Checkbox}>
-        <input
-          onKeyUp={handleKeyUp}
-          ref={inputNode}
-          id={id}
-          name={name}
-          type="checkbox"
-          checked={isChecked}
-          disabled={disabled}
-          className={inputClassName}
-          onClick={stopPropagation}
-          onFocus={() => setKeyFocused(true)}
-          onBlur={() => setKeyFocused(false)}
-          onChange={noop}
-          role="checkbox"
-          aria-checked={isChecked}
-        />
-        <span className={styles.Backdrop} />
-        <span className={styles.Icon}>
-          <Icon source={TickSmallMinor} />
-        </span>
-      </span>
-    </Choice>
-    /* eslint-enable jsx-a11y/no-redundant-roles */
+    <div className={styles.Wrapper}>
+      <CheckboxControl id={id} name={name} disabled={disabled} {...rest} />
+      <label
+        htmlFor={id}
+        className={labelClassName}
+        aria-label={accessibilityLabel ? accessibilityLabel : undefined}
+      >
+        {children}
+      </label>
+      {/* {errorMarkup} */}
+    </div>
   );
-});
+}
 
-function noop() {}
+interface ControlProps
+  extends Omit<CheckboxPropsBase, 'id' | 'error' | 'children' | 'accessibilityLabel'> {
+  id: string;
+}
 
-function stopPropagation<T>(event: React.MouseEvent<T>) {
-  event.stopPropagation();
+export function CheckboxControl({
+  id,
+  name,
+  value = false,
+  checked = value,
+  disabled,
+  onChange,
+}: ControlProps) {
+  const className = classNames(
+    styles.Input,
+    disabled && styles['Input-isDisabled'],
+    styles[variationName('Input-borderColor', 'base')],
+  );
+
+  return (
+    <div className={styles.Checkbox}>
+      <input
+        type="checkbox"
+        id={id}
+        name={name}
+        checked={checked}
+        disabled={disabled}
+        onChange={({currentTarget}) => {
+          onChange?.(currentTarget.checked);
+        }}
+        className={className}
+      />
+      <div className={styles.Icon}>
+        <Icon source={TickSmallMinor} />
+      </div>
+    </div>
+  );
 }

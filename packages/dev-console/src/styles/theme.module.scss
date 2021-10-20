@@ -35,10 +35,12 @@
   --p-icon-pressed: rgba(68, 71, 74, 1);
   --p-icon-disabled: rgba(186, 190, 195, 1);
   --p-icon-subdued: rgba(140, 145, 150, 1);
-  --p-text: rgba(32, 34, 35, 1);
+  --p-text: rgba(255, 255, 255, 1);
   --p-text-disabled: rgba(140, 145, 150, 1);
   --p-text-subdued: rgba(109, 113, 117, 1);
-  --p-interactive: rgba(44, 110, 203, 1);
+  --p-interactive: hsl(207, 100%, 60%);
+
+  // TODO: change to new interactive values or remove
   --p-interactive-disabled: rgba(189, 193, 204, 1);
   --p-interactive-hovered: rgba(31, 81, 153, 1);
   --p-interactive-pressed: rgba(16, 50, 98, 1);
@@ -147,8 +149,8 @@
   --p-override-loading-z-index: 514;
   --p-button-font-weight: 500;
   --p-non-null-content: '';
-  --p-choice-size: 2rem;
   --p-icon-size: 1rem;
+  --p-choice-size: 1.25rem;
   --p-choice-margin: 0.1rem;
   --p-control-border-width: 0.2rem;
   --p-banner-border-default: inset 0 0.1rem 0 0 var(--p-border-neutral-subdued),
@@ -167,6 +169,7 @@
   --p-text-field-focus-ring-offset: -0.4rem;
   --p-text-field-focus-ring-border-radius: 0.7rem;
   --p-button-group-item-spacing: -0.1rem;
+  --p-duration-fast: 100ms;
   --p-duration-1-0-0: 100ms;
   --p-duration-1-5-0: 150ms;
   --p-ease-in: cubic-bezier(0.5, 0.1, 1, 1);
@@ -177,7 +180,54 @@
   --p-badge-font-weight: 400;
   --p-frame-offset: 0px;
 
+  // spacing
+  --p-spacing-tight: 11px;
+
   --x-icon-size-default: 30px;
   --x-icon-size-small: 20px;
   --x-icon-size-large: 40px;
+
+  --p-font: 'SF Mono', monospace;
+}
+
+/*** The new CSS Reset - version 1.2.0 (last updated 23.7.2021) ***/
+.Theme {
+  /* Remove all the styles of the "User-Agent-Stylesheet", except for the 'display' property */
+  *:where(:not(iframe, canvas, img, svg, video):not(svg *)) {
+    all: unset;
+    display: revert;
+  }
+
+  /* Preferred box-sizing value */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /*
+    Remove list styles (bullets/numbers)
+    in case you use it combine with normalize.css
+  */
+  ol, ul {
+    list-style: none;
+  }
+
+  /* For images to not be able to exceed their container */
+  img {
+    max-width: 100%;
+  }
+
+  /* removes spacing between cells in tables */
+  table {
+    border-collapse: collapse;
+  }
+
+  /* revert the 'white-space' property for textarea elements on Safari */
+  textarea {
+    white-space: revert;
+  }
+
+  color: var(--p-text);
+  font-family: var(--p-font);
 }
