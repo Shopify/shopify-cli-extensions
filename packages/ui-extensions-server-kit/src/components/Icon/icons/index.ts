@@ -3,3 +3,4 @@ export * from './HideMinor.svg';
 export * from './RefreshMinor.svg';
 export * from './ToolsMajor.svg';
 export * from './ViewMinor.svg';
+export * from './TickSmallMinor.svg';

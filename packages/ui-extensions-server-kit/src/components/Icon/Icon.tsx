@@ -57,7 +57,7 @@ export interface IconProps {
   accessibilityLabel?: string;
 }
 
-export function Icon({source, size = 'base', kind = 'base', accessibilityLabel}: IconProps) {
+export function Icon({source, size, kind = 'base', accessibilityLabel}: IconProps) {
   if (kind && typeof source !== 'function') {
     // eslint-disable-next-line no-console
     console.warn(
@@ -74,7 +74,7 @@ export function Icon({source, size = 'base', kind = 'base', accessibilityLabel}:
   const SourceComponent = source;
   const contentMarkup =
     typeof source === 'function' ? (
-      <SourceComponent className={styles.Svg} focusable="false" aria-hidden="true" />
+      <SourceComponent className={styles.Svg} focusable={false} aria-hidden="true" />
     ) : (
       <img
         className={styles.Img}
