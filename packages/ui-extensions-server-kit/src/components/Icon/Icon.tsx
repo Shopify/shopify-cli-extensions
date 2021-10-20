@@ -38,9 +38,7 @@ export type Kind =
 
 type Size = 'small' | 'base' | 'large';
 
-type BuiltInIcon = 'refresh' | 'view' | 'hide' | 'tools';
-
-export type IconSource = React.SFC<React.SVGProps<SVGSVGElement>>;
+export type IconSource = React.SFC<React.SVGProps<SVGSVGElement>> | string;
 
 export interface IconProps {
   /** The SVG contents to display in the icon (icons should fit in a 20 × 20 pixel viewBox) */
@@ -52,7 +50,7 @@ export interface IconProps {
    * */
   size?: Size;
 
-  /** The kind determines the color for the SVG fill */
+  /** The kind determines the color for the SVG fill. Recoloring SVG `source` of type string is not supported */
   kind?: Kind;
 
   /** Descriptive text to be read to screenreaders */
@@ -63,7 +61,7 @@ export function Icon({source, size = 'base', kind = 'base', accessibilityLabel}:
   if (kind && typeof source !== 'function') {
     // eslint-disable-next-line no-console
     console.warn(
-      'Recoloring external SVGs is not supported. Set the intended color on your SVG instead.',
+      'Recoloring SVG `source` of type string is not supported. Set the intended color on your SVG instead.',
     );
   }
 
@@ -74,9 +72,17 @@ export function Icon({source, size = 'base', kind = 'base', accessibilityLabel}:
   );
 
   const SourceComponent = source;
-  const contentMarkup = (
-    <SourceComponent className={styles.Svg} focusable="false" aria-hidden="true" />
-  );
+  const contentMarkup =
+    typeof source === 'function' ? (
+      <SourceComponent className={styles.Svg} focusable="false" aria-hidden="true" />
+    ) : (
+      <img
+        className={styles.Img}
+        src={`data:image/svg+xml;utf8,${source}`}
+        alt={accessibilityLabel}
+        aria-hidden="true"
+      />
+    );
 
   return (
     <span className={className} aria-label={accessibilityLabel}>
