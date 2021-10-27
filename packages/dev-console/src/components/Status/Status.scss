@@ -1,0 +1,19 @@
+.Status {
+  font-size: 13px;
+  border-radius: 10px;
+  padding: 0.25rem 1rem 0.5rem;
+  white-space: nowrap;
+  background: var(--status-color);
+}
+
+.Connected {
+  --status-color: var(--p-success);
+}
+
+.Disconnected {
+  --status-color: var(--p-warning);
+}
+
+.BuildError {
+  --status-color: var(--p-critical);
+}
