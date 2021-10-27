@@ -16,7 +16,7 @@ import {useConsoleReducer, initialConsoleState} from './reducer';
 type UnsubscribeFn = () => void;
 
 export interface DevServerContextValue {
-  host: string;
+  host?: string;
   app?: App;
   extensions: ExtensionPayload[];
   send: (data: DevServerCall) => void;
@@ -24,15 +24,21 @@ export interface DevServerContextValue {
 }
 
 export const DevServerContext = createContext<DevServerContextValue>({
-  host: '',
   ...initialConsoleState,
   send: noop,
   addListener: (_: any) => () => {},
 });
 
-export function DevConsoleProvider({children, host}: React.PropsWithChildren<{host: string}>) {
+type ConnectionState = 'not-connected' | 'connecting' | 'open' | 'closing' | 'closed';
+
+export function DevConsoleProvider({
+  children,
+  host: staticHost,
+}: React.PropsWithChildren<{host: string}>) {
   const [state, update] = useConsoleReducer();
   const [send, setSend] = useState(() => noop);
+  const [connectionState, setConnectionState] = useState<ConnectionState>('not-connected');
+  const [host, setHost] = useState(staticHost);
   const listenersRef = useRef<Listener[]>([]);
 
   const addListener = useCallback((listener: Listener) => {
@@ -44,7 +50,10 @@ export function DevConsoleProvider({children, host}: React.PropsWithChildren<{ho
   }, []);
 
   useEffect(() => {
+    if (!host) return;
+
     const websocket = new WebSocket(host);
+    setConnectionState('connecting');
 
     websocket.addEventListener('message', (socketEvent) => {
       const response: DevServerResponse = JSON.parse(socketEvent.data);
@@ -60,16 +69,22 @@ export function DevConsoleProvider({children, host}: React.PropsWithChildren<{ho
     websocket.addEventListener('open', () => {
       const sendFn = (data: any) => websocket.send(JSON.stringify(data));
       setSend(() => sendFn);
+      setConnectionState('open');
+    });
+
+    websocket.addEventListener('close', () => {
+      setConnectionState('closed');
     });
 
     return () => {
+      setConnectionState('closing');
       websocket.close();
     };
   }, [host, update]);
 
   const value = useMemo(
-    () => ({host, ...state, send, addListener}),
-    [addListener, host, send, state],
+    () => ({host, ...state, send, addListener, connectionState, connect: setHost}),
+    [addListener, host, send, state, connectionState],
   );
 
   return <DevServerContext.Provider value={value}>{children}</DevServerContext.Provider>;
