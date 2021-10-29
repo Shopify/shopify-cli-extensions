@@ -11,6 +11,7 @@
     "deploy": "lerna publish from-package --yes",
     "lint": "eslint ./packages --ext .ts,.tsx --max-warnings 0 --format codeframe",
     "start": "cd packages/dev-console-app; yarn start",
+    "storybook": "cd packages/dev-console; yarn storybook",
     "test": "lerna run test",
     "version-bump": "lerna version --no-push --include-merged-tags"
   },
