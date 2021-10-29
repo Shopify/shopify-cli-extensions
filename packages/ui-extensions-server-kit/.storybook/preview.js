@@ -28,8 +28,9 @@ export const parameters = {
 
 export const decorators = [
   (Story) => {
-    return <div className={classNames(styles.Theme, storybookStyles.Storybook)}>
+    return (
+    <div className={classNames(styles.Theme, storybookStyles.Storybook)}>
       <Story />
-    </div>
+    </div>);
   },
 ];
