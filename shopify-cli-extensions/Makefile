@@ -40,20 +40,23 @@ endif
 .PHONY: test
 test:
 	go test ./...
+	yarn install
+	yarn test
 
 .PHONY: run
 run:
 	go run . $(RUN_ARGS)
 
-.PHONY: build-node-package
-build-node-package:
-	cd packages/shopify-cli-extensions; yarn install; yarn build
+.PHONY: build-node-packages
+build-node-packages:
+	yarn install
+	yarn build
 
 .PHONY: bootstrap
 bootstrap:
 	mkdir -p tmp
+	make build-node-packages
 	make build
-	make build-node-package
 	cd packages/shopify-cli-extensions; npm link --force
 	./shopify-extensions create testdata/shopifile.yml
 	cd tmp/checkout_ui_extension; npm install && npm link "@shopify/shopify-cli-extensions"
@@ -63,8 +66,8 @@ bootstrap:
 .PHONY: integration-test
 integration-test:
 	mkdir -p tmp
+	make build-node-packages
 	make build
-	make build-node-package
 	cd packages/shopify-cli-extensions; npm link --force
 	./shopify-extensions create testdata/shopifile.integration.yml
 	cd tmp/integration_test; npm link "@shopify/shopify-cli-extensions" && npm install
