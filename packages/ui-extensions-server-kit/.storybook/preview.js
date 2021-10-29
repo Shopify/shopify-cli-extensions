@@ -31,6 +31,6 @@ export const decorators = [
     return (
     <div className={classNames(styles.Theme, storybookStyles.Storybook)}>
       <Story />
-    </div>);
-  },
+    </div>
+  )},
 ];
