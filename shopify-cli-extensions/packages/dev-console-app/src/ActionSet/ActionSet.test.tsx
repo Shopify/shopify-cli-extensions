@@ -15,6 +15,18 @@ jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
 const i18n = mockI18n(en);
 
 describe('ActionSet', () => {
+  // Mocking location: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
+  const originalLocation = window.location;
+
+  beforeAll(() => {
+    delete (window as any).location;
+    (window as any).location = {};
+  });
+
+  afterAll(() => {
+    (window as any).location = originalLocation;
+  });
+
   function Wrapper({children}: React.PropsWithChildren<{}>) {
     return (
       <ToastProvider>
@@ -79,24 +91,29 @@ describe('ActionSet', () => {
   });
 
   it('renders QRCode with mobile deep-link url', async () => {
-    const host = 'www.example-host.com:8000/extensions/';
+    (window as any).location = {hostname: 'secure-link.com'};
     const extension = mockExtension();
+    const store = 'example.com';
 
     const container = await mount(
       <Wrapper>
         <ActionSet activeMobileQRCode extension={extension} />
       </Wrapper>,
-      {console: {host}},
+      {console: {store}},
     );
 
     await container.find(Popover)?.find(Action)?.trigger('onAction');
 
     const qrCodeElement = container?.find(QRCode);
 
-    expect(qrCodeElement?.prop('value')).toStrictEqual(host);
+    expect(qrCodeElement?.prop('value')).toStrictEqual(
+      `https://example.com/admin/extensions-dev/mobile?url=${extension.development.root.url}`,
+    );
   });
 
   it('renders error popover when failing to generate mobile QR code', async () => {
+    (window as any).location = {hostname: 'secure-link.com'};
+
     const container = await mount(
       <Wrapper>
         <ActionSet activeMobileQRCode extension={mockExtension()} />
@@ -110,6 +127,25 @@ describe('ActionSet', () => {
 
     expect(container).toContainReactComponent('p', {
       children: i18n.translate('qrcode.loadError'),
+    });
+  });
+
+  it('renders error popover when server is unsecure', async () => {
+    (window as any).location = {hostname: 'localhost'};
+
+    const container = await mount(
+      <Wrapper>
+        <ActionSet activeMobileQRCode extension={mockExtension()} />
+      </Wrapper>,
+      {console: {app: undefined, extensions: mockExtensions()}},
+    );
+
+    await container
+      .find(Action, {accessibilityLabel: i18n.translate('qrcode.action')})
+      ?.trigger('onAction');
+
+    expect(container).toContainReactComponent('p', {
+      children: i18n.translate('qrcode.useSecureURL'),
     });
   });
 });
