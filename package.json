@@ -5,8 +5,9 @@
     "packages/*"
   ],
   "scripts": {
+    "lint": "eslint ./packages --ext .ts,.tsx --max-warnings 0 --format codeframe",
     "start": "cd packages/dev-console-app; yarn start",
-    "lint": "eslint ./packages --ext .ts,.tsx --max-warnings 0 --format codeframe"
+    "storybook": "cd packages/dev-console; yarn storybook"
   },
   "devDependencies": {
     "@shopify/eslint-plugin": "^40.4.0",
