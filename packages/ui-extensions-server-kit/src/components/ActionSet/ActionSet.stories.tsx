@@ -6,6 +6,7 @@ import {mockExtensions} from '../../testing';
 
 import {RefreshAction, ToggleViewAction} from './actions';
 import {ActionSet} from './ActionSet';
+import {ActionSpacer} from './ActionSpacer';
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
 export default {
@@ -29,6 +30,7 @@ Base.args = {
   children: (
     <>
       <RefreshAction />
+      <ActionSpacer />
       <ToggleViewAction />
     </>
   ),
