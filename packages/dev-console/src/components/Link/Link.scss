@@ -1,3 +1,9 @@
-.monochrome {
+.Link {
+  color: var(--p-interactive);
+  cursor: pointer;
+}
+
+.Monochrome {
   color: inherit;
+  text-decoration: underline;
 }

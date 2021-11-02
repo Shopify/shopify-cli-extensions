@@ -2031,10 +2031,24 @@
     jest-matcher-utils "^26.6.2"
     react-reconciler "^0.26.2"
 
+"@shopify/react-testing@^3.2.7":
+  version "3.2.7"
+  resolved "https://registry.yarnpkg.com/@shopify/react-testing/-/react-testing-3.2.7.tgz#cd90639447a607d2a8ba2277ed5b206482cc8745"
+  integrity sha512-P2cHt4/nJCjmAVYrc/zE1F1AMmZto2v4BdrsNq/qPTQOMpCB6+qvBQbn6BBbUrdTsdjHGsgxxvOL+BMVq4tXHQ==
+  dependencies:
+    "@shopify/useful-types" "^3.0.5"
+    jest-matcher-utils "^26.6.2"
+    react-reconciler "^0.26.2"
+
 "@shopify/useful-types@^3.0.4":
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/@shopify/useful-types/-/useful-types-3.0.4.tgz#6b1f0908f60487550542c75acebea1a4f4eff968"
   integrity sha512-uHVbNANIdYgWSF+vgL+H7j3ufyNzAbkHIgL0iYPb/C2OreHC1YaQWeMjjPQobzCb5MxultSPgvAbgWuytm3gCA==
+
+"@shopify/useful-types@^3.0.5":
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/@shopify/useful-types/-/useful-types-3.0.5.tgz#97f9b5cd83b7874daf90591a6796335c7a0fe04c"
+  integrity sha512-jqF+DpXNIVA8T5Q7HbWNfoB/naNZCOTT0KOzwGYXZDn2l4SEAJKeTmN3lc7Rg+qgte9dW73NpaHdmsAKtajZ1g==
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.3"
@@ -3963,6 +3977,11 @@ axe-core@^4.0.2, axe-core@^4.2.0:
   version "4.3.3"
   resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-4.3.3.tgz#b55cd8e8ddf659fe89b064680e1c6a4dceab0325"
   integrity sha512-/lqqLAmuIPi79WYfRpy2i8z+x+vxU3zX2uAm0gs1q52qTuKwolOj1P8XbufpXcsydrpKx2yGn2wzAnxCMV86QA==
+
+axe-core@^4.2.0:
+  version "4.3.5"
+  resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-4.3.5.tgz#78d6911ba317a8262bfee292aeafcc1e04b49cc5"
+  integrity sha512-WKTW1+xAzhMS5dJsxWkliixlO/PqC4VhmO9T4juNYcaTg9jzWiJsou6m5pxWYGfigWbwzJWeFY6z47a+4neRXA==
 
 axobject-query@^2.2.0:
   version "2.2.0"
@@ -9713,7 +9732,7 @@ nanoid@^3.1.25:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.1.25.tgz#09ca32747c0e543f0e1814b7d3793477f9c8e152"
   integrity sha512-rdwtIXaXCLFAQbnfqDRnI6jaRHp9fTcYBjtFKE8eezcZ7LuLjhUaQGNeMXf1HmRoCH32CLz6XwX0TtxEOS/A3Q==
 
-nanoid@^3.1.28:
+nanoid@^3.1.30:
   version "3.1.30"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.1.30.tgz#63f93cc548d2a113dc5dfbc63bfa09e2b9b64362"
   integrity sha512-zJpuPDwOv8D2zq2WRoMe1HsfZthVewpel9CAvTfc/2mBD1uUT/agc5f7GHGWXlYkFvi1mVxe4IjvP2HNrop7nQ==
@@ -10664,12 +10683,12 @@ postcss@^7.0.14, postcss@^7.0.26, postcss@^7.0.32, postcss@^7.0.36, postcss@^7.0
     source-map "^0.6.1"
 
 postcss@^8.2.15:
-  version "8.3.9"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.3.9.tgz#98754caa06c4ee9eb59cc48bd073bb6bd3437c31"
-  integrity sha512-f/ZFyAKh9Dnqytx5X62jgjhhzttjZS7hMsohcI7HEI5tjELX/HxCy3EFhsRxyzGvrzFF+82XPvCS8T9TFleVJw==
+  version "8.3.11"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.3.11.tgz#c3beca7ea811cd5e1c4a3ec6d2e7599ef1f8f858"
+  integrity sha512-hCmlUAIlUiav8Xdqw3Io4LcpA1DOt7h3LSTAC4G6JGHFFaWzI6qvFt9oilvl8BmkbBRX1IhM90ZAmpk68zccQA==
   dependencies:
-    nanoid "^3.1.28"
-    picocolors "^0.2.1"
+    nanoid "^3.1.30"
+    picocolors "^1.0.0"
     source-map-js "^0.6.2"
 
 postcss@^8.3.6:
@@ -11748,9 +11767,9 @@ sass@^1.42.1:
     chokidar ">=3.0.0 <4.0.0"
 
 sass@^1.43.2:
-  version "1.43.2"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.43.2.tgz#c02501520c624ad6622529a8b3724eb08da82d65"
-  integrity sha512-DncYhjl3wBaPMMJR0kIUaH3sF536rVrOcqqVGmTZHQRRzj7LQlyGV7Mb8aCKFyILMr5VsPHwRYtyKpnKYlmQSQ==
+  version "1.43.4"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.43.4.tgz#68c7d6a1b004bef49af0d9caf750e9b252105d1f"
+  integrity sha512-/ptG7KE9lxpGSYiXn7Ar+lKOv37xfWsZRtFYal2QHNigyVQDx685VFT/h7ejVr+R8w7H4tmUgtulsKl5YpveOg==
   dependencies:
     chokidar ">=3.0.0 <4.0.0"
 

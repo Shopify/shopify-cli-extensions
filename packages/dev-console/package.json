@@ -1,11 +1,12 @@
 {
   "name": "@shopify/ui-extensions-dev-console",
   "version": "0.0.0",
+  "license": "UNLICENSED",
   "main": "dist/index",
   "types": "dist/index",
   "scripts": {
     "build": "tsc --outDir dist",
-    "test": "jest",
+    "test": "jest --watch",
     "clean": "git clean --exclude node_modules -xdf ./",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
@@ -18,7 +19,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.15.8",
-    "@shopify/react-testing": "^3.0.0",
+    "@shopify/react-testing": "^3.2.7",
     "@storybook/addon-a11y": "^6.3.12",
     "@storybook/addon-actions": "^6.3.12",
     "@storybook/addon-essentials": "^6.3.12",

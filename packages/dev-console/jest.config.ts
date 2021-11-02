@@ -18,6 +18,7 @@ const config: Config.InitialOptions = {
 
   moduleNameMapper: {
     'tests/(.*)': '<rootDir>/tests/$1',
+    '\\.(scss)$': '<rootDir>/__mocks__/styleMock.js',
   },
 
   moduleDirectories: ['node_modules', 'src'],
@@ -26,6 +27,7 @@ const config: Config.InitialOptions = {
     '^.+\\.scss$': '<rootDir>/tests/css-transform.ts',
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
+  testPathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/node_modules/'],
 };
 
 export default config;
