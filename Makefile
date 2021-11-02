@@ -39,9 +39,24 @@ endif
 
 .PHONY: test
 test:
-	go test ./...
 	yarn install
 	yarn test
+
+	# Create mock app folder to get go test running
+	rm -rf api/dev-console
+	mkdir api/dev-console
+	touch api/dev-console/index.html
+	go test ./...
+
+ifeq (serve-dev,$(firstword $(MAKECMDGOALS)))
+  SHOPIFILE := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(SHOPIFILE):;@:)
+endif
+
+.PHONY: serve-dev
+serve-dev:
+	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
+		yarn start & make run serve $(SHOPIFILE)
 
 .PHONY: run
 run:
