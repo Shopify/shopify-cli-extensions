@@ -28,6 +28,7 @@ export interface ActionSetProps {
   selected?: boolean;
   extension: ExtensionPayload;
   activeMobileQRCode?: boolean;
+  onCloseMobileQRCode?: () => void;
   onShowMobileQRCode?: (extension: ExtensionPayload) => void;
 }
 
@@ -36,8 +37,8 @@ export function ActionSet(props: ActionSetProps) {
     id: 'ActionSet',
     fallback: en,
   });
-  const {extension, className, activeMobileQRCode, onShowMobileQRCode} = props;
-  const {app, host, refresh, hide, show} = useDevConsoleInternal();
+  const {extension, className, activeMobileQRCode, onShowMobileQRCode, onCloseMobileQRCode} = props;
+  const {app, store, refresh, hide, show} = useDevConsoleInternal();
   const hidden = extension.development.hidden;
 
   const handleShowHide = useCallback(() => {
@@ -54,20 +55,17 @@ export function ActionSet(props: ActionSetProps) {
   const [mobileQRCode, setMobileQRCode] = useState<string | null>(null);
   const [mobileQRCodeState, setMobileQRCodeState] = useState<null | 'loading' | 'error'>(null);
 
-  const closeMobileQRCodePopover = useCallback(() => {
-    setMobileQRCode(null);
-    setMobileQRCodeState(null);
-  }, []);
-
   const showMobileQRCode = useCallback(async () => {
     if (app) {
-      setMobileQRCode(host);
+      setMobileQRCode(
+        `https://${store}/admin/extensions-dev/mobile?url=${extension.development.root.url}`,
+      );
       setMobileQRCodeState(null);
     } else {
       setMobileQRCodeState('error');
     }
     onShowMobileQRCode?.(extension);
-  }, [extension, onShowMobileQRCode, host, app]);
+  }, [extension, onShowMobileQRCode, store, app]);
 
   const onButtonClick = useCallback(() => {
     if (mobileQRCode && copyToClipboard(mobileQRCode)) {
@@ -78,6 +76,16 @@ export function ActionSet(props: ActionSetProps) {
   }, [mobileQRCode, showToast, i18n]);
 
   const popoverContent = useMemo(() => {
+    if (location.hostname === 'localhost') {
+      return (
+        <div className={styles.PopoverContent}>
+          <Stack alignment="center" vertical>
+            <Icon source={CircleAlertMajor} color="subdued" />
+            <p>{i18n.translate('qrcode.useSecureURL')}</p>
+          </Stack>
+        </div>
+      );
+    }
     if (mobileQRCode) {
       return (
         <>
@@ -133,7 +141,7 @@ export function ActionSet(props: ActionSetProps) {
             accessibilityLabel={i18n.translate('qrcode.action')}
             onAction={showMobileQRCode}
             active={activeMobileQRCode === true}
-            onClose={closeMobileQRCodePopover}
+            onClose={() => onCloseMobileQRCode?.()}
             content={popoverContent}
             className={className}
             loading={mobileQRCodeState === 'loading'}
