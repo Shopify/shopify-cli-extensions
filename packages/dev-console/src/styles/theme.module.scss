@@ -37,7 +37,7 @@
   --p-icon-subdued: rgba(140, 145, 150, 1);
   --p-text: rgba(255, 255, 255, 1);
   --p-text-disabled: rgba(140, 145, 150, 1);
-  --p-text-subdued: rgba(109, 113, 117, 1);
+  --p-text-subdued: rgb(186, 193, 199);
   --p-interactive: hsl(207, 100%, 70%);
 
   // TODO: change to new interactive values or remove
@@ -77,7 +77,7 @@
   --p-surface-critical-subdued-hovered: rgba(255, 240, 240, 1);
   --p-surface-critical-subdued-pressed: rgba(255, 233, 232, 1);
   --p-surface-critical-subdued-depressed: rgba(254, 188, 185, 1);
-  --p-text-critical: rgba(215, 44, 13, 1);
+  --p-text-critical: rgba(253, 147, 141, 1);
   --p-action-critical: rgba(216, 44, 13, 1);
   --p-action-critical-disabled: rgba(241, 241, 241, 1);
   --p-action-critical-hovered: rgba(188, 34, 0, 1);
@@ -112,7 +112,7 @@
   --p-surface-success-subdued: rgba(241, 248, 245, 1);
   --p-surface-success-subdued-hovered: rgba(236, 246, 241, 1);
   --p-surface-success-subdued-pressed: rgba(226, 241, 234, 1);
-  --p-text-success: rgba(0, 128, 96, 1);
+  --p-text-success: rgba(149, 201, 180, 1);
   --p-decorative-one-icon: rgba(126, 87, 0, 1);
   --p-decorative-one-surface: rgba(255, 201, 107, 1);
   --p-decorative-one-text: rgba(61, 40, 0, 1);
@@ -188,6 +188,17 @@
   --x-icon-size-large: 40px;
 
   --p-font: 'SF Mono', monospace;
+
+  // font-size
+  --dc-font-size-extraSmall: 0.75rem;
+  --dc-font-size-small: 0.8125rem;
+  --dc-font-size-medium: 1rem;
+  --dc-font-size-large: 1.5rem;
+  --dc-font-size-extraLarge: 2rem;
+
+  // text-appearance
+  --dc-text-code-padding: 0.125rem;
+  --dc-text-code-color: rgba(32, 34, 35, 1);
 }
 
 /*** The new CSS Reset - version 1.2.0 (last updated 23.7.2021) ***/

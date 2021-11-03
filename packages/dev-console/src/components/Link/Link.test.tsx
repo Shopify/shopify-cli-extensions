@@ -43,4 +43,14 @@ describe('<Link />', () => {
       lang: 'fr',
     });
   });
+
+  it('renders a monochrome link', () => {
+    const emphasizedText = mount(
+      <Link to={to} appearance="monochrome">
+        monochrome link
+      </Link>,
+    );
+
+    expect(emphasizedText).toContainReactComponent('a', {className: 'monochrome'});
+  });
 });

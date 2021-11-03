@@ -37,7 +37,7 @@ export interface LinkProps {
 }
 
 /**
- * Link is used to navigate the buyer to another page or section within the same page.
+ * Link is used to create navigation elements
  */
 export function Link({
   appearance,
@@ -56,7 +56,7 @@ export function Link({
   return (
     <a
       href={to}
-      className={classNames(styles.Link, appearance === 'monochrome' && styles.Monochrome)}
+      className={classNames(styles.Link, appearance === 'monochrome' && styles.monochrome)}
       aria-label={accessibilityLabel}
       id={id}
       lang={language}

@@ -18,8 +18,8 @@ const Template: Story<LinkProps> = (args) => {
   );
 };
 
-export const Standard = Template.bind({});
+export const Basic = Template.bind({});
 
-Standard.args = {
+Basic.args = {
   to: 'https://shopify.com',
 };
