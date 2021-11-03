@@ -1,0 +1,39 @@
+@import '../theme';
+
+.DevToolRow {
+  border-bottom: 1px solid $dark;
+
+  td {
+    padding: 1rem;
+  }
+
+  label {
+    vertical-align: middle;
+  }
+
+  .ActionSet {
+    visibility: hidden;
+  }
+
+  &:hover {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect y='0.25rem' x='0.3rem' width='calc(100% - 0.6rem)' height='calc(100% - 0.4rem)' rx='5' style='fill:rgb(#{red($background-hover)}, #{green($background-hover)}, #{blue($background-hover)});' /></svg>");
+
+    .ActionSet {
+      visibility: visible;
+    }
+  }
+
+  .Url {
+    color: $text;
+  }
+}
+
+.Hidden {
+  text-decoration: line-through;
+  color: $subdued;
+
+  .Url {
+    color: $subdued;
+  }
+}

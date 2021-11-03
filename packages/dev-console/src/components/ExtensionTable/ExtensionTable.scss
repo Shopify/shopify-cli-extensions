@@ -1,0 +1,34 @@
+@import '../theme';
+
+.ExtensionList {
+  width: 100%;
+  overflow: auto;
+  flex: 1;
+
+  table {
+    text-align: left;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  hr {
+    color: $subdued;
+  }
+
+  tr {
+    line-height: 3rem;
+    border-bottom: 1px solid $dark;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 1rem;
+    background: $background;
+  }
+
+  svg {
+    fill: $subdued;
+  }
+}
