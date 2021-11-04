@@ -38,7 +38,7 @@
   --p-text: rgba(255, 255, 255, 1);
   --p-text-disabled: rgba(140, 145, 150, 1);
   --p-text-subdued: rgba(109, 113, 117, 1);
-  --p-interactive: hsl(207, 100%, 60%);
+  --p-interactive: hsl(207, 100%, 70%);
 
   // TODO: change to new interactive values or remove
   --p-interactive-disabled: rgba(189, 193, 204, 1);
@@ -209,7 +209,8 @@
     Remove list styles (bullets/numbers)
     in case you use it combine with normalize.css
   */
-  ol, ul {
+  ol,
+  ul {
     list-style: none;
   }
 

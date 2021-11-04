@@ -20,6 +20,7 @@ const config: Config.InitialOptions = {
 
   moduleNameMapper: {
     'tests/(.*)': '<rootDir>/tests/$1',
+    '\\.(scss)$': '<rootDir>/src/__mocks__/styleMock.js',
   },
 
   moduleDirectories: ['node_modules', 'src'],
