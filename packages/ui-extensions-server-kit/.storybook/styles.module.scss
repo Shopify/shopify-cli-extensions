@@ -32,8 +32,13 @@
   border: 1px solid rgba(186, 191, 195, 1);
   border-top-color: rgba(201, 204, 207, 1);
   border-bottom-color: rgba(186, 191, 196, 1);
+
   &:hover {
     background: rgba(246, 246, 247, 1);
     outline: 0.1rem solid transparent;
+  }
+  &:active {
+    background: rgb(220, 221, 222);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
   }
 }
