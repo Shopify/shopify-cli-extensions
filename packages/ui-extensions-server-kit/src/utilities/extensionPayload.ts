@@ -2,12 +2,12 @@ import {createContext, useContext} from 'react';
 
 import {ExtensionPayload} from '../types';
 
-export const ExtensionPayloadContext = createContext<ExtensionPayload[]>([]);
+export const ExtensionContext = createContext<ExtensionPayload[]>([]);
 export function useExtensions() {
-  const data = useContext(ExtensionPayloadContext);
+  const data = useContext(ExtensionContext);
 
   if (!data) {
-    throw new Error('Missing ExtensionPayloadContext');
+    throw new Error('Missing ExtensionContext');
   }
   return data;
 }

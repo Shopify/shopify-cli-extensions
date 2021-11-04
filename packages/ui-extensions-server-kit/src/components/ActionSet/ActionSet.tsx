@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {ExtensionPayloadContext} from '../../utilities/extensionPayload';
+import {ExtensionContext} from '../../utilities/extensionPayload';
 import {ExtensionPayload} from '../../types';
 
 import styles from './ActionSet.scss';
@@ -14,8 +14,8 @@ export type ActionSetProps = React.PropsWithChildren<ActionSetPropsBase>;
 
 export function ActionSet({extensions, children}: ActionSetProps) {
   return (
-    <ExtensionPayloadContext.Provider value={extensions}>
+    <ExtensionContext.Provider value={extensions}>
       <div className={styles.ActionGroup}>{children}</div>
-    </ExtensionPayloadContext.Provider>
+    </ExtensionContext.Provider>
   );
 }

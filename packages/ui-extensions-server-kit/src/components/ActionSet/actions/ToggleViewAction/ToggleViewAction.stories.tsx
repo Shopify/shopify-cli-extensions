@@ -2,7 +2,7 @@ import React, {useMemo, useState} from 'react';
 import {ComponentStory, ComponentMeta} from '@storybook/react';
 import {action} from '@storybook/addon-actions';
 
-import {ExtensionPayloadContext} from '../../../../utilities/extensionPayload';
+import {ExtensionContext} from '../../../../utilities/extensionPayload';
 import {DevServerContext} from '../../../../state/context';
 import {mockExtensions} from '../../../../testing';
 
@@ -33,9 +33,9 @@ const Template: ComponentStory<any> = () => {
 
   return (
     <DevServerContext.Provider value={mockDevServerContext}>
-      <ExtensionPayloadContext.Provider value={extensions}>
+      <ExtensionContext.Provider value={extensions}>
         <ToggleViewAction />
-      </ExtensionPayloadContext.Provider>
+      </ExtensionContext.Provider>
     </DevServerContext.Provider>
   );
 };
