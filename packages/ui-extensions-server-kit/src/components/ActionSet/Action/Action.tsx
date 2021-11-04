@@ -6,7 +6,7 @@ import {Icon, IconSource} from '../../Icon';
 import styles from './Action.scss';
 
 export interface ActionProps {
-  /** Descriptive text to be read to screenreaders */
+  /** Descriptive text to be read by screenreaders */
   accessibilityLabel: string;
 
   /** The SVG contents to display in the icon (icons should fit in a 20 × 20 pixel viewBox) */
