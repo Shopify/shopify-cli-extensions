@@ -1,3 +1,5 @@
+const { config } = require("react-transition-group");
+
 module.exports = {
   stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
@@ -15,4 +17,17 @@ module.exports = {
       },
     },
   ],
+  webPackFinal: async (config) => {
+    config.module.push({
+      test: /\.mjs$/,
+      include: /node_modules/,
+      type: 'javascript/auto',
+      resolve: {
+        fullySpecified: false,
+      },
+    });
+
+    return config;
+  }
+
 };
