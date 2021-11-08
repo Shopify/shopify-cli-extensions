@@ -1,5 +1,4 @@
 import React from 'react';
-import {useI18n} from '@shopify/react-i18n';
 
 import {classNames} from '../../utilities/classNames';
 
@@ -16,11 +15,8 @@ export interface StatusProps {
 }
 
 export function Status({status = StatusType.Connected}) {
-//   const [i18n] = useI18n();
   const statusClass = classNames(styles.Status, styles[status] ?? styles.BuildError);
-//   const text = i18n.translationKeyExists(`${status}`)
-//     ? i18n.translate(`${status}`)
-//     : i18n.translate('BuildError');
+  const text = status;
 
-  return <span className={statusClass}>{status}</span>;
+  return <span className={statusClass}>{text}</span>;
 }

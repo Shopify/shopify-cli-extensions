@@ -29,24 +29,9 @@ export const parameters = {
 
 export const decorators = [
   (Story) => {
-    // const i18nManager = useMemo(
-    //   () =>
-    //     new I18nManager({
-    //       locale: "en",
-    //       onError(error) {
-    //         // eslint-disable-next-line no-console
-    //         console.log(error);
-    //       },
-    //     }, {
-    //       // TODO: Translations
-    //     }),
-    //   [],
-    // );
     return (
     <div className={classNames(styles.Theme, storybookStyles.Storybook)}>
-    {/* <I18nContext.Provider value={i18nManager}> */}
       <Story />
-      {/* </I18nContext.Provider> */}
     </div>
   )},
 ];
