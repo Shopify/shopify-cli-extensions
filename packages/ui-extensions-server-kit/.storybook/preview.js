@@ -1,4 +1,3 @@
-// import {I18nContext, I18nManager} from '@shopify/react-i18n';
 import styles from '../src/styles/theme.module.scss';
 import storybookStyles from './styles.module.scss';
 import {classNames} from '../src/utilities';
