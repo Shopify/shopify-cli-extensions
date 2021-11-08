@@ -13,7 +13,6 @@ import {Action} from './Action';
 export default {
   title: 'Components/ActionSet',
   component: ActionSet,
-  parameters: {viewMode: 'docs'},
   subcomponents: {Action},
   argTypes: {
     source: {control: false},
