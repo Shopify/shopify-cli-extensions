@@ -19,14 +19,32 @@ export default {
   },
 } as ComponentMeta<typeof ActionSet>;
 
+const containerStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+};
+
 const mockExtensionPayload: ExtensionPayload[] = mockExtensions();
 // More on component templates: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Template: ComponentStory<any> = (args) => (
-  <ActionSet {...args} extensions={mockExtensionPayload} />
+  <div style={containerStyle}>
+    <ActionSet {...args} extensions={mockExtensionPayload} />
+  </div>
 );
 
 export const Base = Template.bind({});
 Base.args = {
+  children: (
+    <>
+      <RefreshAction />
+      <ToggleViewAction />
+    </>
+  ),
+};
+
+export const BaseWithActionSpacer = Template.bind({});
+BaseWithActionSpacer.args = {
   children: (
     <>
       <RefreshAction />
