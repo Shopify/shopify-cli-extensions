@@ -7,11 +7,14 @@ import {mockExtensions} from '../../testing';
 import {RefreshAction, ToggleViewAction} from './actions';
 import {ActionSet} from './ActionSet';
 import {ActionSpacer} from './ActionSpacer';
+import {Action} from './Action';
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
 export default {
   title: 'Components/ActionSet',
   component: ActionSet,
+  parameters: {viewMode: 'docs'},
+  subcomponents: {Action},
   argTypes: {
     source: {control: false},
     children: {control: false},
@@ -33,23 +36,21 @@ const Template: ComponentStory<any> = (args) => (
   </div>
 );
 
-export const Base = Template.bind({});
-Base.args = {
-  children: (
-    <>
+export const Base = () => (
+  <div style={containerStyle}>
+    <ActionSet extensions={mockExtensionPayload}>
       <RefreshAction />
       <ToggleViewAction />
-    </>
-  ),
-};
+    </ActionSet>
+  </div>
+);
 
-export const BaseWithActionSpacer = Template.bind({});
-BaseWithActionSpacer.args = {
-  children: (
-    <>
+export const WithActionSpacer = () => (
+  <div style={containerStyle}>
+    <ActionSet extensions={mockExtensionPayload}>
       <RefreshAction />
       <ActionSpacer />
       <ToggleViewAction />
-    </>
-  ),
-};
+    </ActionSet>
+  </div>
+);
