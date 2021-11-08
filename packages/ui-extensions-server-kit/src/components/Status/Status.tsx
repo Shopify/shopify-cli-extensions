@@ -11,6 +11,7 @@ export enum StatusType {
 }
 
 export interface StatusProps {
+  /** Status for the status of the extension */
   status?: StatusType;
 }
 
