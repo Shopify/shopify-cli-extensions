@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useState, useMemo} from 'react';
 import {ComponentStory, ComponentMeta} from '@storybook/react';
+import {action} from '@storybook/addon-actions';
 
 import {ExtensionPayload} from '../../types';
 import {mockExtensions} from '../../testing';
+import {DevServerContext} from '../../state/context';
 
 import {RefreshAction, ToggleViewAction} from './actions';
 import {ActionSet} from './ActionSet';
@@ -26,30 +28,64 @@ const containerStyle: React.CSSProperties = {
   flexDirection: 'column',
   alignItems: 'flex-start',
 };
+const mockRereshContext = {
+  send: action('send'),
+} as any;
+const send = action('send');
 
-const mockExtensionPayload: ExtensionPayload[] = mockExtensions();
-// More on component templates: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Template: ComponentStory<any> = (args) => (
-  <div style={containerStyle}>
-    <ActionSet {...args} extensions={mockExtensionPayload} />
-  </div>
-);
+export const Base = () => {
+  const [extensions, setExtensions] = useState(() => mockExtensions());
+  const mockToggleViewContext = useMemo(
+    () =>
+      ({
+        send: (...args: any[]) => {
+          extensions[0].development.hidden = !extensions[0].development.hidden;
+          setExtensions([...extensions]);
+          send(...args);
+        },
+      } as any),
+    [extensions],
+  );
 
-export const Base = () => (
-  <div style={containerStyle}>
-    <ActionSet extensions={mockExtensionPayload}>
-      <RefreshAction />
-      <ToggleViewAction />
-    </ActionSet>
-  </div>
-);
+  return (
+    <div style={containerStyle}>
+      <ActionSet extensions={extensions}>
+        <DevServerContext.Provider value={mockRereshContext}>
+          <RefreshAction />
+        </DevServerContext.Provider>
+        <DevServerContext.Provider value={mockToggleViewContext}>
+          <ToggleViewAction />
+        </DevServerContext.Provider>
+      </ActionSet>
+    </div>
+  );
+};
 
-export const WithActionSpacer = () => (
-  <div style={containerStyle}>
-    <ActionSet extensions={mockExtensionPayload}>
-      <RefreshAction />
-      <ActionSpacer />
-      <ToggleViewAction />
-    </ActionSet>
-  </div>
-);
+export const WithActionSpacer = () => {
+  const [extensions, setExtensions] = useState(() => mockExtensions());
+  const mockToggleViewContext = useMemo(
+    () =>
+      ({
+        send: (...args: any[]) => {
+          extensions[0].development.hidden = !extensions[0].development.hidden;
+          setExtensions([...extensions]);
+          send(...args);
+        },
+      } as any),
+    [extensions],
+  );
+
+  return (
+    <div style={containerStyle}>
+      <ActionSet extensions={extensions}>
+        <DevServerContext.Provider value={mockRereshContext}>
+          <RefreshAction />
+        </DevServerContext.Provider>
+        <ActionSpacer />
+        <DevServerContext.Provider value={mockToggleViewContext}>
+          <ToggleViewAction />
+        </DevServerContext.Provider>
+      </ActionSet>
+    </div>
+  );
+};
