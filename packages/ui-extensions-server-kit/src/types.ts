@@ -1,4 +1,4 @@
-import {DeepPartial} from './utilities';
+import {DeepPartial} from './types/utilities';
 
 export interface DevServerUpdateCall {
   event: 'update';

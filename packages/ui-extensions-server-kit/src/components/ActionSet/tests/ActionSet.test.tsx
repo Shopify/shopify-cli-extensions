@@ -11,12 +11,6 @@ describe('<ActionSet />', () => {
     extensions: mockExtensions(),
   };
 
-  it('renders no actions', () => {
-    const actionSet = mount(<ActionSet {...defaultProps} />);
-
-    expect(actionSet.children).toHaveLength(0);
-  });
-
   it('renders refresh action', () => {
     const actionSet = mount(
       <ActionSet {...defaultProps}>
