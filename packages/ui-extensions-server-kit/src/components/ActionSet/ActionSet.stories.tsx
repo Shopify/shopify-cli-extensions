@@ -1,8 +1,10 @@
 import React, {useState, useMemo} from 'react';
-import {ComponentStory, ComponentMeta} from '@storybook/react';
+import {ComponentMeta} from '@storybook/react';
 import {action} from '@storybook/addon-actions';
+import {ExtensionPayload} from 'types';
 
-import {ExtensionPayload} from '../../types';
+import {ToolsMajor} from '../Icon';
+import {DevServerCall} from '../../types';
 import {mockExtensions} from '../../testing';
 import {DevServerContext} from '../../state/context';
 
@@ -15,7 +17,7 @@ import {Action} from './Action';
 export default {
   title: 'Components/ActionSet',
   component: ActionSet,
-  subcomponents: {Action},
+  subcomponents: {Action, ActionSpacer},
   argTypes: {
     source: {control: false},
     children: {control: false},
@@ -28,63 +30,68 @@ const containerStyle: React.CSSProperties = {
   flexDirection: 'column',
   alignItems: 'flex-start',
 };
-const mockRereshContext = {
-  send: action('send'),
-} as any;
 const send = action('send');
+
+function useMockDevServerContext(
+  extensions: ExtensionPayload[],
+  setExtensions: (extensions: ExtensionPayload[]) => void,
+) {
+  return useMemo(
+    () =>
+      ({
+        send: (callData: DevServerCall) => {
+          if (callData.event === 'update') {
+            extensions[0].development.hidden = !extensions[0].development.hidden;
+            setExtensions([...extensions]);
+          }
+          send(callData);
+        },
+      } as any),
+    [extensions, setExtensions],
+  );
+}
 
 export const Base = () => {
   const [extensions, setExtensions] = useState(() => mockExtensions());
-  const mockToggleViewContext = useMemo(
-    () =>
-      ({
-        send: (...args: any[]) => {
-          extensions[0].development.hidden = !extensions[0].development.hidden;
-          setExtensions([...extensions]);
-          send(...args);
-        },
-      } as any),
-    [extensions],
-  );
+  const context = useMockDevServerContext(extensions, setExtensions);
 
   return (
     <div style={containerStyle}>
-      <ActionSet extensions={extensions}>
-        <DevServerContext.Provider value={mockRereshContext}>
+      <DevServerContext.Provider value={context}>
+        <ActionSet extensions={extensions}>
           <RefreshAction />
-        </DevServerContext.Provider>
-        <DevServerContext.Provider value={mockToggleViewContext}>
           <ToggleViewAction />
-        </DevServerContext.Provider>
-      </ActionSet>
+        </ActionSet>
+      </DevServerContext.Provider>
     </div>
   );
 };
 
 export const WithActionSpacer = () => {
   const [extensions, setExtensions] = useState(() => mockExtensions());
-  const mockToggleViewContext = useMemo(
-    () =>
-      ({
-        send: (...args: any[]) => {
-          extensions[0].development.hidden = !extensions[0].development.hidden;
-          setExtensions([...extensions]);
-          send(...args);
-        },
-      } as any),
-    [extensions],
+  const context = useMockDevServerContext(extensions, setExtensions);
+
+  return (
+    <div style={containerStyle}>
+      <DevServerContext.Provider value={context}>
+        <ActionSet extensions={extensions}>
+          <RefreshAction />
+          <ActionSpacer />
+          <ToggleViewAction />
+        </ActionSet>
+      </DevServerContext.Provider>
+    </div>
   );
+};
+
+const onAction = action('onAction');
+export const WithCustomAction = () => {
+  const [extensions] = useState(() => mockExtensions());
 
   return (
     <div style={containerStyle}>
       <ActionSet extensions={extensions}>
-        <DevServerContext.Provider value={mockRereshContext}>
-          <RefreshAction />
-        </DevServerContext.Provider>
-        <ActionSpacer />
-        <DevServerContext.Provider value={mockToggleViewContext}>
-          <ToggleViewAction />
-        </DevServerContext.Provider>
+        <Action source={ToolsMajor} accessibilityLabel="custom action" onAction={onAction} />
       </ActionSet>
     </div>
   );
