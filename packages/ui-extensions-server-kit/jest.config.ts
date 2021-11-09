@@ -20,13 +20,12 @@ const config: Config.InitialOptions = {
 
   moduleNameMapper: {
     'tests/(.*)': '<rootDir>/tests/$1',
-    '\\.(scss)$': '<rootDir>/tests/css-transform.js',
+    '\\.(scss)$': '<rootDir>/tests/css-transform.ts',
   },
 
   moduleDirectories: ['node_modules', 'src'],
 
   transform: {
-    // '^.+\\.scss$': '<rootDir>/tests/css-transform.ts',
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
 };
