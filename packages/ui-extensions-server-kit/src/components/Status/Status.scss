@@ -1,6 +1,6 @@
 .Status {
   font-size: 13px;
-  border-radius: 10px;
+  border-radius: var(--status-border-radius);
   padding: 2px 8px 3px 8px;
   white-space: nowrap;
   background: var(--status-color);

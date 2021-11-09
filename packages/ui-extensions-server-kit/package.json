@@ -35,8 +35,6 @@
     "jest": "^27.1.0",
     "jest-websocket-mock": "^2.2.1",
     "mock-socket": "^9.0.5",
-    "react": "16.14.0",
-    "react-dom": "16.14.0",
     "sass": "^1.43.2",
     "sass-loader": "^10",
     "style-loader": "^2",
