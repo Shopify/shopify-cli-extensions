@@ -1,4 +1,4 @@
-.Code {
+.code {
   position: relative;
   padding: var(--dc-text-code-padding);
   border-radius: border-radius();
@@ -19,42 +19,42 @@
   }
 }
 
-.Critical {
+.critical {
   color: var(--p-text-critical);
 }
 
-.Success {
+.success {
   color: var(--p-text-success);
 }
 
-.Subdued {
+.subdued {
   color: var(--p-text-subdued);
 }
 
-.ExtraSmall {
+.extraSmall {
   font-size: var(--dc-font-size-extraSmall);
 }
 
-.Small {
+.small {
   font-size: var(--dc-font-size-small);
 }
 
-.Medium {
+.medium {
   font-size: var(--dc-font-size-medium);
 }
 
-.Large {
+.large {
   font-size: var(--dc-font-size-large);
 }
 
-.ExtraLarge {
+.extraLarge {
   font-size: var(--dc-font-size-extraLarge);
 }
 
-.Strong {
+.strong {
   font-weight: 800;
 }
 
-.Emphasized {
+.emphasized {
   font-style: italic;
 }

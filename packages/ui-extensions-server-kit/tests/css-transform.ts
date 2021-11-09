@@ -10,5 +10,4 @@ const idObj = new Proxy(
   },
 );
 
-// eslint-disable-next-line no-undef
-module.exports = idObj;
+export default idObj;

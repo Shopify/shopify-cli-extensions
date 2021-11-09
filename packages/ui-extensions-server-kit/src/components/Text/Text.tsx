@@ -36,10 +36,10 @@ export function Text({
   strong,
 }: PropsWithChildren<TextProps>) {
   const className = classNames(
-    appearance ? styles[sizeClassName(appearance)] : null,
-    emphasized && styles.Emphasized,
-    size && styles[sizeClassName(size)],
-    strong && styles.Strong,
+    appearance ? styles[appearance] : null,
+    emphasized && styles.emphasized,
+    size && styles[size],
+    strong && styles.strong,
   );
 
   return (
@@ -48,5 +48,3 @@ export function Text({
     </span>
   );
 }
-
-const sizeClassName = (prop: string) => `${prop.slice(0, 1).toUpperCase()}${prop.slice(1)}`;

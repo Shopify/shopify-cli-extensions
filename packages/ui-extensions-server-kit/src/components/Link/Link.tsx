@@ -56,7 +56,7 @@ export function Link({
   return (
     <a
       href={to}
-      className={classNames(styles.Link, appearance === 'monochrome' && styles.monochrome)}
+      className={classNames(styles.link, appearance === 'monochrome' && styles.monochrome)}
       aria-label={accessibilityLabel}
       id={id}
       lang={language}
