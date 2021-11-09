@@ -1,11 +1,12 @@
 {
   "name": "@shopify/ui-extensions-server-kit",
   "version": "0.1.0-alpha.0",
+  "license": "UNLICENSED",
   "main": "dist/index",
   "types": "dist/index",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --watch",
     "clean": "git clean --exclude node_modules -xdf ./",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
