@@ -3,6 +3,7 @@ import {mount} from '@shopify/react-testing';
 import '@shopify/react-testing/matchers';
 
 import {Link, LinkProps} from './Link';
+import styles from './Link.scss';
 
 describe('<Link />', () => {
   const to: LinkProps['to'] = 'https://example.com';
@@ -48,7 +49,7 @@ describe('<Link />', () => {
     const link = mount(<Link to={to} appearance="monochrome" />);
 
     expect(link).toContainReactComponent('a', {
-      className: 'monochrome',
+      className: `${styles.link} ${styles.monochrome}`,
     });
   });
 });
