@@ -17,17 +17,13 @@ module.exports = {
       },
     },
   ],
-  webPackFinal: async (config) => {
-    config.module.push({
+  webpackFinal: async (config) => {
+    config.module.rules.push({
       test: /\.mjs$/,
       include: /node_modules/,
       type: 'javascript/auto',
-      resolve: {
-        fullySpecified: false,
-      },
     });
 
     return config;
   }
-
 };
