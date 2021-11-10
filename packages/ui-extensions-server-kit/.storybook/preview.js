@@ -24,6 +24,11 @@ export const parameters = {
       date: /Date$/,
     },
   },
+  docs: {
+    source: {
+      state: 'open',
+    },
+  },
 }
 
 export const decorators = [

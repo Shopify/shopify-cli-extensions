@@ -6,10 +6,10 @@
   "types": "dist/index",
   "scripts": {
     "build": "tsc",
-    "test": "jest --watch",
+    "build-storybook": "build-storybook",
     "clean": "git clean --exclude node_modules -xdf ./",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "test": "jest --watch"
   },
   "dependencies": {
     "@shopify/react-i18n": "^6.1.0"
