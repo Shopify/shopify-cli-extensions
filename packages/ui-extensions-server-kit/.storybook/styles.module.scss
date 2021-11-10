@@ -8,4 +8,37 @@
     border-radius: 0.25rem;
     padding: 0.5rem;
   }
+
+}
+
+.Button {
+  background: rgba(255, 255, 255, 1);
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.7rem 1.6rem;
+  
+  color: rgba(32, 34, 35, 1);
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 2px;
+  font-family: -apple-system,BlinkMacSystemFont,San Francisco,Segoe UI,Roboto,Helvetica Neue,sans-serif;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 0.4rem;
+  border: 1px solid rgba(186, 191, 195, 1);
+  border-top-color: rgba(201, 204, 207, 1);
+  border-bottom-color: rgba(186, 191, 196, 1);
+  
+  &:hover {
+    background: rgba(246, 246, 247, 1);
+    outline: 0.1rem solid transparent;
+  }
+  &:active {
+    background: rgb(220, 221, 222);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  }
 }

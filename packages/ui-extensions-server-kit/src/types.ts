@@ -1,6 +1,4 @@
-type DeepPartial<T> = {
-  [P in keyof T]?: DeepPartial<T[P]>;
-};
+import {DeepPartial} from './types/utilities';
 
 export interface DevServerUpdateCall {
   event: 'update';

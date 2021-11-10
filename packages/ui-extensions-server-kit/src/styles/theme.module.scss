@@ -37,7 +37,7 @@
   --p-icon-subdued: rgba(140, 145, 150, 1);
   --p-text: rgba(255, 255, 255, 1);
   --p-text-disabled: rgba(140, 145, 150, 1);
-  --p-text-subdued: rgba(109, 113, 117, 1);
+  --p-text-subdued: hsl(210, 4%, 70%);
   --p-interactive: hsl(207, 100%, 70%);
 
   // TODO: change to new interactive values or remove
@@ -77,7 +77,7 @@
   --p-surface-critical-subdued-hovered: rgba(255, 240, 240, 1);
   --p-surface-critical-subdued-pressed: rgba(255, 233, 232, 1);
   --p-surface-critical-subdued-depressed: rgba(254, 188, 185, 1);
-  --p-text-critical: rgba(215, 44, 13, 1);
+  --p-text-critical: hsl(3, 96%, 78%);
   --p-action-critical: rgba(216, 44, 13, 1);
   --p-action-critical-disabled: rgba(241, 241, 241, 1);
   --p-action-critical-hovered: rgba(188, 34, 0, 1);
@@ -112,7 +112,7 @@
   --p-surface-success-subdued: rgba(241, 248, 245, 1);
   --p-surface-success-subdued-hovered: rgba(236, 246, 241, 1);
   --p-surface-success-subdued-pressed: rgba(226, 241, 234, 1);
-  --p-text-success: rgba(0, 128, 96, 1);
+  --p-text-success: hsl(150, 50%, 68%);
   --p-decorative-one-icon: rgba(126, 87, 0, 1);
   --p-decorative-one-surface: rgba(255, 201, 107, 1);
   --p-decorative-one-text: rgba(61, 40, 0, 1);
@@ -139,6 +139,7 @@
   --p-modal-shadow: 0px 26px 80px var(--p-shadow-from-dim-light),
     0px 0px 1px var(--p-shadow-from-dim-light);
   --p-top-bar-shadow: 0 2px 2px -1px var(--p-shadow-from-direct-light);
+  --p-button-text: rgba(32, 34, 35, 1);
   --p-button-drop-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
   --p-button-inner-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   --p-button-pressed-inner-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.15);
@@ -193,6 +194,17 @@
   --p-critical: hsl(11, 100%, 43%);
   --p-warning: hsl(44, 100%, 36%);
   --p-success: hsl(165, 100%, 32%);
+
+  // font-size
+  --dc-font-size-extraSmall: 0.75rem;
+  --dc-font-size-small: 0.8125rem;
+  --dc-font-size-medium: 1rem;
+  --dc-font-size-large: 1.5rem;
+  --dc-font-size-extraLarge: 2rem;
+
+  // text-appearance
+  --dc-text-code-padding: 0.125rem;
+  --dc-text-code-color: rgba(32, 34, 35, 1);
 }
 
 /*** The new CSS Reset - version 1.2.0 (last updated 23.7.2021) ***/

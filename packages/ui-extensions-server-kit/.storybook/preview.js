@@ -24,13 +24,17 @@ export const parameters = {
       date: /Date$/,
     },
   },
+  docs: {
+    source: {
+      state: 'open',
+    },
+  },
 }
 
 export const decorators = [
-  (Story) => {
-    return (
+  (Story) => (
     <div className={classNames(styles.Theme, storybookStyles.Storybook)}>
       <Story />
     </div>
-  )},
+  ),
 ];
