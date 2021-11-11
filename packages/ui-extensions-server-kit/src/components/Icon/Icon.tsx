@@ -57,7 +57,7 @@ export interface IconProps {
   accessibilityLabel?: string;
 }
 
-/** Icons are used to visually communicate core parts of the developer console and available actions.
+/** Icon is used to visually communicate core parts of the developer console and available actions.
 
 */
 export function Icon({source, size, kind = 'base', accessibilityLabel}: IconProps) {
