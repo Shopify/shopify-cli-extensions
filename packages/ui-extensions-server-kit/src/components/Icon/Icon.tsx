@@ -57,6 +57,9 @@ export interface IconProps {
   accessibilityLabel?: string;
 }
 
+/** Icon is used to visually communicate core parts of the developer console and available actions.
+
+*/
 export function Icon({source, size, kind = 'base', accessibilityLabel}: IconProps) {
   if (kind && typeof source !== 'function') {
     // eslint-disable-next-line no-console

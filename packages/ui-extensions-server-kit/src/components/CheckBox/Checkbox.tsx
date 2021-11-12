@@ -30,6 +30,8 @@ interface CheckboxPropsBase {
 
 export type CheckboxProps = PropsWithChildren<CheckboxPropsBase>;
 
+/** Checkbox is used to give users a way to make a range of selections (zero, one, or multiple).
+ */
 export function Checkbox({
   id: explicitId,
   name,
