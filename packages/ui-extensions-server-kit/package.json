@@ -12,7 +12,7 @@
     "test": "jest --watch"
   },
   "dependencies": {
-    "@shopify/react-i18n": "^6.1.0"
+    "@shopify/react-i18n": "^6.2.3"
   },
   "peerDependencies": {
     "react": "16.14.0"

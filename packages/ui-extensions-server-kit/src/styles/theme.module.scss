@@ -128,6 +128,7 @@
   --p-decorative-five-icon: rgba(174, 43, 76, 1);
   --p-decorative-five-surface: rgba(253, 201, 208, 1);
   --p-decorative-five-text: rgba(79, 14, 31, 1);
+  --p-status-border-radius: 0.77rem;
   --p-border-radius-base: 0.4rem;
   --p-border-radius-wide: 0.8rem;
   --p-border-radius-full: 50%;
@@ -189,6 +190,10 @@
   --x-icon-size-large: 40px;
 
   --p-font: 'SF Mono', monospace;
+  // custom colors
+  --p-critical: hsl(11, 100%, 43%);
+  --p-warning: hsl(44, 100%, 36%);
+  --p-success: hsl(165, 100%, 32%);
 
   // font-size
   --dc-font-size-extraSmall: 0.75rem;
