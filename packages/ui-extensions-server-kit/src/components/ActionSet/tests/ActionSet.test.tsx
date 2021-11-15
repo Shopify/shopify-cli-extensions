@@ -1,10 +1,10 @@
 import React from 'react';
 import {mount} from '@shopify/react-testing';
-import {mockExtensions} from 'testing/extensions';
 
-import {RefreshAction, ToggleViewAction} from '../actions';
 import {ActionSet} from '../ActionSet';
 import {ActionSpacer} from '../ActionSpacer';
+import {RefreshAction, ToggleViewAction} from '../actions';
+import {mockExtensions} from '../../../testing';
 
 describe('<ActionSet />', () => {
   const defaultProps = {

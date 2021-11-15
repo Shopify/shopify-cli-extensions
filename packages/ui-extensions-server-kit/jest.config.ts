@@ -10,7 +10,7 @@ const config: Config.InitialOptions = {
     },
   },
 
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/src/testing/setup.ts'],
 
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 

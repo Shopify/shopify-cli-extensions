@@ -86,6 +86,9 @@ export function CheckboxControl({
         name={name}
         checked={checked}
         disabled={disabled}
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
         onChange={({currentTarget}) => {
           onChange?.(currentTarget.checked);
         }}
