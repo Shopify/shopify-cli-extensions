@@ -19,5 +19,8 @@
     "@shopify/eslint-plugin": "^40.4.0",
     "eslint": "^7.32.0",
     "lerna": "^4.0.0"
+  },
+  "resolutions": {
+    "@types/react": "^16.14.0"
   }
 }
