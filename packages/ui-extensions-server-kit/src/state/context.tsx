@@ -87,7 +87,6 @@ export function useListener(listener: Listener, deps: React.DependencyList = [])
 
 export function useDevConsole(): Console {
   const {extensions, app, store, send} = useContext(DevServerContext);
-
   return {
     app,
     store,

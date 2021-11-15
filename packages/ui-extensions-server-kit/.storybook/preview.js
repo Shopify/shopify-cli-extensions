@@ -4,7 +4,7 @@ import {classNames} from '../src/utilities';
 import {I18nContext, I18nManager} from '@shopify/react-i18n';
 
 export const parameters = {
-  actions: { argTypesRegex: "^on[A-Z].*" },
+  actions: {argTypesRegex: '^on[A-Z].*'},
   backgrounds: {
     default: 'default',
     values: [
@@ -30,9 +30,15 @@ export const parameters = {
       state: 'open',
     },
   },
+<<<<<<< HEAD
 }
 
 const i18nManager = new I18nManager({locale: 'en'})
+=======
+};
+
+const i18nManager = new I18nManager({locale: 'en'});
+>>>>>>> de0db33 (wip: troubleshooting checkboxes)
 
 export const decorators = [
   (Story) => (

@@ -25,9 +25,11 @@ export function ExtensionTable({header, renderItem}: ExtensionTableProps) {
   );
 
   const toggleSelection = useCallback((extension: ExtensionPayload) => {
+    console.log('toggle');
     setSelectedExtensionsKeys((set) => {
       // if set.delete -> false, the extension is not included in setSelectedExtensionsKeys - therefore add it.
       if (!set.delete(extension.uuid)) set.add(extension.uuid);
+      console.log({set});
       return new Set(set);
     });
   }, []);
@@ -37,6 +39,7 @@ export function ExtensionTable({header, renderItem}: ExtensionTableProps) {
   };
 
   const isSelected = ({uuid}: ExtensionPayload) => {
+    // console.log()
     return selectedExtensionsKeys.has(uuid);
   };
 

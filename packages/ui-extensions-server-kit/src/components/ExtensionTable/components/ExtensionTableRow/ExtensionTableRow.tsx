@@ -48,20 +48,17 @@ export function ExtensionTableRow({
   return (
     <tr
       className={styles.extensionTableRow}
-      onClick={(event: {stopPropagation: () => void}) => {
+      onClick={(event: {stopPropagation: () => void; preventDefault: () => void}) => {
         event.stopPropagation();
+        event.preventDefault();
+        console.log('tr fired');
         toggleSelection(extension);
       }}
       onMouseEnter={() => onHighlight(extension)}
       onMouseLeave={() => onClearHighlight()}
     >
       <td>
-        <Checkbox
-          checked={selected}
-          onChange={() => {
-            toggleSelection(extension);
-          }}
-        />
+        <Checkbox checked={selected} />
       </td>
       <td className={textClass}>{name}</td>
       <td className={textClass}>{type}</td>
