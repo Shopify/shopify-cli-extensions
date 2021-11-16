@@ -30,15 +30,9 @@ export const parameters = {
       state: 'open',
     },
   },
-<<<<<<< HEAD
-}
-
-const i18nManager = new I18nManager({locale: 'en'})
-=======
 };
 
 const i18nManager = new I18nManager({locale: 'en'});
->>>>>>> de0db33 (wip: troubleshooting checkboxes)
 
 export const decorators = [
   (Story) => (
