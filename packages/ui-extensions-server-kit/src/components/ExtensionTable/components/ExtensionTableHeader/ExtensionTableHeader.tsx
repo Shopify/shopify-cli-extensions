@@ -17,7 +17,7 @@ export interface ExtensionTableHeaderProps {
   selectedExtensions: ExtensionPayload[];
 
   /** Callback to manage selected state of all extensions */
-  setSelected: (extensions: ExtensionPayload[]) => void;
+  onSelected: (extensions: ExtensionPayload[]) => void;
 
   /** Custom actions for header */
   actions: React.ReactElement;
@@ -28,41 +28,41 @@ export function ExtensionTableHeader({
   columns,
   extensions,
   selectedExtensions,
-  setSelected,
+  onSelected,
   actions,
 }: ExtensionTableHeaderProps) {
   const allSelected = selectedExtensions.length === extensions.length;
 
   const toggleSelectAll = () => {
     if (allSelected) {
-      setSelected([]);
+      onSelected([]);
     } else {
-      setSelected(extensions);
+      onSelected(extensions);
     }
   };
 
   return (
     <thead>
       <tr className={styles.extensionTableHeader}>
+        <th>
+          <Checkbox
+            checked={allSelected}
+            onChange={toggleSelectAll}
+            accessibilityLabel={allSelected ? 'deselect all' : 'select all'}
+          />
+        </th>
         {columns ? (
           columns.map((column) => <th key={column}>{column}</th>)
         ) : (
           <>
-            <th>
-              <Checkbox
-                checked={allSelected}
-                onChange={toggleSelectAll}
-                accessibilityLabel={allSelected ? 'deselect all' : 'select all'}
-              />
-            </th>
             <th>Name</th>
             <th>Type</th>
             <th>Status</th>
-            <th>
-              <ActionSet extensions={selectedExtensions}>{actions}</ActionSet>
-            </th>
           </>
         )}
+        <th>
+          <ActionSet extensions={selectedExtensions}>{actions}</ActionSet>
+        </th>
       </tr>
     </thead>
   );

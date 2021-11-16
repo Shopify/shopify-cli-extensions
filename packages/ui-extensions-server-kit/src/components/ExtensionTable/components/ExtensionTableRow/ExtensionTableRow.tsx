@@ -3,12 +3,16 @@ import React from 'react';
 import {ExtensionPayload} from '../../../../types';
 import {Checkbox, Status, StatusType} from '../../..';
 import {ActionSet} from '../../../ActionSet';
+import {classNames} from '../../../../utilities';
 
 import styles from './ExtensionTableRow.scss';
 
 export interface ExtensionTableRowProps {
   /** Disable input */
   extension: ExtensionPayload;
+
+  /** Custom column titles */
+  columns?: string[];
 
   /** Whether the checkbox input is checked and the extension is included in the selectedExtensions */
   selected: boolean;
@@ -30,6 +34,7 @@ export interface ExtensionTableRowProps {
 export function ExtensionTableRow({
   extension,
   selected,
+  columns,
   toggleSelection,
   onHighlight,
   onClearHighlight,
@@ -43,29 +48,44 @@ export function ExtensionTableRow({
     development: {status, hidden},
   } = extension;
 
-  const textClass = hidden ? styles.hidden : undefined;
+  const textClass = classNames(styles.extensionTableCell, hidden ? styles.hidden : undefined);
 
   return (
     <tr
       className={styles.extensionTableRow}
-      onClick={(event: {stopPropagation: () => void; preventDefault: () => void}) => {
+      onClick={(event: {stopPropagation: () => void}) => {
         event.stopPropagation();
-        event.preventDefault();
-        console.log('tr fired');
         toggleSelection(extension);
       }}
       onMouseEnter={() => onHighlight(extension)}
       onMouseLeave={() => onClearHighlight()}
     >
-      <td>
-        <Checkbox checked={selected} />
+      <td className={styles.extensionTableCell}>
+        <Checkbox
+          checked={selected}
+          onChange={() => {
+            toggleSelection(extension);
+          }}
+        />
       </td>
-      <td className={textClass}>{name}</td>
-      <td className={textClass}>{type}</td>
-      <td>
-        <Status status={status === 'success' ? StatusType.Connected : StatusType.BuildError} />
-      </td>
-      <td className={styles.ActionSet}>
+
+      {columns ? (
+        columns.map((column) => (
+          <td key={column} className={textClass}>
+            {column}
+          </td>
+        ))
+      ) : (
+        <>
+          <td className={textClass}>{name}</td>
+          <td className={textClass}>{type}</td>
+          <td className={styles.extensionTableCell}>
+            <Status status={status === 'success' ? StatusType.Connected : StatusType.BuildError} />
+          </td>
+        </>
+      )}
+
+      <td className={classNames(styles.extensionTableCell, styles.ActionSet)}>
         <ActionSet extensions={[extension]}>{actions}</ActionSet>
       </td>
     </tr>

@@ -54,13 +54,13 @@ describe('ExtensionTableRow', () => {
       <DevConsoleProvider host="ws://localhost:8000/extensions/">
         <ExtensionTable
           {...defaultProps}
-          header={
+          header={() => (
             <thead>
               <tr>
                 <th>custom header</th>
               </tr>
             </thead>
-          }
+          )}
         />
       </DevConsoleProvider>,
     );

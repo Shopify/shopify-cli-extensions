@@ -4,20 +4,34 @@ import {ExtensionPayload} from '../../types';
 import {useDevConsole} from '../../state/context';
 import {RefreshAction, ToggleViewAction} from '..';
 
-import {ExtensionTableHeader, ExtensionTableRowProps} from './components';
+import {
+  ExtensionTableHeader,
+  ExtensionTableRowProps,
+  ExtensionTableHeaderProps,
+} from './components';
 import styles from './ExtensionTable.scss';
 
-type RenderItemContext = Omit<ExtensionTableRowProps, 'actions'>;
+type RenderItemContext = Omit<ExtensionTableRowProps, 'actions' | 'columns'>;
+type RenderHeaderContext = Omit<ExtensionTableHeaderProps, 'actions' | 'columns'>;
 
 export interface ExtensionTableProps {
-  /** Custom header element */
-  header?: React.ReactElement;
+  /** Function that returns a custom header element */
+  header?: (context: RenderHeaderContext) => React.ReactElement;
 
   /** Function that returns row element */
   renderItem: (context: RenderItemContext) => React.ReactElement;
 }
 
-/** Table that contains each extension as a row item. */
+/**
+ * Table that contains each extension as a row item.
+ *
+ * Custom header and rows will be passed context to allow them to interact with the main table.
+ * They will receive extensions, and select and highlight interactions.
+ * See the ExtensionTableRow and ExtensionTableHeader args for more information.
+ *
+ * `type RenderItemContext = Omit<ExtensionTableRowProps, 'actions' | 'columns'>;`
+ * `type RenderHeaderContext = Omit<ExtensionTableHeaderProps, 'actions' | 'columns'>;`
+ */
 export function ExtensionTable({header, renderItem}: ExtensionTableProps) {
   const {extensions, dispatch} = useDevConsole();
   const [selectedExtensionsKeys, setSelectedExtensionsKeys] = useState<Set<string>>(
@@ -54,12 +68,12 @@ export function ExtensionTable({header, renderItem}: ExtensionTableProps) {
   return (
     <table className={styles.extensionTable}>
       {header ? (
-        header
+        header({extensions, onSelected: setSelected, selectedExtensions})
       ) : (
         <ExtensionTableHeader
           extensions={extensions}
           selectedExtensions={selectedExtensions}
-          setSelected={setSelected}
+          onSelected={setSelected}
           actions={
             <>
               <RefreshAction />
