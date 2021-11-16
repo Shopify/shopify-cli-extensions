@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
@@ -22,6 +24,14 @@ module.exports = {
       type: 'javascript/auto',
     });
 
+    config.resolve.alias = Object.assign(config.resolve.alias, {
+      components: path.resolve(__dirname, '../src/components'),
+      state: path.resolve(__dirname, '../src/state'),
+      testing: path.resolve(__dirname, '../src/testing'),
+      types: path.resolve(__dirname, '../src/types'),
+      utilities: path.resolve(__dirname, '../src/utilities'),
+    });
+
     return config;
-  }
+  },
 };

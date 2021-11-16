@@ -2,7 +2,8 @@ import React from 'react';
 import {mount} from '@shopify/react-testing';
 import '@shopify/react-testing/matchers';
 
-import {Link, LinkProps} from './Link';
+import {Link, LinkProps} from '../Link';
+
 import styles from './Link.scss';
 
 describe('<Link />', () => {

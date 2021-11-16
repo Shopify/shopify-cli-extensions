@@ -1,12 +1,11 @@
 import React, {useState, useMemo} from 'react';
 import {ComponentMeta} from '@storybook/react';
 import {action} from '@storybook/addon-actions';
-import {ExtensionPayload} from 'types';
+import {DevServerContext} from 'state';
+import {mockExtensions} from 'testing';
+import {DevServerCall, ExtensionPayload} from 'types';
 
 import {ToolsMajor} from '../Icon';
-import {DevServerCall} from '../../types';
-import {mockExtensions} from '../../testing';
-import {DevServerContext} from '../../state/context';
 
 import {RefreshAction, ToggleViewAction} from './actions';
 import {ActionSet} from './ActionSet';

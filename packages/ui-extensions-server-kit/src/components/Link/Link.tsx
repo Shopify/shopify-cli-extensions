@@ -1,6 +1,5 @@
 import React, {PropsWithChildren} from 'react';
-
-import {classNames} from '../../utilities';
+import {classNames} from 'utilities';
 
 import styles from './Link.scss';
 

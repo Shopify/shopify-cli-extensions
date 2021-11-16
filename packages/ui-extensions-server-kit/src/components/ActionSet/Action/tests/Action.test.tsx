@@ -1,9 +1,9 @@
 import React from 'react';
 import {mount} from '@shopify/react-testing';
+import {Icon, ViewMinor} from 'components/Icon';
 
-import {Icon, ViewMinor} from '../../../Icon';
-import styles from '../Action.scss';
 import {Action} from '..';
+import styles from '../Action.scss';
 
 describe('<Action />', () => {
   const defaultProps = {
