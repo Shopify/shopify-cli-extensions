@@ -1,6 +1,5 @@
 import React from 'react';
-
-import {classNames} from '../../utilities/classNames';
+import {classNames} from 'utilities/classNames';
 
 import styles from './Status.scss';
 

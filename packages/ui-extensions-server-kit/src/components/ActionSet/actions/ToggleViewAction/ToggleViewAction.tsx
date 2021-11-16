@@ -1,8 +1,8 @@
 import React from 'react';
+import {HideMinor, ViewMinor} from 'components/Icon/icons';
+import {useDevConsole} from 'state/context';
+import {useExtensions} from 'utilities/extensionPayload';
 
-import {HideMinor, ViewMinor} from '../../../Icon/icons';
-import {useDevConsole} from '../../../../state/context';
-import {useExtensions} from '../../../../utilities/extensionPayload';
 import {Action} from '../../Action';
 
 export function ToggleViewAction() {

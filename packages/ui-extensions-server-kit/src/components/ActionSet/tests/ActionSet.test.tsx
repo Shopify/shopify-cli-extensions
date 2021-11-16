@@ -1,9 +1,9 @@
 import React from 'react';
 import {mount} from '@shopify/react-testing';
+import {mockExtensions} from 'testing/extensions';
 
-import {ActionSet} from '../ActionSet';
-import {mockExtensions} from '../../../testing/extensions';
 import {RefreshAction, ToggleViewAction} from '../actions';
+import {ActionSet} from '../ActionSet';
 import {ActionSpacer} from '../ActionSpacer';
 
 describe('<ActionSet />', () => {

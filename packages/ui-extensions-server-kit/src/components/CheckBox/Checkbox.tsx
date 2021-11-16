@@ -1,6 +1,6 @@
 import React, {PropsWithChildren} from 'react';
+import {classNames, variationName, useUniqueId} from 'utilities';
 
-import {classNames, variationName, useUniqueId} from '../../utilities';
 import {Icon, TickSmallMinor} from '../Icon';
 
 import styles from './Checkbox.scss';

@@ -1,10 +1,10 @@
 import React from 'react';
 import {useI18n} from '@shopify/react-i18n';
+import {useDevConsole} from 'state/context';
+import {RefreshMinor} from 'components/Icon/icons';
+import {useExtensions} from 'utilities/extensionPayload';
 
-import {useDevConsole} from '../../../../state/context';
-import {RefreshMinor} from '../../../Icon/icons';
 import {Action} from '../../Action';
-import {useExtensions} from '../../../../utilities/extensionPayload';
 import en from '../../translations/en.json';
 
 export function RefreshAction() {

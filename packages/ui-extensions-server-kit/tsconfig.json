@@ -19,7 +19,14 @@
     "jsx": "react",
     "outDir": "dist",
     "baseUrl": "src",
-    "rootDir": "src"
+    "rootDir": "src",
+    "paths": {
+      "components/*": ["components/*"],
+      "state/*": ["state/*"],
+      "testing/*": ["testing/*"],
+      "types/*": ["types/*"],
+      "utilities/*": ["utilities/*"]
+    }
   },
   "include": ["src/**/*", "src/testing/**/*", "src/**/*.json"]
 }
