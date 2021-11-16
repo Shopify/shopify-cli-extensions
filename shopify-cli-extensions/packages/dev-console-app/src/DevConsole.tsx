@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ChevronRightMinor,
   RefreshMinor,
@@ -33,7 +33,31 @@ export function DevConsole() {
     fallback: en,
   });
   const [selectedExtensionsSet, setSelectedExtensionsSet] = useState<Set<string>>(new Set());
-  const {extensions, refresh, show, hide, focus, unfocus} = useDevConsoleInternal();
+  const {
+    state: {extensions},
+    connect,
+    refresh,
+    show,
+    hide,
+    focus,
+    unfocus,
+  } = useDevConsoleInternal();
+
+  const [connectionUrl, setConnectionUrl] = useState<string>('');
+
+  useEffect(() => {
+    const url = new URLSearchParams(location.search).get('url');
+    if (url && url !== connectionUrl) {
+      setConnectionUrl(url);
+    }
+  }, [connectionUrl]);
+
+  useEffect(() => {
+    if (connectionUrl) {
+      connect({connection: {url: connectionUrl}});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionUrl]);
 
   const allSelected = selectedExtensionsSet.size === extensions.length;
 
