@@ -1,7 +1,6 @@
 import React from 'react';
-
-import {ExtensionContext} from '../../utilities/extensionPayload';
-import {ExtensionPayload} from '../../types';
+import {ExtensionContext} from '@/utilities';
+import {ExtensionPayload} from '@/types';
 
 import styles from './ActionSet.scss';
 

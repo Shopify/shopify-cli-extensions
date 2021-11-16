@@ -1,7 +1,6 @@
 import React, {MouseEvent} from 'react';
-
-import {classNames} from '../../../utilities';
-import {Icon, IconSource} from '../../Icon';
+import {classNames} from '@/utilities';
+import {Icon, IconSource} from '@/components/Icon';
 
 import styles from './Action.scss';
 

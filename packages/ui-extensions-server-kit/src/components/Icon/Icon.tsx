@@ -1,6 +1,5 @@
 import React from 'react';
-
-import {classNames, variationName} from '../../utilities';
+import {classNames, variationName} from '@/utilities';
 
 import styles from './Icon.scss';
 
