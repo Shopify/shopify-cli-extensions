@@ -20,6 +20,13 @@ To run the tests, simply execute the following shell command:
 make test
 ```
 
+### Discounts Prototype
+
+```sh
+make run create testdata/discounts.yml
+make run serve testdata/discounts.yml
+```
+
 ### Bootstrap extensions
 
 To bootstrap extensions and install of node dependencies, run:
