@@ -47,7 +47,6 @@ export function ExtensionTableRow({
     type,
     development: {status, hidden},
   } = extension;
-
   const textClass = classNames(styles.extensionTableCell, hidden ? styles.hidden : undefined);
 
   return (
@@ -57,8 +56,12 @@ export function ExtensionTableRow({
         event.stopPropagation();
         toggleSelection(extension);
       }}
-      onMouseEnter={() => onHighlight(extension)}
-      onMouseLeave={() => onClearHighlight()}
+      onMouseEnter={() => {
+        onHighlight(extension);
+      }}
+      onMouseLeave={() => {
+        onClearHighlight();
+      }}
     >
       <td className={styles.extensionTableCell}>
         <Checkbox
@@ -85,7 +88,7 @@ export function ExtensionTableRow({
         </>
       )}
 
-      <td className={classNames(styles.extensionTableCell, styles.actionSetWrapper)}>
+      <td className={styles.extensionTableCell}>
         <ActionSet extensions={[extension]}>{actions}</ActionSet>
       </td>
     </tr>

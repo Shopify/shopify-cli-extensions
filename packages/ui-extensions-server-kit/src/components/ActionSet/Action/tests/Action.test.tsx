@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from '@shopify/react-testing';
 import {Icon, ViewMinor} from 'components/Icon';
+import {classNames} from 'utilities/classNames';
 
 import {Action} from '..';
 import styles from '../Action.scss';
@@ -39,11 +40,11 @@ describe('<Action />', () => {
     });
   });
 
-  it('hides Action visibility if hidden is set to true', () => {
-    const action = mount(<Action {...defaultProps} hidden />);
+  it('shows Action if forceVisible is set to true', () => {
+    const action = mount(<Action {...defaultProps} forceVisible />);
 
-    expect(action).toContainReactComponent('button', {
-      className: styles.Hidden,
+    expect(action).toContainReactComponent('div', {
+      className: classNames(styles.Action, styles.visible),
     });
   });
 });

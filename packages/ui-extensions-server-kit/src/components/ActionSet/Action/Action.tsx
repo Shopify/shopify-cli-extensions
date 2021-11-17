@@ -24,13 +24,9 @@ export function Action({accessibilityLabel, forceVisible, onAction, source}: Act
   };
 
   return (
-    <div className={styles.Action}>
-      <button
-        type="button"
-        className={classNames(forceVisible && styles.visible)}
-        onClick={onClick}
-      >
-        <Icon source={source} accessibilityLabel={accessibilityLabel} />
+    <div className={classNames(styles.Action, forceVisible && styles.visible)}>
+      <button type="button" onClick={onClick}>
+        <Icon source={source} kind="subdued" accessibilityLabel={accessibilityLabel} />
       </button>
     </div>
   );

@@ -1,8 +1,7 @@
-/* eslint-disable jest/no-disabled-tests */
 import React from 'react';
 
 import {ExtensionPayload} from '../../../../../types';
-import {Checkbox, ExtensionTableHeader, ExtensionTableHeaderProps} from '../../../..';
+import {Checkbox, ExtensionTableHeader, ExtensionTableHeaderProps, ActionSet} from '../../../..';
 import {mockExtensions, mount} from '../../../../../testing';
 
 describe('ExtensionTableRow', () => {
@@ -13,7 +12,7 @@ describe('ExtensionTableRow', () => {
     defaultProps = {
       extensions: mockExtensions(),
       selectedExtensions: [],
-      setSelected: () => {},
+      onSelected: () => {},
       actions: <>test_action</>,
     };
 
@@ -31,16 +30,16 @@ describe('ExtensionTableRow', () => {
     expect(container).toContainReactComponent('th', {children: 'two'});
   });
 
-  it('calls setSelected with extensions', async () => {
-    const setSelected = jest.fn();
+  it('calls onSelected with extensions', async () => {
+    const onSelected = jest.fn();
     const container = mount(
       <table>
-        <ExtensionTableHeader {...defaultProps} setSelected={setSelected} />
+        <ExtensionTableHeader {...defaultProps} onSelected={onSelected} />
       </table>,
     );
     container.find(Checkbox)!.trigger('onChange');
 
-    expect(setSelected).toHaveBeenCalled();
+    expect(onSelected).toHaveBeenCalled();
   });
 
   it('checks bulk select Checkbox if all extensions are selected', async () => {
@@ -60,6 +59,6 @@ describe('ExtensionTableRow', () => {
       </table>,
     );
 
-    expect(container.find('div', {className: 'ActionGroup'})).toContainReactText('test_action');
+    expect(container.find(ActionSet)).toContainReactText('test_action');
   });
 });

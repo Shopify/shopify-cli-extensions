@@ -1,9 +1,24 @@
 .Action {
   button {
+    display: flex;
+    padding: 1px 6px;
     cursor: pointer;
+    outline: revert;
   }
 }
 
-.visible {
-  opacity: 100%;
+*[class^='ExtensionTableRow'] {
+  .Action {
+    opacity: 0;
+  }
+
+  &:hover {
+    .Action {
+      opacity: 1;
+    }
+  }
+}
+
+.Action.visible {
+  opacity: 1;
 }

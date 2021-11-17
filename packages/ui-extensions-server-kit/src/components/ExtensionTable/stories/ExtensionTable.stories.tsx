@@ -35,8 +35,16 @@ function useMockDevServerContext(
       ({
         send: (callData: DevServerCall) => {
           if (callData.event === 'update') {
-            extensions[0].development.hidden = !extensions[0].development.hidden;
+            const hidden = callData.data.extensions?.[0].development?.hidden || false;
+            for (const extension of extensions) {
+              if (callData.data.extensions!.find(({uuid}) => uuid === extension.uuid)) {
+                extension.development.hidden = hidden;
+              }
+            }
+
             setExtensions([...extensions]);
+          } else if (callData.data.type === 'focus' || callData.data.type === 'unfocus') {
+            return;
           }
           send(callData);
         },
