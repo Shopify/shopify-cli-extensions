@@ -1,8 +1,10 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Meta, Story} from '@storybook/react/types-6-0';
+import {action} from '@storybook/addon-actions';
+import {DevServerContext} from 'state';
+import {mockExtension} from 'testing';
+import {DevServerCall, ExtensionPayload} from 'types';
 
-import {DevServerContext} from '../../../state/context';
-import {mockExtension} from '../../../testing';
 import {
   ExtensionTable,
   ExtensionTableProps,
@@ -15,52 +17,72 @@ import {
 
 import styles from './ExtensionTable.stories.module.scss';
 
-function DevConsoleProvider({children}: any) {
-  const value = useMemo(
-    () => ({
-      host: '',
-      store: '',
-      send: () => undefined,
-      extensions: [
-        mockExtension(),
-        mockExtension({type: 'product_subscription', assets: {main: {name: 'other'}}}),
-      ],
-      addListener: () => () => undefined,
-    }),
-    [],
-  );
-
-  return <DevServerContext.Provider value={value}>{children}</DevServerContext.Provider>;
-}
-
 export default {
   title: 'Components/ExtensionsTable',
   component: ExtensionTable,
   subcomponents: {ExtensionTableHeader, ExtensionTableRow},
-  decorators: [(story) => <DevConsoleProvider>{story()}</DevConsoleProvider>],
-} as Meta;
+  // decorators: [(story) => <DevConsoleProvider>{story()}</DevConsoleProvider>],
+} as Meta<typeof ExtensionTable>;
 
-const Template: Story<ExtensionTableProps> = () => (
-  <div className={styles.wrapper}>
-    <ExtensionTable
-      renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
-        <ExtensionTableRow
-          extension={extension}
-          selected={selected}
-          toggleSelection={toggleSelection}
-          onHighlight={onHighlight}
-          onClearHighlight={onClearHighlight}
-          actions={
-            <>
-              <RefreshAction />
-              <ToggleViewAction />
-            </>
+const send = action('send');
+
+function useMockDevServerContext(
+  extensions: ExtensionPayload[],
+  setExtensions: (extensions: ExtensionPayload[]) => void,
+) {
+  return useMemo(
+    () =>
+      ({
+        send: (callData: DevServerCall) => {
+          if (callData.event === 'update') {
+            extensions[0].development.hidden = !extensions[0].development.hidden;
+            setExtensions([...extensions]);
           }
+          send(callData);
+        },
+      } as any),
+    [extensions, setExtensions],
+  );
+}
+
+const Template: Story<ExtensionTableProps> = () => {
+  const [extensions, setExtensions] = useState(() => [
+    mockExtension(),
+    mockExtension({type: 'product_subscription', assets: {main: {name: 'other'}}}),
+  ]);
+  const {send} = useMockDevServerContext(extensions, setExtensions);
+  const context: any = useMemo(
+    () => ({
+      send,
+      extensions,
+    }),
+    [send, extensions],
+  );
+
+  return (
+    <DevServerContext.Provider value={context}>
+      <div className={styles.wrapper}>
+        <ExtensionTable
+          renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
+            <ExtensionTableRow
+              extension={extension}
+              selected={selected}
+              toggleSelection={toggleSelection}
+              onHighlight={onHighlight}
+              onClearHighlight={onClearHighlight}
+              actions={
+                <>
+                  <RefreshAction />
+                  <ToggleViewAction />
+                </>
+              }
+            />
+          )}
         />
-      )}
-    />
-  </div>
-);
+      </div>
+    </DevServerContext.Provider>
+  );
+};
 
 export const Base = Template.bind({});
 

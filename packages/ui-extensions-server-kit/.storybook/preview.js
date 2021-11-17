@@ -1,7 +1,7 @@
 import styles from '../src/styles/theme.module.scss';
 import storybookStyles from './styles.module.scss';
-import {classNames} from '../src/utilities';
 import {I18nContext, I18nManager} from '@shopify/react-i18n';
+import {classNames} from 'utilities';
 
 export const parameters = {
   actions: {argTypesRegex: '^on[A-Z].*'},

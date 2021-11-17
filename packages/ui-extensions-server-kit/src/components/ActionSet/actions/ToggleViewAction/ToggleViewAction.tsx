@@ -5,7 +5,7 @@ import {useExtensions} from 'utilities/extensionPayload';
 
 import {Action} from '../../Action';
 // eslint-disable-next-line @shopify/strict-component-boundaries
-import actionStyles from '../../Action/Action.scss';
+// import actionStyles from '../../Action/Action.scss';
 
 export function ToggleViewAction() {
   const extensions = useExtensions();
@@ -33,7 +33,6 @@ function ShowAction({label}: Props) {
 function HideAction({label}: Props) {
   const extensions = useExtensions();
   const {update} = useDevConsole();
-
   return (
     <Action
       forceVisible
