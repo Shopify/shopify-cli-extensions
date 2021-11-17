@@ -4,6 +4,8 @@ import {useDevConsole} from 'state/context';
 import {useExtensions} from 'utilities/extensionPayload';
 
 import {Action} from '../../Action';
+// eslint-disable-next-line @shopify/strict-component-boundaries
+import actionStyles from '../../Action/Action.scss';
 
 export function ToggleViewAction() {
   const extensions = useExtensions();
@@ -33,6 +35,11 @@ function HideAction({label}: Props) {
   const {update} = useDevConsole();
 
   return (
-    <Action source={HideMinor} accessibilityLabel={label} onAction={() => update({extensions})} />
+    <Action
+      forceVisible
+      source={HideMinor}
+      accessibilityLabel={label}
+      onAction={() => update({extensions})}
+    />
   );
 }

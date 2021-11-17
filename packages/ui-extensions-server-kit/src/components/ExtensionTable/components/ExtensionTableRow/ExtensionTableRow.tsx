@@ -85,7 +85,7 @@ export function ExtensionTableRow({
         </>
       )}
 
-      <td className={classNames(styles.extensionTableCell, styles.ActionSet)}>
+      <td className={classNames(styles.extensionTableCell, styles.actionSetWrapper)}>
         <ActionSet extensions={[extension]}>{actions}</ActionSet>
       </td>
     </tr>

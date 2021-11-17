@@ -14,10 +14,10 @@ export interface ActionProps {
   onAction: () => void;
 
   /** If true, sets visibility to hidden */
-  hidden?: boolean;
+  forceVisible?: boolean;
 }
 
-export function Action({accessibilityLabel, hidden, onAction, source}: ActionProps) {
+export function Action({accessibilityLabel, forceVisible, onAction, source}: ActionProps) {
   const onClick = (event: MouseEvent) => {
     event.stopPropagation();
     onAction();
@@ -25,7 +25,11 @@ export function Action({accessibilityLabel, hidden, onAction, source}: ActionPro
 
   return (
     <div className={styles.Action}>
-      <button type="button" className={classNames(hidden && styles.Hidden)} onClick={onClick}>
+      <button
+        type="button"
+        className={classNames(forceVisible && styles.ForceVisible)}
+        onClick={onClick}
+      >
         <Icon source={source} accessibilityLabel={accessibilityLabel} />
       </button>
     </div>

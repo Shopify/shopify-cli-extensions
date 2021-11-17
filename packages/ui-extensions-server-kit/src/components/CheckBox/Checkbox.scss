@@ -26,8 +26,6 @@
 
 .Checkbox {
   position: relative;
-  // rem(1px)
-  margin-top: 1px;
   grid-area: control;
   width: var(--checkbox-size);
   height: var(--checkbox-size);

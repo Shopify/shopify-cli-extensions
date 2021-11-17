@@ -13,6 +13,8 @@ import {
   ActionSpacer,
 } from '../..';
 
+import styles from './ExtensionTable.stories.module.scss';
+
 function DevConsoleProvider({children}: any) {
   const value = useMemo(
     () => ({
@@ -39,23 +41,25 @@ export default {
 } as Meta;
 
 const Template: Story<ExtensionTableProps> = () => (
-  <ExtensionTable
-    renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
-      <ExtensionTableRow
-        extension={extension}
-        selected={selected}
-        toggleSelection={toggleSelection}
-        onHighlight={onHighlight}
-        onClearHighlight={onClearHighlight}
-        actions={
-          <>
-            <RefreshAction />
-            <ToggleViewAction />
-          </>
-        }
-      />
-    )}
-  />
+  <div className={styles.wrapper}>
+    <ExtensionTable
+      renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
+        <ExtensionTableRow
+          extension={extension}
+          selected={selected}
+          toggleSelection={toggleSelection}
+          onHighlight={onHighlight}
+          onClearHighlight={onClearHighlight}
+          actions={
+            <>
+              <RefreshAction />
+              <ToggleViewAction />
+            </>
+          }
+        />
+      )}
+    />
+  </div>
 );
 
 export const Base = Template.bind({});
@@ -63,34 +67,36 @@ export const Base = Template.bind({});
 Base.args = {};
 
 export const CustomColumns = () => (
-  <ExtensionTable
-    header={(context) => (
-      <ExtensionTableHeader
-        {...context}
-        columns={['Name', 'Type']}
-        actions={
-          <>
-            <RefreshAction />
-            <ActionSpacer />
-          </>
-        }
-      />
-    )}
-    renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
-      <ExtensionTableRow
-        extension={extension}
-        selected={selected}
-        toggleSelection={toggleSelection}
-        onHighlight={onHighlight}
-        onClearHighlight={onClearHighlight}
-        columns={[extension.assets.main.name, extension.type?.replace('_', ' ')]}
-        actions={
-          <>
-            <RefreshAction />
-            <ToggleViewAction />
-          </>
-        }
-      />
-    )}
-  />
+  <div className={styles.wrapper}>
+    <ExtensionTable
+      header={(context) => (
+        <ExtensionTableHeader
+          {...context}
+          columns={['Name', 'Type']}
+          actions={
+            <>
+              <RefreshAction />
+              <ActionSpacer />
+            </>
+          }
+        />
+      )}
+      renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
+        <ExtensionTableRow
+          extension={extension}
+          selected={selected}
+          toggleSelection={toggleSelection}
+          onHighlight={onHighlight}
+          onClearHighlight={onClearHighlight}
+          columns={[extension.assets.main.name, extension.type?.replace('_', ' ')]}
+          actions={
+            <>
+              <RefreshAction />
+              <ToggleViewAction />
+            </>
+          }
+        />
+      )}
+    />
+  </div>
 );
