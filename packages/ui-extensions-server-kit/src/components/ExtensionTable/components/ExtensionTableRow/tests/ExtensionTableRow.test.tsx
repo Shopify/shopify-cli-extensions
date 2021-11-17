@@ -1,9 +1,7 @@
-/* eslint-disable jest/no-disabled-tests */
 import React from 'react';
-
-import {ExtensionPayload} from '../../../../../types';
-import {ActionSet, Checkbox, ExtensionTableRow, ExtensionTableRowProps} from '../../../..';
-import {mockExtension, mount} from '../../../../../testing';
+import {ActionSet, Checkbox, ExtensionTableRow, ExtensionTableRowProps} from 'components';
+import {mockExtension, mount} from 'testing';
+import {ExtensionPayload} from 'types';
 
 describe('ExtensionTableRow', () => {
   let defaultProps: ExtensionTableRowProps;
@@ -40,7 +38,6 @@ describe('ExtensionTableRow', () => {
 
   it('calls toggleSelection with extension when checkbox is clicked', async () => {
     const toggleSelection = jest.fn();
-    const stopPropagation = jest.fn();
     const container = mount(
       <table>
         <tbody>

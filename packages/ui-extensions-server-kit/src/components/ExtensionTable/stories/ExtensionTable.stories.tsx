@@ -1,10 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Meta, Story} from '@storybook/react/types-6-0';
 import {action} from '@storybook/addon-actions';
-import {DevServerContext} from 'state';
-import {mockExtension} from 'testing';
-import {DevServerCall, ExtensionPayload} from 'types';
-
 import {
   ExtensionTable,
   ExtensionTableProps,
@@ -13,7 +9,10 @@ import {
   ToggleViewAction,
   RefreshAction,
   ActionSpacer,
-} from '../..';
+} from 'components';
+import {DevServerContext} from 'state';
+import {mockExtension} from 'testing';
+import {DevServerCall, ExtensionPayload} from 'types';
 
 import styles from './ExtensionTable.stories.module.scss';
 
@@ -21,7 +20,6 @@ export default {
   title: 'Components/ExtensionsTable',
   component: ExtensionTable,
   subcomponents: {ExtensionTableHeader, ExtensionTableRow},
-  // decorators: [(story) => <DevConsoleProvider>{story()}</DevConsoleProvider>],
 } as Meta<typeof ExtensionTable>;
 
 const send = action('send');
