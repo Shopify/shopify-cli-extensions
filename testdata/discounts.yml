@@ -4,7 +4,7 @@ app:
   api_key: app_api_key
 extensions:
   - uuid: discounts-extension
-    type: discounts
+    type: argo_demo_extension
     title: Admin Discounts Extension
     development:
       root_dir: 'tmp/discounts'
@@ -14,5 +14,3 @@ extensions:
         name: '@shopify/admin-ui-extensions'
       entries:
         main: 'src/index.tsx'
-      resource:
-        url: 'discounts/new/1'
