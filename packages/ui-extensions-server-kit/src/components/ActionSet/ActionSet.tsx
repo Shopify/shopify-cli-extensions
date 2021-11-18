@@ -26,7 +26,7 @@ export type ActionSetProps = React.PropsWithChildren<ActionSetPropsBase>;
 export function ActionSet({extensions, children}: ActionSetProps) {
   return (
     <ExtensionContext.Provider value={extensions}>
-      <div className={styles.ActionGroup}>{children}</div>
+      <div className={styles.ActionSet}>{children}</div>
     </ExtensionContext.Provider>
   );
 }

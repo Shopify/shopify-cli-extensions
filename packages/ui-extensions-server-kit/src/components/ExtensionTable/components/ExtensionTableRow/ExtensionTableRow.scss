@@ -1,0 +1,18 @@
+.extensionTableRow {
+  border-bottom: 1px solid var(--dc-border-dark);
+
+  &:hover, &:focus-within {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='auto' height='100%'><rect y='3px' x='0' width='100%' height='calc(100% - 6px)' rx='5' style='fill:rgb(78, 79, 81);' /></svg>");
+  }
+}
+
+.extensionTableCell {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.hidden {
+  text-decoration: line-through;
+  color: var(--p-subdued);
+}

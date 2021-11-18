@@ -1,10 +1,10 @@
 import styles from '../src/styles/theme.module.scss';
 import storybookStyles from './styles.module.scss';
-import {classNames} from '../src/utilities';
 import {I18nContext, I18nManager} from '@shopify/react-i18n';
+import {classNames} from 'utilities';
 
 export const parameters = {
-  actions: { argTypesRegex: "^on[A-Z].*" },
+  actions: {argTypesRegex: '^on[A-Z].*'},
   backgrounds: {
     default: 'default',
     values: [
@@ -30,9 +30,9 @@ export const parameters = {
       state: 'open',
     },
   },
-}
+};
 
-const i18nManager = new I18nManager({locale: 'en'})
+const i18nManager = new I18nManager({locale: 'en'});
 
 export const decorators = [
   (Story) => (

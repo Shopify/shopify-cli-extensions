@@ -8,24 +8,15 @@ import {Action} from '../../Action';
 export function ToggleViewAction() {
   const extensions = useExtensions();
 
-  const atLeastOneExtensionVisible = extensions.some(
+  const allExtensionAreVisible = extensions.every(
     (extensionManifest) => !extensionManifest.development.hidden,
   );
 
-  return atLeastOneExtensionVisible ? <ShowAction label="Hide" /> : <HideAction label="Show" />;
+  return allExtensionAreVisible ? <HideAction label="Hide" /> : <ShowAction label="Show" />;
 }
 
 interface Props {
   label: string;
-}
-
-function ShowAction({label}: Props) {
-  const extensions = useExtensions();
-  const {update} = useDevConsole();
-
-  return (
-    <Action source={ViewMinor} accessibilityLabel={label} onAction={() => update({extensions})} />
-  );
 }
 
 function HideAction({label}: Props) {
@@ -33,6 +24,31 @@ function HideAction({label}: Props) {
   const {update} = useDevConsole();
 
   return (
-    <Action source={HideMinor} accessibilityLabel={label} onAction={() => update({extensions})} />
+    <Action
+      source={ViewMinor}
+      accessibilityLabel={label}
+      onAction={() =>
+        update({
+          extensions: extensions.map((extension) => ({...extension, development: {hidden: true}})),
+        })
+      }
+    />
+  );
+}
+
+function ShowAction({label}: Props) {
+  const extensions = useExtensions();
+  const {update} = useDevConsole();
+  return (
+    <Action
+      forceVisible
+      source={HideMinor}
+      accessibilityLabel={label}
+      onAction={() =>
+        update({
+          extensions: extensions.map((extension) => ({...extension, development: {hidden: false}})),
+        })
+      }
+    />
   );
 }

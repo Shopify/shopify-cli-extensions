@@ -1,0 +1,11 @@
+.extensionTable {
+  text-align: left;
+  width: 100%;
+  border-collapse: collapse;
+
+  tr {
+    border-bottom: 1px solid var(--dc-border-dark);
+    font-size: 0.9375rem;
+    font-weight: normal;
+  }
+}

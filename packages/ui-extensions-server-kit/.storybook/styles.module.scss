@@ -1,4 +1,11 @@
 .Storybook {
+  font-size: 62.5%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+
   p {
     all: revert;
   }
@@ -8,7 +15,6 @@
     border-radius: 0.25rem;
     padding: 0.5rem;
   }
-
 }
 
 .Button {
