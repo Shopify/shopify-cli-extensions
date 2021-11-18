@@ -12,7 +12,7 @@
     opacity: 0;
   }
 
-  &:hover {
+  &:hover, &:focus-within {
     .Action {
       opacity: 1;
     }

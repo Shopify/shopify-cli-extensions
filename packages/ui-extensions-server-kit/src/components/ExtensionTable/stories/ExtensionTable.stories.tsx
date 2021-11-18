@@ -94,37 +94,53 @@ export const Base = Template.bind({});
 
 Base.args = {};
 
-export const CustomColumns = () => (
-  <div className={styles.wrapper}>
-    <ExtensionTable
-      header={(context) => (
-        <ExtensionTableHeader
-          {...context}
-          columns={['Name', 'Type']}
-          actions={
-            <>
-              <RefreshAction />
-              <ActionSpacer />
-            </>
-          }
+export const CustomColumns = () => {
+  const [extensions, setExtensions] = useState(() => [
+    mockExtension(),
+    mockExtension({type: 'product_subscription', assets: {main: {name: 'other'}}}),
+  ]);
+  const {send} = useMockDevServerContext(extensions, setExtensions);
+  const context: any = useMemo(
+    () => ({
+      send,
+      extensions,
+    }),
+    [send, extensions],
+  );
+  return (
+    <DevServerContext.Provider value={context}>
+      <div className={styles.wrapper}>
+        <ExtensionTable
+          header={(context) => (
+            <ExtensionTableHeader
+              {...context}
+              columns={['Name', 'Type']}
+              actions={
+                <>
+                  <RefreshAction />
+                  <ActionSpacer />
+                </>
+              }
+            />
+          )}
+          renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
+            <ExtensionTableRow
+              extension={extension}
+              selected={selected}
+              toggleSelection={toggleSelection}
+              onHighlight={onHighlight}
+              onClearHighlight={onClearHighlight}
+              columns={[extension.assets.main.name, extension.type?.replace('_', ' ')]}
+              actions={
+                <>
+                  <RefreshAction />
+                  <ToggleViewAction />
+                </>
+              }
+            />
+          )}
         />
-      )}
-      renderItem={({extension, selected, toggleSelection, onHighlight, onClearHighlight}) => (
-        <ExtensionTableRow
-          extension={extension}
-          selected={selected}
-          toggleSelection={toggleSelection}
-          onHighlight={onHighlight}
-          onClearHighlight={onClearHighlight}
-          columns={[extension.assets.main.name, extension.type?.replace('_', ' ')]}
-          actions={
-            <>
-              <RefreshAction />
-              <ToggleViewAction />
-            </>
-          }
-        />
-      )}
-    />
-  </div>
-);
+      </div>
+    </DevServerContext.Provider>
+  );
+};

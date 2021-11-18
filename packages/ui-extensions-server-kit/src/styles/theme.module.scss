@@ -34,7 +34,6 @@
   --p-icon-hovered: rgba(26, 28, 29, 1);
   --p-icon-pressed: rgba(68, 71, 74, 1);
   --p-icon-disabled: rgba(186, 190, 195, 1);
-  --p-icon-subdued: rgba(140, 145, 150, 1);
   --p-text: rgba(255, 255, 255, 1);
   --p-text-disabled: rgba(140, 145, 150, 1);
   --p-text-subdued: hsl(210, 4%, 70%);
@@ -208,8 +207,8 @@
 
   --dc-border-dark: rgba(32, 34, 35, 1);
 
-  // p-icon-subdued: hsl(210, 5%, 57%);
   --dc-subdued: hsl(210, 4%, 67%);
+  --p-icon-subdued: var(--dc-subdued);
 }
 
 /*** The new CSS Reset - version 1.2.0 (last updated 23.7.2021) ***/
