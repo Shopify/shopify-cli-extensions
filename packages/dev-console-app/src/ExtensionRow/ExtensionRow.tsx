@@ -50,7 +50,10 @@ export function ExtensionRow({
   return (
     <tr
       className={styles.DevToolRow}
-      onClick={handleSelect}
+      onClick={(event: MouseEvent) => {
+        event.preventDefault();
+        handleSelect(event);
+      }}
       onFocus={() => {
         setFocus(true);
       }}
