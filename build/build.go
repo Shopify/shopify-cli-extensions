@@ -9,7 +9,7 @@ import (
 )
 
 func Build(extension core.Extension, report ResultHandler) {
-	script, err := script(extension.BuildDir(), "build")
+	script, err := script(extension.Development.RootDir, "build")
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
@@ -32,7 +32,7 @@ func Build(extension core.Extension, report ResultHandler) {
 }
 
 func Watch(extension core.Extension, report ResultHandler) {
-	script, err := script(extension.BuildDir(), "develop")
+	script, err := script(extension.Development.RootDir, "develop")
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
