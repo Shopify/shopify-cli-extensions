@@ -3,6 +3,7 @@ package build
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"sync"
@@ -19,7 +20,7 @@ func Build(extension core.Extension, report ResultHandler) {
 	}
 
 	if err := configureScript(script, extension); err != nil {
-		report(Result{false, "Unable to serialize extension configuration information", extension})
+		report(Result{false, err.Error(), extension})
 	}
 	ensureBuildDirectoryExists(extension)
 
@@ -48,7 +49,7 @@ func Watch(extension core.Extension, report ResultHandler) {
 	stderr, _ := script.StderrPipe()
 
 	if err := configureScript(script, extension); err != nil {
-		report(Result{false, "Unable to serialize extension configuration information", extension})
+		report(Result{false, err.Error(), extension})
 	}
 	ensureBuildDirectoryExists(extension)
 
@@ -90,7 +91,7 @@ func ensureBuildDirectoryExists(ext core.Extension) {
 func configureScript(script *exec.Cmd, extension core.Extension) error {
 	data, err := yaml.Marshal(extension)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to serialize extension configuration information: %w", err)
 	}
 	script.Stdin = bytes.NewReader(data)
 	return nil
