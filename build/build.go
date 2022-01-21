@@ -47,6 +47,9 @@ func Watch(extension core.Extension, report ResultHandler) {
 	stdout, _ := script.StdoutPipe()
 	stderr, _ := script.StderrPipe()
 
+	if err := configureScript(script, extension); err != nil {
+		report(Result{false, "Unable to serialize extension configuration information", extension})
+	}
 	ensureBuildDirectoryExists(extension)
 
 	script.Start()
