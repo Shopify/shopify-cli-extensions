@@ -11,7 +11,7 @@ export interface Configs {
   extensionPoints?: string[];
 }
 
-export interface Shopifile {
+export interface ConfigFile {
   development: Development;
   extension_points?: string[];
 }
@@ -45,9 +45,11 @@ const RESERVE_PATHS = flattenPaths({
   },
 });
 
-export function getConfigs() {
+const STDIN = 0;
+
+export function getConfigs(source: string | number = STDIN) {
   try {
-    const configs = load(readFileSync(0, 'utf8'));
+    const configs = load(readFileSync(source, 'utf8'));
     if (!isValidConfigs(configs, REQUIRED_CONFIGS)) {
       throw new Error('Invalid configuration');
     }
@@ -66,7 +68,7 @@ function isValidConfigs(
   configs: any,
   requiredConfigs: RequiredConfigs,
   paths: string[] = [],
-): configs is Shopifile {
+): configs is ConfigFile {
   Object.keys(requiredConfigs).forEach((key) => {
     const isRequired = requiredConfigs[key] !== false;
     const value = configs[key];
