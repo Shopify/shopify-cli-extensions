@@ -47,7 +47,7 @@ const RESERVE_PATHS = flattenPaths({
 
 export function getConfigs() {
   try {
-    const configs = load(readFileSync('shopifile.yml', 'utf8'));
+    const configs = load(readFileSync(0, 'utf8'));
     if (!isValidConfigs(configs, REQUIRED_CONFIGS)) {
       throw new Error('Invalid configuration');
     }
