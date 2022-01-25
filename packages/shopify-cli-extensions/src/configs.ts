@@ -45,11 +45,11 @@ const RESERVE_PATHS = flattenPaths({
   },
 });
 
-const STDIN = 0;
+export function getConfigs() {
+  const stdin = 0;
 
-export function getConfigs(source: string | number = STDIN) {
   try {
-    const configs = load(readFileSync(source, 'utf8'));
+    const configs = load(readFileSync(stdin, 'utf8'));
     if (!isValidConfigs(configs, REQUIRED_CONFIGS)) {
       throw new Error('Invalid configuration');
     }
