@@ -79,7 +79,9 @@ bootstrap: tmp build
 integration-test: tmp build
 	cd packages/shopify-cli-extensions; npm link --force
 	./shopify-extensions create testdata/extension.config.integration.yml
-	cd tmp/integration_test; npm install && npm link "@shopify/shopify-cli-extensions"
+	cd tmp/integration_test; npm install
+	cd tmp/integration_test; rm -r node_modules/@shopify/shopify-cli-extensions
+	cd tmp/integration_test; cp -r ../../packages/shopify-cli-extensions node_modules/@shopify/shopify-cli-extensions
 	cd tmp/integration_test; cat extension.config.yml | \
 		ruby -ryaml -e "puts({'extensions' => [YAML.load(STDIN.read).merge({'type' => 'integration_test'})]}.to_yaml)" | \
 		../../shopify-extensions build -
