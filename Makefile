@@ -93,3 +93,10 @@ update-version:
 
 tmp:
 	mkdir tmp
+
+clean:
+	( test -d node_modules && npm run clean ) || true
+	( test -d tmp && rm -r tmp/ ) || true
+
+clobber: clean
+	git clean -fxd
