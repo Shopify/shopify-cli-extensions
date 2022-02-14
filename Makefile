@@ -66,10 +66,10 @@ run:
 build-node-packages:
 	yarn install
 	yarn build
+	chmod +x packages/shopify-cli-extensions/cli.js
 
 .PHONY: bootstrap
 bootstrap: tmp build
-	chmod +x packages/shopify-cli-extensions/cli.js
 	./shopify-extensions create testdata/extension.config.yml
 	cd tmp/checkout_ui_extension; yarn install
 	cd tmp/checkout_ui_extension; rm -r node_modules/@shopify/shopify-cli-extensions
@@ -83,7 +83,6 @@ bootstrap: tmp build
 
 .PHONY: integration-test
 integration-test: tmp build
-	chmod +x packages/shopify-cli-extensions/cli.js
 	./shopify-extensions create testdata/extension.config.integration.yml
 	cd tmp/integration_test; yarn install
 	cd tmp/integration_test; rm -r node_modules/@shopify/shopify-cli-extensions
