@@ -52,10 +52,6 @@ func TestMergeTemplatesYAML(t *testing.T) {
 		t.Error(err)
 	}
 
-	if config.Development.Entries["main"] != "src/index.tsx" {
-		t.Errorf("expect main entry to be \"src/index\" but received %v", config.Development.Entries["main"])
-	}
-
 	if len(config.ExtensionPoints) != 1 {
 		t.Errorf("expect extension points to have length of 1 but received %v", len(config.ExtensionPoints))
 	}
