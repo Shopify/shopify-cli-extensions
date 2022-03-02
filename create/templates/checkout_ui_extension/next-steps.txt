@@ -1,11 +1,7 @@
 
-🔭 > Your extension bundles are available at: 
-{{range .BundleUrls}}
-     * {{.}}
-{{end}}
 🔭 > If this is first time you are testing the extension,
 🔭 > please login to your development store first by visiting
 🔭 > https://{{.IntegrationContext.Store}}/password
 
 🔭 > To create a checkout and test your extension please visit the following URL:
-🔭 > https://{{.IntegrationContext.Store}}{{.Extension.Development.Resource.Url}}?dev={{.IntegrationContext.PublicUrl}}
+🔭 > {{.IntegrationContext.PublicUrl}}/extensions/{{.Extension.UUID}}

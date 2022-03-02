@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"sync"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
@@ -93,11 +92,11 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 	logProcessors.Wait()
 }
 
+// Builds 'Next Steps'
 func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.IntegrationContext) string {
 	type contextRoot struct { 	// Wraps top-level elements, allowing them to be referenced in next-steps.txt
 		core.Extension
 		core.IntegrationContext
-		BundleUrls []string
 	}
 
 	var buf bytes.Buffer
@@ -105,26 +104,11 @@ func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.Integrat
 	templ := template.New("templ")
 	templ, err := templ.Parse(rawTemplate)
 	if err == nil {
-		bundleUrls := buildBundleUrls(ext, ctx)
-		contextRoot := &contextRoot{ ext, ctx, bundleUrls }
+		contextRoot := &contextRoot{ ext, ctx }
 		templ.Execute(&buf, contextRoot)
 	}
 
 	return buf.String()
-}
-
-func buildBundleUrls(ext core.Extension, ctx core.IntegrationContext) []string {
-	bundleUrls := []string{}
-	for _, entryMain := range ext.Development.Entries {
-		pathComponents := strings.Split(entryMain, "/")
-		lastIndex := len(pathComponents) - 1
-		var entrypoint string
-		if lastIndex >= 0 {
-			entrypoint = pathComponents[lastIndex]
-		}
-		bundleUrls = append(bundleUrls, fmt.Sprintf("%s/extensions/%s/assets/%s", ctx.PublicUrl, ext.UUID, entrypoint))
-	}
-	return bundleUrls
 }
 
 type ResultHandler func(result Result)
