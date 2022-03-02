@@ -106,11 +106,11 @@ func evaluateTemplate(rawTemplate string, ext core.Extension, ctx core.Integrati
 	}
 
 	templ := template.New("templ")
-    templ, err := templ.Parse(rawTemplate)
-    if err == nil {
+	templ, err := templ.Parse(rawTemplate)
+	if err == nil {
 		contextRoot := &contextRoot{ext, ctx, bundleUrls}
 		templ.Execute(&buf, contextRoot)
-    }
+	}
 
 	return buf.String()
 }
