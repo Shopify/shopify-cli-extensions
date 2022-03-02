@@ -75,7 +75,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 			} else {
 				report(Result{true, message, extension})
 				if len(nextStepsTemplate) > 0 {
-					fmt.Fprintf(os.Stdout, "%s\n", evaluateTemplate(nextStepsTemplate, extension, integrationCtx))
+					fmt.Fprintf(os.Stdout, "%s\n", generateNextSteps(nextStepsTemplate, extension, integrationCtx))
 					nextStepsTemplate = ""
 				}
 			}
@@ -93,8 +93,8 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 	logProcessors.Wait()
 }
 
-func evaluateTemplate(rawTemplate string, ext core.Extension, ctx core.IntegrationContext) string {
-	type contextRoot struct {
+func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.IntegrationContext) string {
+	type contextRoot struct { 	// Wraps top-level elements, allowing them to be referenced in next-steps.txt
 		core.Extension
 		core.IntegrationContext
 		BundleUrls []string
