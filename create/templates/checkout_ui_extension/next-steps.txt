@@ -8,4 +8,4 @@
 🔭 > https://{{.IntegrationContext.Store}}/password
 
 🔭 > To create a checkout and test your extension please visit the following URL:
-🔭 > https://{{.IntegrationContext.Store}}{{.Extension.Development.Resource.Url}}?dev={{.IntegrationContext.PublicUrl}}/query
+🔭 > https://{{.IntegrationContext.Store}}{{.Extension.Development.Resource.Url}}?dev={{.IntegrationContext.PublicUrl}}

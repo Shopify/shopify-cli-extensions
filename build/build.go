@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
@@ -100,19 +101,30 @@ func evaluateTemplate(rawTemplate string, ext core.Extension, ctx core.Integrati
 	}
 
 	var buf bytes.Buffer
-	bundleUrls := []string{}
-	for _, asset := range ext.Development.Entries {
-		bundleUrls = append(bundleUrls, ctx.PublicUrl + "/" + asset)
-	}
 
 	templ := template.New("templ")
 	templ, err := templ.Parse(rawTemplate)
 	if err == nil {
-		contextRoot := &contextRoot{ext, ctx, bundleUrls}
+		bundleUrls := buildBundleUrls(ext, ctx)
+		contextRoot := &contextRoot{ ext, ctx, bundleUrls }
 		templ.Execute(&buf, contextRoot)
 	}
 
 	return buf.String()
+}
+
+func buildBundleUrls(ext core.Extension, ctx core.IntegrationContext) []string {
+	bundleUrls := []string{}
+	for _, entryMain := range ext.Development.Entries {
+		pathComponents := strings.Split(entryMain, "/")
+		lastIndex := len(pathComponents) - 1
+		var entrypoint string
+		if lastIndex >= 0 {
+			entrypoint = pathComponents[lastIndex]
+		}
+		bundleUrls = append(bundleUrls, fmt.Sprintf("%s/extensions/%s/assets/%s", ctx.PublicUrl, ext.UUID, entrypoint))
+	}
+	return bundleUrls
 }
 
 type ResultHandler func(result Result)
