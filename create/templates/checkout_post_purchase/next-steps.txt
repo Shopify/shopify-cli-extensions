@@ -1,0 +1,8 @@
+
+LEGACY:
+🔭 > Your extension is available at https://2033-67-211-133-102.ngrok.io/assets/extension.js
+🔭 > You can append this query string: script_url=https://2033-67-211-133-102.ngrok.io/assets/extension.js&api_key=3b0464e6f9d38a2498fe01c8e7cd0e5c
+
+PARITY:
+🔭 > Your extension is available at {{.IntegrationContext.PublicUrl}}/extensions/{{.Extension.UUID}}
+🔭 > You can append this query string: script_url={{.IntegrationContext.PublicUrl}}/extensions/{{.Extension.UUID}}
