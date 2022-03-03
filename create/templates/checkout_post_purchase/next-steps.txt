@@ -5,7 +5,3 @@
 
 🔭 > Once installed, simply enter your extension URL
 🔭 > {{.IntegrationContext.PublicUrl}}/extensions/{{.Extension.UUID}}.
-
-🔭 > If you prefer to test your extension without using our browser extension,
-🔭 > create a checkout and append a query parameter to the checkout URL:
-🔭 > ?dev={{.IntegrationContext.PublicUrl}}/extensions/{{.Extension.UUID}}
