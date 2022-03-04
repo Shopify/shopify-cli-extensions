@@ -261,7 +261,7 @@ func TestPostPurchaseIndex(t *testing.T) {
 	"Instead of visiting this page directly, you will need to connect your local development environment to a real checkout environment."
 
 	if !strings.Contains(response, content) {
-		t.Errorf("expected content to contain \"%s\"", content)
+		t.Errorf("expected instructions to contain %s", content)
 	}
 }
 func TestWebsocketNotify(t *testing.T) {
