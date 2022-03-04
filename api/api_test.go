@@ -251,7 +251,19 @@ func TestAdminRedirect(t *testing.T) {
 		t.Errorf("Expected redirect url to be %s but received: %s", expectedUrl, redirectUrl.String())
 	}
 }
+func TestPostPurchaseIndex(t *testing.T) {
+	api := New(config, apiRoot)
+	response := getHTMLResponse(api, t, secureHost, "/extensions/00000000-0000-0000-0000-000000000002")
 
+	t.Logf("response: %s", response)
+
+	instructions := "This page is served by your local UI Extension development server. " +
+	"Instead of visiting this page directly, you will need to connect your local development environment to a real checkout environment."
+
+	if !strings.Contains(response, instructions) {
+		t.Errorf("expected instructions to contain %s", instructions)
+	}
+}
 func TestWebsocketNotify(t *testing.T) {
 	api := New(config, apiRoot)
 	server := httptest.NewServer(api)
