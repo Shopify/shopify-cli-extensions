@@ -251,6 +251,7 @@ func TestAdminRedirect(t *testing.T) {
 		t.Errorf("Expected redirect url to be %s but received: %s", expectedUrl, redirectUrl.String())
 	}
 }
+
 func TestPostPurchaseIndex(t *testing.T) {
 	api := New(config, apiRoot)
 	response := getHTMLResponse(api, t, secureHost, "/extensions/00000000-0000-0000-0000-000000000002")
@@ -264,6 +265,7 @@ func TestPostPurchaseIndex(t *testing.T) {
 		t.Errorf("expected instructions to contain %s", content)
 	}
 }
+
 func TestWebsocketNotify(t *testing.T) {
 	api := New(config, apiRoot)
 	server := httptest.NewServer(api)
