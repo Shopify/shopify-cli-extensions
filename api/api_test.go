@@ -257,11 +257,11 @@ func TestPostPurchaseIndex(t *testing.T) {
 
 	t.Logf("response: %s", response)
 
-	instructions := "This page is served by your local UI Extension development server. " +
+	content := "This page is served by your local UI Extension development server. " +
 	"Instead of visiting this page directly, you will need to connect your local development environment to a real checkout environment."
 
-	if !strings.Contains(response, instructions) {
-		t.Errorf("expected instructions to contain %s", instructions)
+	if !strings.Contains(response, content) {
+		t.Errorf("expected content to contain %s", content)
 	}
 }
 func TestWebsocketNotify(t *testing.T) {
