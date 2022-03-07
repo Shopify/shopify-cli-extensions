@@ -207,6 +207,11 @@ func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
 						return
 					}
 
+					err = os.MkdirAll(filepath.Dir(targetPath), os.ModePerm)
+					if err != nil {
+						return err
+					}
+
 					targetFile, openErr := fsutils.OpenFileForAppend(targetPath)
 
 					if openErr != nil {
@@ -467,7 +472,9 @@ func installDependencies(path string) process.Task {
 
 			err := Command(path, package_manager).Run()
 			if err != nil {
-				return err
+				return errors.New(
+					fmt.Sprintf("%s failed within %s: %s", package_manager, path, err),
+				)
 			}
 			return nil
 		},
