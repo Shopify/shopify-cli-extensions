@@ -256,13 +256,18 @@ func TestPostPurchaseIndex(t *testing.T) {
 	api := New(config, apiRoot)
 	response := getHTMLResponse(api, t, secureHost, "/extensions/00000000-0000-0000-0000-000000000002")
 
+	staticContent := "This page is served by your local UI Extension development server. " + 
+	"Instead of visiting this page directly, you will need to connect your local development environment to a real checkout environment."
+	dynamicContent := "If this is the first time you're testing a Post Purchase extension, please install the Chrome or Firefox browser extension from https://github.com/Shopify/post-purchase-devtools/releases. " +
+	"Once installed, simply enter your extension URL /extensions/00000000-0000-0000-0000-000000000002."
+
 	t.Logf("response: %s", response)
 
-	content := "This page is served by your local UI Extension development server. " +
-	"Instead of visiting this page directly, you will need to connect your local development environment to a real checkout environment."
-
-	if !strings.Contains(response, content) {
-		t.Errorf("expected instructions to contain %s", content)
+	if !strings.Contains(response, staticContent) {
+	 	t.Errorf(`expected instructions to contain "%s"`, staticContent)
+	}
+	if !strings.Contains(response, dynamicContent) {
+	 	t.Errorf(`expected instructions to contain "%s"`, dynamicContent)
 	}
 }
 
