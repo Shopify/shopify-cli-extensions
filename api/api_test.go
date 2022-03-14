@@ -264,10 +264,14 @@ func TestPostPurchaseIndex(t *testing.T) {
 
 	t.Logf("response: %s", response)
 
-	for _, line := range contents {
-		if !strings.Contains(response, line) {
-			t.Errorf(`expected instructions to contain "%s"`, line)
-		}
+	if !strings.Contains(response, contents[0]) {
+		t.Errorf(`expected instructions to contain "%s"`, contents[0])
+	}
+	if !strings.Contains(response, contents[1]) {
+		t.Errorf(`expected instructions to contain "%s"`, contents[1])
+	}
+	if !strings.Contains(response, contents[2]) {
+		t.Errorf(`expected instructions to contain "%s"`, contents[2])
 	}
 }
 
