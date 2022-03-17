@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -131,10 +132,13 @@ func OpenFileForAppend(filePath string) (*os.File, error) {
 }
 
 func (fs *FS) normalizePath(filePath string) string {
-	if strings.HasPrefix(filePath, fs.root+"/") {
-		return filePath
+	pathComponents := strings.Split(filePath, string(os.PathSeparator))
+
+	if pathComponents[0] == fs.root {
+		return path.Join(pathComponents...)
+	} else {
+		return path.Join(append([]string{fs.root}, pathComponents...)...)
 	}
-	return filepath.Join(fs.root, filePath)
 }
 
 type Operation struct {

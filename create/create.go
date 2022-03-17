@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -32,7 +33,7 @@ const (
 )
 
 func ReadTemplateFile(path string) ([]byte, error) {
-    return templates.ReadFile(path)
+	return templates.ReadFile(path)
 }
 
 func NewExtensionProject(extension core.Extension) (err error) {
@@ -105,7 +106,7 @@ func createSourceFiles(fs *fsutils.FS, project *project) process.Task {
 				}
 			} else {
 				// Create main index file
-				err = fs.CopyFile(filepath.Join(project.Type, getMainTemplate(project)),
+				err = fs.CopyFile(path.Join(project.Type, getMainTemplate(project)),
 					filepath.Join(project.Development.RootDir, project.Development.Entries["main"]),
 				)
 
