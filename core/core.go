@@ -31,6 +31,16 @@ func NewExtensionService(config *Config, apiRoot string) *ExtensionService {
 			name := keys[entry]
 			extension.Assets[name] = Asset{Name: name}
 		}
+
+		translations := make(map[string]map[string]string)
+		translations["en"] = make(map[string]string)
+		translations["en"]["greetings"]= "hello"
+
+		extension.Localization = Localization{
+			DefaultLocale: "placeholder",
+			Translations: translations,
+		}
+
 		extension.Surface = GetSurface(&extension)
 		extensions = append(extensions, extension)
 	}
@@ -82,10 +92,16 @@ type ExtensionService struct {
 	PublicUrl  string
 }
 
+type Localization struct {
+	DefaultLocale string `json:"defaultLocale" yaml:"default_locale"`
+	Translations map[string]map[string]string `json:"translations" yaml:"translations"`
+}
+
 type Extension struct {
 	Assets          map[string]Asset `json:"assets" yaml:"-"`
 	Development     Development      `json:"development" yaml:"development,omitempty"`
 	ExtensionPoints []string         `json:"extensionPoints" yaml:"extension_points,omitempty"`
+	Localization 		Localization 		 `json:"localization,omitempty" yaml:"localization,omitempty"`
 	Metafields      []Metafield      `json:"metafields" yaml:"metafields,omitempty"`
 	Type            string           `json:"type" yaml:"type,omitempty"`
 	UUID            string           `json:"uuid" yaml:"uuid,omitempty"`
