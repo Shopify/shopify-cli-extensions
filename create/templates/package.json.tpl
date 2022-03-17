@@ -13,7 +13,7 @@
       "@shopify/shopify-cli-extensions": "latest",
       "eslint": "^7.19.0",
       "eslint-config-prettier": "^7.2.0",
-      "eslint-plugin-prettier": "^3.3.0",
+      "eslint-plugin-prettier": "^3.3.0"
     },
     "scripts": {
       "build": "shopify-cli-extensions build",

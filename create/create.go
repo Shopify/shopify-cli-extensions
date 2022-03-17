@@ -20,9 +20,10 @@ import (
 )
 
 //go:embed templates/* templates/.shopify-cli.yml.tpl
-//go:embed templates/* templates/.eslintrc.js
-//go:embed templates/* templates/.prettierrc
-//go:embed templates/* templates/.vscode
+//go:embed templates/* templates/.eslintrc.js.tpl
+//go:embed templates/* templates/.prettierrc.tpl
+//go:embed templates/.vscode/* templates/.vscode/extensions.json.tpl
+//go:embed templates/.vscode/* templates/.vscode/settings.json.tpl
 var templates embed.FS
 
 const (
