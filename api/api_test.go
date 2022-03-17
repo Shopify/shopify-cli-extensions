@@ -170,9 +170,20 @@ func TestGetSingleExtension(t *testing.T) {
 
 func TestServeAssets(t *testing.T) {
 	api := New(config, apiRoot)
-	response := getHTMLResponse(api, t, localhost, "/extensions/00000000-0000-0000-0000-000000000000/assets/main.js")
+	response := getHTMLRequest(api, t, localhost, "/extensions/00000000-0000-0000-0000-000000000000/assets/main.js")
 
-	if response != "console.log(\"Hello World!\");\n" {
+	if response.Result().StatusCode != http.StatusOK {
+		t.Error("expected status code ok received")
+	}
+
+	cachePolicy := response.Result().Header["Cache-Control"]
+	if len(cachePolicy) == 0 {
+		t.Error("expected server to specify a cache policy")
+	} else if cachePolicy[0] != "no-cache" {
+		t.Errorf("expected cache policy to be no-cache not %s", cachePolicy[0])
+	}
+
+	if response.Body.String() != "console.log(\"Hello World!\");\n" {
 		t.Error("Unexpected body")
 	}
 }
@@ -223,7 +234,7 @@ func TestCheckoutRedirect(t *testing.T) {
 	api := New(config, apiRoot)
 	rec := getHTMLRequest(api, t, secureHost, "/extensions/00000000-0000-0000-0000-000000000000")
 
-	if rec.Code != http.StatusPermanentRedirect {
+	if rec.Code != http.StatusTemporaryRedirect {
 		t.Errorf("expected redirect status – received: %d", rec.Code)
 	}
 
@@ -240,7 +251,7 @@ func TestAdminRedirect(t *testing.T) {
 	api := New(config, apiRoot)
 	rec := getHTMLRequest(api, t, secureHost, "/extensions/00000000-0000-0000-0000-000000000001")
 
-	if rec.Code != http.StatusPermanentRedirect {
+	if rec.Code != http.StatusTemporaryRedirect {
 		t.Errorf("Expected redirect status – received: %d", rec.Code)
 	}
 
@@ -249,6 +260,29 @@ func TestAdminRedirect(t *testing.T) {
 
 	if err != nil || redirectUrl.String() != expectedUrl {
 		t.Errorf("Expected redirect url to be %s but received: %s", expectedUrl, redirectUrl.String())
+	}
+}
+
+func TestPostPurchaseIndex(t *testing.T) {
+	api := New(config, apiRoot)
+	response := getHTMLResponse(api, t, secureHost, "/extensions/00000000-0000-0000-0000-000000000002")
+
+	contents := [...]string{
+		"This page is served by your local UI Extension development server. Instead of visiting this page directly, you will need to connect your local development environment to a real checkout environment.",
+		"If this is the first time you're testing a Post Purchase extension, please install the browser extension from <a href=\"https://github.com/Shopify/post-purchase-devtools/releases\">https://github.com/Shopify/post-purchase-devtools/releases</a>.",
+		"Once installed, simply enter your extension URL <a href=\"https://example.ngrok.io/extensions/00000000-0000-0000-0000-000000000002\">https://example.ngrok.io/extensions/00000000-0000-0000-0000-000000000002</a>.",
+	}
+
+	t.Logf("response: %s", response)
+
+	if !strings.Contains(response, contents[0]) {
+		t.Errorf(`expected instructions to contain "%s"`, contents[0])
+	}
+	if !strings.Contains(response, contents[1]) {
+		t.Errorf(`expected instructions to contain "%s"`, contents[1])
+	}
+	if !strings.Contains(response, contents[2]) {
+		t.Errorf(`expected instructions to contain "%s"`, contents[2])
 	}
 }
 

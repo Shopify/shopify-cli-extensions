@@ -20,9 +20,10 @@ func New(config *core.Config, apiRoot string) *RootHandler {
 	return &RootHandler{
 		fsutils.NewFS(&templates, "templates"),
 		&apiConfig{
-			ApiRoot: apiRoot,
-			Port:    config.Port,
-			Store:   config.Store,
+			ApiRoot:            apiRoot,
+			Port:               config.Port,
+			Store:              config.Store,
+			IntegrationContext: config.IntegrationContext,
 		},
 	}
 }
@@ -60,7 +61,7 @@ func (root *RootHandler) HandleHTMLRequest(rw http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	http.Redirect(rw, r, url, http.StatusPermanentRedirect)
+	http.Redirect(rw, r, url, http.StatusTemporaryRedirect)
 }
 
 func IsSecureRequest(r *http.Request) bool {
@@ -155,6 +156,7 @@ type apiConfig struct {
 	ApiRoot string
 	Port    int
 	Store   string
+	core.IntegrationContext
 }
 
 type RootHandler struct {

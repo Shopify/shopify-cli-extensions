@@ -34,7 +34,7 @@ func New(config *core.Config, apiRoot string) *ExtensionsApi {
 	mux := mux.NewRouter()
 
 	mux.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		http.Redirect(rw, r, "/dev-console", http.StatusPermanentRedirect)
+		http.Redirect(rw, r, "/dev-console", http.StatusTemporaryRedirect)
 	})
 
 	api := configureExtensionsApi(config, mux, apiRoot)
@@ -252,7 +252,7 @@ func configureExtensionsApi(config *core.Config, router *mux.Router, apiRoot str
 		assets := path.Join(apiRoot, extension.UUID, "assets")
 		buildDir := filepath.Join(".", extension.Development.RootDir, extension.Development.BuildDir)
 		api.PathPrefix(assets).Handler(
-			withCors(http.StripPrefix(assets, http.FileServer(http.Dir(buildDir)))),
+			withoutCache(withCors(http.StripPrefix(assets, http.FileServer(http.Dir(buildDir))))),
 		)
 	}
 
@@ -261,7 +261,7 @@ func configureExtensionsApi(config *core.Config, router *mux.Router, apiRoot str
 	api.PathPrefix("/dev-console").Handler(http.FileServer(http.FS(devConsole)))
 
 	api.PathPrefix("/assets/").Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		http.Redirect(rw, r, path.Join("/dev-console", r.URL.Path), http.StatusPermanentRedirect)
+		http.Redirect(rw, r, path.Join("/dev-console", r.URL.Path), http.StatusTemporaryRedirect)
 	}))
 
 	return api
@@ -503,6 +503,13 @@ func withCors(h http.Handler) http.HandlerFunc {
 		rw.Header().Set("Access-Control-Allow-Origin", "*")
 		rw.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 		rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		h.ServeHTTP(rw, r)
+	}
+}
+
+func withoutCache(h http.Handler) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Cache-Control", "no-cache")
 		h.ServeHTTP(rw, r)
 	}
 }
