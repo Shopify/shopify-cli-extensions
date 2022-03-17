@@ -19,11 +19,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed templates/* templates/.shopify-cli.yml.tpl
-//go:embed templates/* templates/.eslintrc.js.tpl
-//go:embed templates/* templates/.prettierrc.tpl
-//go:embed templates/.vscode/* templates/.vscode/extensions.json.tpl
-//go:embed templates/.vscode/* templates/.vscode/settings.json.tpl
+//go:embed templates/global/* templates/global/.shopify-cli.yml.tpl
+//go:embed templates/global/* templates/global/.eslintrc.js.tpl
+//go:embed templates/global/* templates/global/.prettierrc.tpl
+//go:embed templates/global/.vscode/* templates/global/.vscode/extensions.json.tpl
+//go:embed templates/global/.vscode/* templates/global/.vscode/settings.json.tpl
 var templates embed.FS
 
 const (
@@ -147,8 +147,9 @@ func createSourceFiles(fs *fsutils.FS, project *project) process.Task {
 
 func mergeGlobalTemplates(fs *fsutils.FS, project *project) process.Task {
 	return mergeTemplates(fs, project, &fsutils.Operation{
-		SourceDir: "",
+		SourceDir: "global",
 		TargetDir: project.Development.RootDir,
+		Recursive: true,
 	})
 }
 
