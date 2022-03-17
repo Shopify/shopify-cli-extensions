@@ -1,9 +1,6 @@
+/* global module */
 module.exports = {
-  plugins: [
-    {{ if .React }}'react',{{ end }}
-    {{ if .TypeScript }}'@typescript-eslint',{{ end }}
-    'prettier'
-  ],
+  plugins: [{{ if .React }}'react', {{ end }}{{ if .TypeScript }}'@typescript-eslint', {{ end }}'prettier'],
   {{ if .TypeScript }}parser: '@typescript-eslint/parser',{{ end }}
   extends: [
     'eslint:recommended',
@@ -20,7 +17,9 @@ module.exports = {
     },
   },
   settings: {
-    {{ if .React }}react: { version: '17.0', },{{ end }}
+    {{ if .React }}react: {
+      version: '17.0',
+    },{{ end }}
   },
   rules: {
     {{ if .React }}'react/react-in-jsx-scope': 'off',{{ end }}
