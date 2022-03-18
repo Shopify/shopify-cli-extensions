@@ -1,8 +1,11 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -32,14 +35,16 @@ func NewExtensionService(config *Config, apiRoot string) *ExtensionService {
 			extension.Assets[name] = Asset{Name: name}
 		}
 
-		translations := make(map[string]map[string]string)
-		translations["en"] = make(map[string]string)
-		translations["en"]["greetings"]= "hello"
+		// translations := make(map[string]map[string]string)
+		// translations["en"] = make(map[string]string)
+		// translations["en"]["greetings"]= "hello"
 
-		extension.Localization = Localization{
-			DefaultLocale: "placeholder",
-			Translations: translations,
-		}
+		// extension.Localization = Localization{
+		// 	DefaultLocale: "placeholder",
+		// 	Translations: translations,
+		// }
+
+		extension.Localization = getLocalization()
 
 		extension.Surface = GetSurface(&extension)
 		extensions = append(extensions, extension)
@@ -72,15 +77,15 @@ type appYaml struct {
 }
 
 type Config struct {
-	App        appYaml     `yaml:"app"`
-	Extensions []Extension `yaml:"extensions"`
-	Port       int
+	App                appYaml     `yaml:"app"`
+	Extensions         []Extension `yaml:"extensions"`
+	Port               int
 	IntegrationContext `yaml:",inline"`
 }
 
 type IntegrationContext struct {
-	PublicUrl  string `yaml:"public_url"`
-	Store      string `yaml:"store"`
+	PublicUrl string `yaml:"public_url"`
+	Store     string `yaml:"store"`
 }
 
 type ExtensionService struct {
@@ -93,15 +98,15 @@ type ExtensionService struct {
 }
 
 type Localization struct {
-	DefaultLocale string `json:"defaultLocale" yaml:"default_locale"`
-	Translations map[string]map[string]string `json:"translations" yaml:"translations"`
+	DefaultLocale string                 `json:"defaultLocale" yaml:"default_locale"`
+	Translations  map[string]interface{} `json:"translations" yaml:"translations"`
 }
 
 type Extension struct {
 	Assets          map[string]Asset `json:"assets" yaml:"-"`
 	Development     Development      `json:"development" yaml:"development,omitempty"`
 	ExtensionPoints []string         `json:"extensionPoints" yaml:"extension_points,omitempty"`
-	Localization 		Localization 		 `json:"localization,omitempty" yaml:"localization,omitempty"`
+	Localization    Localization     `json:"localization,omitempty" yaml:"localization,omitempty"`
 	Metafields      []Metafield      `json:"metafields" yaml:"metafields,omitempty"`
 	Type            string           `json:"type" yaml:"type,omitempty"`
 	UUID            string           `json:"uuid" yaml:"uuid,omitempty"`
@@ -183,4 +188,61 @@ func GetSurface(extension *Extension) string {
 		return PostPurchase
 	}
 	return Admin
+}
+
+func getLocalization() Localization {
+	path := "./locales"
+	files := getFileNames(path)
+	translations := make(map[string]interface{})
+	defaultLocale := ""
+
+	for _, fileName := range files {
+		data := getMapFromFile(fmt.Sprintf("locales/%s", fileName))
+		locale := strings.Split(fileName, ".")[0]
+		if isDefaultLocale(fileName) {
+			defaultLocale = locale
+		}
+
+		translations[locale] = data
+	}
+
+	return Localization{
+		DefaultLocale: defaultLocale,
+		Translations:  translations,
+	}
+}
+
+func getFileNames(folderPath string) []string {
+	files := []string{}
+	items, _ := ioutil.ReadDir(folderPath)
+	for _, item := range items {
+		if !item.IsDir() {
+			files = append(files, item.Name())
+		}
+	}
+	return files
+}
+
+func getMapFromFile(filePath string) map[string]interface{} {
+	// Open our jsonFile
+	jsonFile, err := os.Open(filePath)
+
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	var result map[string]interface{}
+	json.Unmarshal([]byte(byteValue), &result)
+
+	return result
+}
+
+func isDefaultLocale(fileName string) bool {
+	return strings.Contains(fileName, ".default.")
 }
