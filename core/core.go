@@ -199,15 +199,17 @@ func GetSurface(extension *Extension) string {
 func GetLocalization(extension *Extension) (Localization, error) {
 	path := filepath.Join(".", extension.Development.RootDir, "locales")
 
+	// TODO: check if locale directory exists
+
 	fileNames, fileNamesErr := GetFileNames(path)
-	if fileNames != nil {
+	if fileNamesErr != nil {
 		return Localization{}, fileNamesErr
 	}
 	translations := make(map[string]interface{})
 	defaultLocale := ""
 
 	for _, fileName := range fileNames {
-		data, dataError := GetMapFromFile(fmt.Sprintf("locales/%s", fileName))
+		data, dataError := GetMapFromFile(filepath.Join(path, fileName))
 		if dataError != nil {
 			fmt.Println("TODO: not sure what to do with error reporting...", dataError.Error())
 			continue
