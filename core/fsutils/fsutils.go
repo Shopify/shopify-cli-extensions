@@ -13,6 +13,7 @@ import (
 const (
 	JSON string = ".json"
 	YAML string = ".yml"
+	GlobalTemplateDir string = "global"
 )
 
 func NewFS(embeddedFS *embed.FS, root string) *FS {
@@ -59,18 +60,14 @@ func (fs *FS) Execute(op *Operation) (err error) {
 				continue
 			}
 
-			relativeDir := fileName
+			relativeDir := filepath.Join(op.SourceDir, fileName)
 			targetDir := op.TargetDir
 
-			if op.SourceDir != "global" {
-				relativeDir = filepath.Join(op.SourceDir, fileName)
-			} else {
-				relativeDir = filepath.Join(op.SourceDir, fileName)
+			if op.SourceDir == GlobalTemplateDir {
 				targetDir = filepath.Join(op.TargetDir, fileName)
 				if err := MakeDir(targetDir); err != nil {
 					return err
 				}
-
 			}
 
 			if err = fs.Execute(&Operation{
