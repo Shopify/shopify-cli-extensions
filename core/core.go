@@ -35,15 +35,6 @@ func NewExtensionService(config *Config, apiRoot string) *ExtensionService {
 			extension.Assets[name] = Asset{Name: name}
 		}
 
-		// translations := make(map[string]map[string]string)
-		// translations["en"] = make(map[string]string)
-		// translations["en"]["greetings"]= "hello"
-
-		// extension.Localization = Localization{
-		// 	DefaultLocale: "placeholder",
-		// 	Translations: translations,
-		// }
-
 		localization, localizationError := GetLocalization(&extension)
 
 		if localizationError != nil {
@@ -112,7 +103,7 @@ type Extension struct {
 	Assets          map[string]Asset `json:"assets" yaml:"-"`
 	Development     Development      `json:"development" yaml:"development,omitempty"`
 	ExtensionPoints []string         `json:"extensionPoints" yaml:"extension_points,omitempty"`
-	Localization    Localization     `json:"localization,omitempty" yaml:"localization,omitempty"`
+	Localization    *Localization     `json:"localization" yaml:"localization"`
 	Metafields      []Metafield      `json:"metafields" yaml:"metafields,omitempty"`
 	Type            string           `json:"type" yaml:"type,omitempty"`
 	UUID            string           `json:"uuid" yaml:"uuid,omitempty"`
@@ -196,16 +187,16 @@ func GetSurface(extension *Extension) string {
 	return Admin
 }
 
-func GetLocalization(extension *Extension) (Localization, error) {
+func GetLocalization(extension *Extension) (*Localization, error) {
 	path := filepath.Join(".", extension.Development.RootDir, "locales")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		// The extension does not have a locales directory.
-		return Localization{}, nil
+		return nil, nil
 	}
 
 	fileNames, fileNamesErr := GetFileNames(path)
 	if fileNamesErr != nil {
-		return Localization{}, fileNamesErr
+		return nil, fileNamesErr
 	}
 	translations := make(map[string]interface{})
 	defaultLocale := ""
@@ -213,7 +204,7 @@ func GetLocalization(extension *Extension) (Localization, error) {
 	for _, fileName := range fileNames {
 		data, dataError := GetMapFromFile(filepath.Join(path, fileName))
 		if dataError != nil {
-			return Localization{}, dataError
+			return nil, dataError
 		}
 
 		locale := strings.Split(fileName, ".")[0]
@@ -226,9 +217,9 @@ func GetLocalization(extension *Extension) (Localization, error) {
 	}
 
 	if len(translations) == 0 {
-		return Localization{}, nil
+		return nil, nil
 	} else {
-		return Localization{
+		return &Localization{
 			DefaultLocale: defaultLocale,
 			Translations:  translations,
 		}, nil

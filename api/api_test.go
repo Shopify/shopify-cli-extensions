@@ -735,6 +735,7 @@ func TestWebsocketClientDispatchEventWithoutMutatingData(t *testing.T) {
 		  "uuid": "00000000-0000-0000-0000-000000000000",
 		  "version": "",
 		  "extensionPoints": null,
+		  "localization": null,
 		  "surface": "checkout"
 		}
 	  ]`, server.URL, server.URL)
