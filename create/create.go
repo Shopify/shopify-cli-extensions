@@ -144,7 +144,7 @@ func createSourceFiles(fs *fsutils.FS, project *project) process.Task {
 
 func mergeGlobalTemplates(fs *fsutils.FS, project *project) process.Task {
 	return mergeTemplates(fs, project, &fsutils.Operation{
-		SourceDir: "global",
+		SourceDir: fsutils.GlobalTemplateDir,
 		TargetDir: project.Development.RootDir,
 		Recursive: true,
 	})
