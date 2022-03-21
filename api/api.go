@@ -458,6 +458,15 @@ func setExtensionUrls(original core.Extension, rootUrl string) core.Extension {
 		}
 	}
 
+
+	fmt.Println("HACK: rebuilding extension localization")
+	// TODO: think about this more
+	localization, err := core.GetLocalization(&extension)
+	if err != nil {
+		panic(err)
+	}
+	extension.Localization = localization
+
 	return extension
 }
 
