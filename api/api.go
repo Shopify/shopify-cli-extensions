@@ -513,7 +513,7 @@ func GetFileNames(folderPath string) ([]string, error) {
 	files := []string{}
 	items, err := ioutil.ReadDir(folderPath)
 	if err != nil {
-		return []string{}, err
+		return files, err
 	}
 	for _, item := range items {
 		if !item.IsDir() {
@@ -525,15 +525,13 @@ func GetFileNames(folderPath string) ([]string, error) {
 
 func GetMapFromFile(filePath string) (map[string]interface{}, error) {
 	var result map[string]interface{}
-	// Open our jsonFile
+
 	jsonFile, err := os.Open(filePath)
 
-	// if we os.Open returns an error then handle it
 	if err != nil {
 		return result, err
 	}
 
-	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
 	byteValue, err := ioutil.ReadAll(jsonFile)
@@ -542,7 +540,11 @@ func GetMapFromFile(filePath string) (map[string]interface{}, error) {
 		return result, err
 	}
 
-	json.Unmarshal([]byte(byteValue), &result)
+	err = json.Unmarshal([]byte(byteValue), &result)
+
+	if err != nil {
+		return result, err
+	}
 
 	return result, nil
 }
