@@ -1,11 +1,8 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -33,14 +30,6 @@ func NewExtensionService(config *Config, apiRoot string) *ExtensionService {
 		for entry := range keys {
 			name := keys[entry]
 			extension.Assets[name] = Asset{Name: name}
-		}
-
-		localization, localizationError := GetLocalization(&extension)
-
-		if localizationError != nil {
-			fmt.Println("TODO: not sure what to do with error reporting...", localizationError.Error())
-		} else {
-			extension.Localization = localization
 		}
 
 		extension.Surface = GetSurface(&extension)
@@ -103,7 +92,7 @@ type Extension struct {
 	Assets          map[string]Asset `json:"assets" yaml:"-"`
 	Development     Development      `json:"development" yaml:"development,omitempty"`
 	ExtensionPoints []string         `json:"extensionPoints" yaml:"extension_points,omitempty"`
-	Localization    *Localization     `json:"localization" yaml:"localization"`
+	Localization    *Localization    `json:"localization" yaml:"localization"`
 	Metafields      []Metafield      `json:"metafields" yaml:"metafields,omitempty"`
 	Type            string           `json:"type" yaml:"type,omitempty"`
 	UUID            string           `json:"uuid" yaml:"uuid,omitempty"`
@@ -185,85 +174,4 @@ func GetSurface(extension *Extension) string {
 		return PostPurchase
 	}
 	return Admin
-}
-
-func GetLocalization(extension *Extension) (*Localization, error) {
-	path := filepath.Join(".", extension.Development.RootDir, "locales")
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		// The extension does not have a locales directory.
-		return nil, nil
-	}
-
-	fileNames, fileNamesErr := GetFileNames(path)
-	if fileNamesErr != nil {
-		return nil, fileNamesErr
-	}
-	translations := make(map[string]interface{})
-	defaultLocale := ""
-
-	for _, fileName := range fileNames {
-		data, dataError := GetMapFromFile(filepath.Join(path, fileName))
-		if dataError != nil {
-			return nil, dataError
-		}
-
-		locale := strings.Split(fileName, ".")[0]
-
-		if IsDefaultLocale(fileName) {
-			defaultLocale = locale
-		}
-
-		translations[locale] = data
-	}
-
-	if len(translations) == 0 {
-		return nil, nil
-	} else {
-		return &Localization{
-			DefaultLocale: defaultLocale,
-			Translations:  translations,
-		}, nil
-	}
-}
-
-func GetFileNames(folderPath string) ([]string, error) {
-	files := []string{}
-	items, err := ioutil.ReadDir(folderPath)
-	if err != nil {
-		return []string{}, err
-	}
-	for _, item := range items {
-		if !item.IsDir() {
-			files = append(files, item.Name())
-		}
-	}
-	return files, nil
-}
-
-func GetMapFromFile(filePath string) (map[string]interface{}, error) {
-	var result map[string]interface{}
-	// Open our jsonFile
-	jsonFile, openErr := os.Open(filePath)
-
-	// if we os.Open returns an error then handle it
-	if openErr != nil {
-		return result, openErr
-	}
-
-	// defer the closing of our jsonFile so that we can parse it later on
-	defer jsonFile.Close()
-
-	byteValue, readErr := ioutil.ReadAll(jsonFile)
-
-	if readErr != nil {
-		return result, readErr
-	}
-
-	json.Unmarshal([]byte(byteValue), &result)
-
-	return result, nil
-}
-
-func IsDefaultLocale(fileName string) bool {
-	return strings.HasSuffix(fileName, ".default.json")
 }

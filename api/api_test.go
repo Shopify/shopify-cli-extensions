@@ -170,6 +170,11 @@ func TestGetSingleExtension(t *testing.T) {
 	if api.Extensions[0].Development.Root.Url != "" || api.Extensions[0].Assets["main"].Url != "" {
 		t.Error("expect extension API data urls to not to be mutated")
 	}
+
+	if extension.Localization != nil {
+		t.Error("expect localization to be nil without defined locales")
+	}
+
 }
 
 func TestServeAssets(t *testing.T) {

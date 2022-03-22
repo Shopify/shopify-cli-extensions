@@ -9,9 +9,11 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -61,10 +63,10 @@ func (api *ExtensionsApi) notifyClients(createNotification func(rootUrl string) 
 }
 
 func (api *ExtensionsApi) getNotification(event string, extensions []core.Extension, rootUrl string) (message notification, err error) {
-	extensionsWithUrls := getExtensionsWithUrl(extensions, rootUrl)
+	extensionsWithRuntimeData := getExtensionsWithRuntimeData(extensions, rootUrl)
 	app := formatData(api.App, strcase.ToLowerCamel)
 
-	data, err := api.getNotificationData(extensionsWithUrls, app)
+	data, err := api.getNotificationData(extensionsWithRuntimeData, app)
 	if err != nil {
 		return
 	}
@@ -171,8 +173,8 @@ func (api *ExtensionsApi) getMergedExtensionsMap(extensions []map[string]interfa
 	results := make([]map[string]interface{}, 0)
 	for _, extension := range api.Extensions {
 		if target, found := targetExtensions[extension.UUID]; found {
-			extensionWithUrls := setExtensionUrls(extension, rootUrl)
-			extensionData, err := interfaceToMap(extensionWithUrls)
+			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, rootUrl)
+			extensionData, err := interfaceToMap(extensionWithRuntimeData)
 			if err != nil {
 				continue
 			}
@@ -326,10 +328,10 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 
 }
 
-func getExtensionsWithUrl(extensions []core.Extension, rootUrl string) []core.Extension {
+func getExtensionsWithRuntimeData(extensions []core.Extension, rootUrl string) []core.Extension {
 	updatedCopy := []core.Extension{}
 	for _, extension := range extensions {
-		updatedCopy = append(updatedCopy, setExtensionUrls(extension, rootUrl))
+		updatedCopy = append(updatedCopy, setExtensionWithRuntimeData(extension, rootUrl))
 	}
 	return updatedCopy
 }
@@ -340,7 +342,7 @@ func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request
 
 	encoder.Encode(extensionsResponse{
 		api.getResponse(r),
-		getExtensionsWithUrl(api.Extensions, api.GetApiRootUrlFromRequest(r)),
+		getExtensionsWithRuntimeData(api.Extensions, api.GetApiRootUrlFromRequest(r)),
 	})
 }
 
@@ -364,16 +366,16 @@ func (api *ExtensionsApi) extensionRootHandler(rw http.ResponseWriter, r *http.R
 
 	for _, extension := range api.Extensions {
 		if extension.UUID == uuid {
-			extensionWithUrls := setExtensionUrls(extension, api.GetApiRootUrlFromRequest(r))
+			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, api.GetApiRootUrlFromRequest(r))
 
 			if strings.HasPrefix(r.Header.Get("accept"), "text/html") {
-				api.HandleHTMLRequest(rw, r, &extensionWithUrls)
+				api.HandleHTMLRequest(rw, r, &extensionWithRuntimeData)
 				return
 			}
 
 			rw.Header().Add("Content-Type", "application/json")
 			encoder := json.NewEncoder(rw)
-			encoder.Encode(singleExtensionResponse{api.getResponse(r), extensionWithUrls})
+			encoder.Encode(singleExtensionResponse{api.getResponse(r), extensionWithRuntimeData})
 			return
 		}
 	}
@@ -439,7 +441,7 @@ func (api *ExtensionsApi) handleClientMessages(ws *websocketConnection) {
 	}
 }
 
-func setExtensionUrls(original core.Extension, rootUrl string) core.Extension {
+func setExtensionWithRuntimeData(original core.Extension, rootUrl string) core.Extension {
 	extension := core.Extension{}
 	err := mergeWithOverwrite(&extension, &original)
 	if err != nil {
@@ -458,16 +460,95 @@ func setExtensionUrls(original core.Extension, rootUrl string) core.Extension {
 		}
 	}
 
-
-	fmt.Println("HACK: rebuilding extension localization")
-	// TODO: think about this more
-	localization, err := core.GetLocalization(&extension)
+	localization, err := GetLocalization(&extension)
 	if err != nil {
 		panic(err)
 	}
+
 	extension.Localization = localization
 
 	return extension
+}
+
+func GetLocalization(extension *core.Extension) (*core.Localization, error) {
+	path := filepath.Join(".", extension.Development.RootDir, "locales")
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		// The extension does not have a locales directory.
+		return nil, nil
+	}
+
+	fileNames, fileNamesErr := GetFileNames(path)
+	if fileNamesErr != nil {
+		return nil, fileNamesErr
+	}
+	translations := make(map[string]interface{})
+	defaultLocale := ""
+
+	for _, fileName := range fileNames {
+		data, err := GetMapFromFile(filepath.Join(path, fileName))
+		if err != nil {
+			return nil, err
+		}
+
+		locale := strings.Split(fileName, ".")[0]
+
+		if IsDefaultLocale(fileName) {
+			defaultLocale = locale
+		}
+
+		translations[locale] = data
+	}
+
+	if len(translations) == 0 {
+		return nil, nil
+	} else {
+		return &core.Localization{
+			DefaultLocale: defaultLocale,
+			Translations:  translations,
+		}, nil
+	}
+}
+
+func GetFileNames(folderPath string) ([]string, error) {
+	files := []string{}
+	items, err := ioutil.ReadDir(folderPath)
+	if err != nil {
+		return []string{}, err
+	}
+	for _, item := range items {
+		if !item.IsDir() {
+			files = append(files, item.Name())
+		}
+	}
+	return files, nil
+}
+
+func GetMapFromFile(filePath string) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	// Open our jsonFile
+	jsonFile, err := os.Open(filePath)
+
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		return result, err
+	}
+
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	byteValue, err := ioutil.ReadAll(jsonFile)
+
+	if err != nil {
+		return result, err
+	}
+
+	json.Unmarshal([]byte(byteValue), &result)
+
+	return result, nil
+}
+
+func IsDefaultLocale(fileName string) bool {
+	return strings.HasSuffix(fileName, ".default.json")
 }
 
 func formatData(data map[string]interface{}, formatter func(str string) string) map[string]interface{} {
