@@ -44,7 +44,7 @@ func (fs *FS) CopyFile(filePath, targetPath string) error {
 func (fs *FS) Execute(op *Operation) (err error) {
 	dirPath := fs.root
 	if op.SourceDir != "" {
-		dirPath = path.Join(fs.root, op.SourceDir)
+		dirPath = fs.NormalizePath(op.SourceDir)
 	}
 
 	entries, err := fs.ReadDir(dirPath)
