@@ -183,8 +183,11 @@ func TestServeAssets(t *testing.T) {
 		t.Errorf("expected cache policy to be no-cache not %s", cachePolicy[0])
 	}
 
-	if response.Body.String() != "console.log(\"Hello World!\");\n" {
-		t.Error("Unexpected body")
+	expected := "console.log(\"Hello World!\");\n"
+	actual := strings.Replace(response.Body.String(),"\r\n", "\n", -1)
+
+	if actual != expected {
+		t.Error("Unexpected body: " + actual, ", Expected: " + expected)
 	}
 }
 

@@ -55,7 +55,8 @@ func TestBuild(t *testing.T) {
 func TestWatch(t *testing.T) {
 	extension := config.Extensions[0]
 
-	err := os.Remove(filepath.Join(extension.BuildDir(), "main.js"))
+	path := filepath.Join(extension.BuildDir(), "main.js")
+	err := os.Remove(path)
 	if err != nil {
 		t.Fatal(err)
 	}
