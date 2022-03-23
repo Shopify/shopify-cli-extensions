@@ -1,5 +1,5 @@
 port: 8000
-public_url: https://7cbc-2600-1700-5658-3c50-fdd0-8885-93fc-9d51.ngrok.io
+public_url: https://example.ngrok.io
 store: test-shop.myshopify.com
 
 app:

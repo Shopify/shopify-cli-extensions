@@ -462,7 +462,7 @@ func setExtensionWithRuntimeData(original core.Extension, rootUrl string) core.E
 
 	localization, err := GetLocalization(&extension)
 	if err != nil {
-		panic(err)
+		log.Printf("failed to retrieve locales: %v", err)
 	}
 
 	extension.Localization = localization
@@ -477,9 +477,9 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 		return nil, nil
 	}
 
-	fileNames, fileNamesErr := GetFileNames(path)
-	if fileNamesErr != nil {
-		return nil, fileNamesErr
+	fileNames, err := GetFileNames(path)
+	if err != nil {
+		return nil, err
 	}
 	translations := make(map[string]interface{})
 	defaultLocale := ""
@@ -502,6 +502,10 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 	if len(translations) == 0 {
 		return nil, nil
 	} else {
+		if defaultLocale == "" {
+			log.Println("could not determine a default locale, please ensure you have a {locale}.default.json file")
+		}
+
 		return &core.Localization{
 			DefaultLocale: defaultLocale,
 			Translations:  translations,
@@ -532,6 +536,7 @@ func GetMapFromFile(filePath string) (map[string]interface{}, error) {
 		return result, err
 	}
 
+	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
 	byteValue, err := ioutil.ReadAll(jsonFile)
