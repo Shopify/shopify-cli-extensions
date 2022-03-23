@@ -216,7 +216,7 @@ func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
 
 					defer targetFile.Close()
 
-					newContent, err := templates.ReadFile(filePath)
+					newContent, err := templates.ReadFile(fs.NormalizePath(filePath))
 					if err != nil {
 						return
 					}
