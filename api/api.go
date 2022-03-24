@@ -62,7 +62,7 @@ func (api *ExtensionsApi) notifyClients(createNotification func(rootUrl string) 
 }
 
 func (api *ExtensionsApi) getNotification(event string, extensions []core.Extension, rootUrl string) (message notification, err error) {
-	extensionsWithRuntimeData := getExtensionsWithRuntimeData(extensions, rootUrl)
+	extensionsWithRuntimeData := getExtensionsWithRuntimeData(extensions, rootUrl, false)
 	app := formatData(api.App, strcase.ToLowerCamel)
 
 	data, err := api.getNotificationData(extensionsWithRuntimeData, app)
@@ -172,7 +172,7 @@ func (api *ExtensionsApi) getMergedExtensionsMap(extensions []map[string]interfa
 	results := make([]map[string]interface{}, 0)
 	for _, extension := range api.Extensions {
 		if target, found := targetExtensions[extension.UUID]; found {
-			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, rootUrl)
+			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, rootUrl, false)
 			extensionData, err := interfaceToMap(extensionWithRuntimeData)
 			if err != nil {
 				continue
@@ -327,10 +327,10 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 
 }
 
-func getExtensionsWithRuntimeData(extensions []core.Extension, rootUrl string) []core.Extension {
+func getExtensionsWithRuntimeData(extensions []core.Extension, rootUrl string, processTranslations bool) []core.Extension {
 	updatedCopy := []core.Extension{}
 	for _, extension := range extensions {
-		updatedCopy = append(updatedCopy, setExtensionWithRuntimeData(extension, rootUrl))
+		updatedCopy = append(updatedCopy, setExtensionWithRuntimeData(extension, rootUrl, processTranslations))
 	}
 	return updatedCopy
 }
@@ -341,7 +341,7 @@ func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request
 
 	encoder.Encode(extensionsResponse{
 		api.getResponse(r),
-		getExtensionsWithRuntimeData(api.Extensions, api.GetApiRootUrlFromRequest(r)),
+		getExtensionsWithRuntimeData(api.Extensions, api.GetApiRootUrlFromRequest(r), true),
 	})
 }
 
@@ -365,7 +365,7 @@ func (api *ExtensionsApi) extensionRootHandler(rw http.ResponseWriter, r *http.R
 
 	for _, extension := range api.Extensions {
 		if extension.UUID == uuid {
-			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, api.GetApiRootUrlFromRequest(r))
+			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, api.GetApiRootUrlFromRequest(r), true)
 
 			if strings.HasPrefix(r.Header.Get("accept"), "text/html") {
 				api.HandleHTMLRequest(rw, r, &extensionWithRuntimeData)
@@ -440,7 +440,8 @@ func (api *ExtensionsApi) handleClientMessages(ws *websocketConnection) {
 	}
 }
 
-func setExtensionWithRuntimeData(original core.Extension, rootUrl string) core.Extension {
+func setExtensionWithRuntimeData(original core.Extension, rootUrl string, processTranslations bool) core.Extension {
+
 	extension := core.Extension{}
 	err := mergeWithOverwrite(&extension, &original)
 	if err != nil {
@@ -459,12 +460,15 @@ func setExtensionWithRuntimeData(original core.Extension, rootUrl string) core.E
 		}
 	}
 
-	localization, err := GetLocalization(&extension)
-	if err != nil {
-		log.Printf("failed to retrieve locales: %v", err)
-	}
+	//only process translations if requested, this can be an expensive operation
+	if processTranslations {
+		localization, err := GetLocalization(&extension)
+		if err != nil {
+			log.Printf("failed to retrieve locales: %v", err)
+		}
 
-	extension.Localization = localization
+		extension.Localization = localization
+	}
 
 	return extension
 }
