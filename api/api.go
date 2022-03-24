@@ -9,7 +9,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -522,7 +521,7 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 
 func GetFileNames(folderPath string) ([]string, error) {
 	files := []string{}
-	items, err := ioutil.ReadDir(folderPath)
+	items, err := os.ReadDir(folderPath)
 	if err != nil {
 		return files, err
 	}
