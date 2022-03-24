@@ -62,10 +62,10 @@ func (api *ExtensionsApi) notifyClients(createNotification func(rootUrl string) 
 }
 
 func (api *ExtensionsApi) getNotification(event string, extensions []core.Extension, rootUrl string) (message notification, err error) {
-	extensionsWithRuntimeData := getExtensionsWithRuntimeData(extensions, rootUrl, false)
+	extensionsWithUrls := getExtensionsWithUrl(extensions, rootUrl)
 	app := formatData(api.App, strcase.ToLowerCamel)
 
-	data, err := api.getNotificationData(extensionsWithRuntimeData, app)
+	data, err := api.getNotificationData(extensionsWithUrls, app)
 	if err != nil {
 		return
 	}
@@ -172,8 +172,8 @@ func (api *ExtensionsApi) getMergedExtensionsMap(extensions []map[string]interfa
 	results := make([]map[string]interface{}, 0)
 	for _, extension := range api.Extensions {
 		if target, found := targetExtensions[extension.UUID]; found {
-			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, rootUrl, false)
-			extensionData, err := interfaceToMap(extensionWithRuntimeData)
+			extensionWithUrls := setExtensionUrls(extension, rootUrl)
+			extensionData, err := interfaceToMap(extensionWithUrls)
 			if err != nil {
 				continue
 			}
@@ -327,10 +327,10 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 
 }
 
-func getExtensionsWithRuntimeData(extensions []core.Extension, rootUrl string, processTranslations bool) []core.Extension {
+func getExtensionsWithUrl(extensions []core.Extension, rootUrl string) []core.Extension {
 	updatedCopy := []core.Extension{}
 	for _, extension := range extensions {
-		updatedCopy = append(updatedCopy, setExtensionWithRuntimeData(extension, rootUrl, processTranslations))
+		updatedCopy = append(updatedCopy, setExtensionUrls(extension, rootUrl))
 	}
 	return updatedCopy
 }
@@ -339,9 +339,12 @@ func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request
 	rw.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(rw)
 
+	extensions := getExtensionsWithUrl(api.Extensions, api.GetApiRootUrlFromRequest(r))
+	extensions = getExtensionsWithLocalization(extensions)
+
 	encoder.Encode(extensionsResponse{
 		api.getResponse(r),
-		getExtensionsWithRuntimeData(api.Extensions, api.GetApiRootUrlFromRequest(r), true),
+		extensions,
 	})
 }
 
@@ -365,16 +368,16 @@ func (api *ExtensionsApi) extensionRootHandler(rw http.ResponseWriter, r *http.R
 
 	for _, extension := range api.Extensions {
 		if extension.UUID == uuid {
-			extensionWithRuntimeData := setExtensionWithRuntimeData(extension, api.GetApiRootUrlFromRequest(r), true)
+			extensionWithUrls := setExtensionUrls(extension, api.GetApiRootUrlFromRequest(r))
 
 			if strings.HasPrefix(r.Header.Get("accept"), "text/html") {
-				api.HandleHTMLRequest(rw, r, &extensionWithRuntimeData)
+				api.HandleHTMLRequest(rw, r, &extensionWithUrls)
 				return
 			}
 
 			rw.Header().Add("Content-Type", "application/json")
 			encoder := json.NewEncoder(rw)
-			encoder.Encode(singleExtensionResponse{api.getResponse(r), extensionWithRuntimeData})
+			encoder.Encode(singleExtensionResponse{api.getResponse(r), extensionWithUrls})
 			return
 		}
 	}
@@ -440,7 +443,7 @@ func (api *ExtensionsApi) handleClientMessages(ws *websocketConnection) {
 	}
 }
 
-func setExtensionWithRuntimeData(original core.Extension, rootUrl string, processTranslations bool) core.Extension {
+func setExtensionUrls(original core.Extension, rootUrl string) core.Extension {
 
 	extension := core.Extension{}
 	err := mergeWithOverwrite(&extension, &original)
@@ -460,16 +463,30 @@ func setExtensionWithRuntimeData(original core.Extension, rootUrl string, proces
 		}
 	}
 
-	//only process translations if requested, this can be an expensive operation
-	if processTranslations {
-		localization, err := GetLocalization(&extension)
-		if err != nil {
-			log.Printf("failed to retrieve locales: %v", err)
-		}
+	return extension
+}
 
-		extension.Localization = localization
+func getExtensionsWithLocalization(extensions []core.Extension) []core.Extension {
+	updatedCopy := []core.Extension{}
+	for _, extension := range extensions {
+		updatedCopy = append(updatedCopy, setExtensionLocalization(extension))
+	}
+	return updatedCopy
+}
+
+func setExtensionLocalization(original core.Extension) core.Extension {
+	extension := core.Extension{}
+	err := mergeWithOverwrite(&extension, &original)
+	if err != nil {
+		return original
 	}
 
+	localization, err := GetLocalization(&extension)
+	if err != nil {
+		log.Printf("failed to retrieve locales: %v", err)
+	}
+
+	extension.Localization = localization
 	return extension
 }
 
