@@ -483,9 +483,10 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 	}
 	translations := make(map[string]interface{})
 	defaultLocale := ""
+	defaultLocalesFound := []string{}
 
 	for _, fileName := range fileNames {
-		data, err := GetMapFromFile(filepath.Join(path, fileName))
+		data, err := GetMapFromJsonFile(filepath.Join(path, fileName))
 		if err != nil {
 			return nil, err
 		}
@@ -493,7 +494,7 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 		locale := strings.Split(fileName, ".")[0]
 
 		if IsDefaultLocale(fileName) {
-			defaultLocale = locale
+			defaultLocalesFound = append(defaultLocalesFound, locale)
 		}
 
 		translations[locale] = data
@@ -502,8 +503,14 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 	if len(translations) == 0 {
 		return nil, nil
 	} else {
-		if defaultLocale == "" {
+
+		if len(defaultLocalesFound) == 0 {
 			log.Println("could not determine a default locale, please ensure you have a {locale}.default.json file")
+		} else {
+			if len(defaultLocalesFound) > 1 {
+				log.Println("multiple default locales found, please ensure you only have a single {locale}.default.json file")
+			}
+			defaultLocale = defaultLocalesFound[0]
 		}
 
 		return &core.Localization{
@@ -527,19 +534,10 @@ func GetFileNames(folderPath string) ([]string, error) {
 	return files, nil
 }
 
-func GetMapFromFile(filePath string) (map[string]interface{}, error) {
+func GetMapFromJsonFile(filePath string) (map[string]interface{}, error) {
 	var result map[string]interface{}
 
-	jsonFile, err := os.Open(filePath)
-
-	if err != nil {
-		return result, err
-	}
-
-	// defer the closing of our jsonFile so that we can parse it later on
-	defer jsonFile.Close()
-
-	byteValue, err := ioutil.ReadAll(jsonFile)
+	byteValue, err := os.ReadFile(filePath)
 
 	if err != nil {
 		return result, err

@@ -69,7 +69,7 @@ function isValidConfigs(
   requiredConfigs: RequiredConfigs,
   paths: string[] = [],
 ): configs is ConfigFile {
-  Object.keys(requiredConfigs || {}).forEach((key) => {
+  Object.keys(requiredConfigs).forEach((key) => {
     const isRequired = requiredConfigs[key] !== false;
     const value = configs[key];
     if ((value === undefined || value === null) && isRequired) {
@@ -87,7 +87,7 @@ function jsonConfigs<T extends Indexable>(
   paths: string[] = [],
   formatter = toCamelCase,
 ): T {
-  return Object.keys(configs || {}).reduce((acc, key) => {
+  return Object.keys(configs).reduce((acc, key) => {
     const shouldReserveKey = RESERVE_PATHS.includes(paths.concat(key).join('.'));
     const formattedKey = formatter(key);
     const value = configs[key];
@@ -109,7 +109,7 @@ function jsonConfigs<T extends Indexable>(
 }
 
 function flattenPaths(config: RequiredConfigs, paths: string[] = []): string[] {
-  return Object.keys(config || {}).reduce((acc, key) => {
+  return Object.keys(config).reduce((acc, key) => {
     const value = config[key];
     if (!value) {
       return acc;
