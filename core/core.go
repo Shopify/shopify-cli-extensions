@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 	"io"
-	"path/filepath"
+	"path"
 	"reflect"
 	"strings"
 
@@ -106,7 +106,7 @@ func (e Extension) String() string {
 }
 
 func (e Extension) BuildDir() string {
-	return filepath.Join(".", e.Development.RootDir, e.Development.BuildDir)
+	return path.Join(".", e.Development.RootDir, e.Development.BuildDir)
 }
 
 type Asset struct {

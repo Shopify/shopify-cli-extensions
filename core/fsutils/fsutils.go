@@ -24,7 +24,7 @@ func NewFS(embeddedFS *embed.FS, root string) *FS {
 }
 
 func (fs *FS) FileExists(filePath string) bool {
-	normalizedPath := fs.NormalizePath(filePath)
+	normalizedPath := fs.normalizePath(filePath)
 	file, err := fs.Open(normalizedPath)
 	if err != nil {
 		return false
@@ -34,7 +34,7 @@ func (fs *FS) FileExists(filePath string) bool {
 }
 
 func (fs *FS) CopyFile(filePath, targetPath string) error {
-	content, err := fs.ReadFile(fs.NormalizePath(filePath))
+	content, err := fs.ReadTemplateFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (fs *FS) CopyFile(filePath, targetPath string) error {
 func (fs *FS) Execute(op *Operation) (err error) {
 	dirPath := fs.root
 	if op.SourceDir != "" {
-		dirPath = fs.NormalizePath(op.SourceDir)
+		dirPath = fs.normalizePath(op.SourceDir)
 	}
 
 	entries, err := fs.ReadDir(dirPath)
@@ -86,7 +86,7 @@ func (fs *FS) Execute(op *Operation) (err error) {
 
 func (fs *FS) MergeTemplateData(templateData interface{}, filePath string) (*bytes.Buffer, error) {
 	var templateContent bytes.Buffer
-	content, err := fs.ReadFile(fs.NormalizePath(filePath))
+	content, err := fs.ReadTemplateFile(filePath)
 	if err != nil {
 		return &templateContent, err
 	}
@@ -131,7 +131,7 @@ func OpenFileForAppend(filePath string) (*os.File, error) {
 	return os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0600)
 }
 
-func (fs *FS) NormalizePath(filePath string) string {
+func (fs *FS) normalizePath(filePath string) string {
 	pathComponents := strings.Split(filePath, string(os.PathSeparator))
 
 	if pathComponents[0] == fs.root {
@@ -139,6 +139,10 @@ func (fs *FS) NormalizePath(filePath string) string {
 	} else {
 		return path.Join(append([]string{fs.root}, pathComponents...)...)
 	}
+}
+
+func (fs *FS) ReadTemplateFile(filePath string) ([]byte, error) {
+	return fs.ReadFile(fs.normalizePath(filePath))
 }
 
 type Operation struct {
