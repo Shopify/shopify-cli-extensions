@@ -19,12 +19,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed templates/* templates/.shopify-cli.yml.tpl
+//go:embed templates/*
+//go:embed templates/.vscode/*
+//go:embed templates/.vscode/extensions.json
+//go:embed templates/.vscode/settings.json
+//go:embed templates/.shopify-cli.yml.tpl
+//go:embed templates/.eslintrc.js.tpl
+//go:embed templates/.prettierrc.tpl
 var templates embed.FS
 
 const (
 	cliConfigYamlFile string = ".shopify-cli.yml"
-	configYamlFile    string = "extension.config.yml"
 	defaultBuildDir   string = "build"
 	defaultSourceDir  string = "src"
 	templateRoot      string = "templates"
@@ -145,6 +150,7 @@ func mergeGlobalTemplates(fs *fsutils.FS, project *project) process.Task {
 	return mergeTemplates(fs, project, &fsutils.Operation{
 		SourceDir: "",
 		TargetDir: project.Development.RootDir,
+		Recursive: true,
 	})
 }
 
@@ -253,7 +259,7 @@ func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
 
 func getFormattedMergedContent(targetPath string, originalContent []byte, newContent []byte, fs *fsutils.FS) (content []byte, err error) {
 	if strings.HasSuffix(targetPath, fsutils.YAML) {
-		if strings.HasSuffix(targetPath, configYamlFile) {
+		if strings.HasSuffix(targetPath, fsutils.ConfigYamlFile) {
 			return mergeConfigYaml(targetPath, originalContent, newContent, fs)
 		} else {
 			content, err = concatYaml(originalContent, newContent, fs)
@@ -385,7 +391,7 @@ func formatYaml(unformattedContent []byte, targetPath string) (content []byte, e
 
 	if strings.HasSuffix(targetPath, cliConfigYamlFile) {
 		config = shopifyCLIYML{}
-	} else if strings.HasSuffix(targetPath, configYamlFile) {
+	} else if strings.HasSuffix(targetPath, fsutils.ConfigYamlFile) {
 		config = core.Extension{}
 	} else {
 		return

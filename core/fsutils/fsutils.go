@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -13,6 +14,7 @@ import (
 const (
 	JSON string = ".json"
 	YAML string = ".yml"
+	ConfigYamlFile    string = "extension.config.yml"
 )
 
 func NewFS(embeddedFS *embed.FS, root string) *FS {
@@ -59,14 +61,21 @@ func (fs *FS) Execute(op *Operation) (err error) {
 				continue
 			}
 
-			relativeDir := fileName
-			if op.SourceDir != "" {
-				relativeDir = filepath.Join(op.SourceDir, fileName)
+			relativeDir, targetDir := filepath.Join(op.SourceDir, fileName), op.TargetDir
+
+			if fs.FileExists(path.Join(fileName, ConfigYamlFile)) {
+				// While traversing the directory tree (DFS), skip other extension directories
+				continue 
+			} else {
+				targetDir = filepath.Join(targetDir, fileName)
+				if err := MakeDir(targetDir); err != nil {
+					return err
+				}
 			}
 
 			if err = fs.Execute(&Operation{
 				SourceDir:  relativeDir,
-				TargetDir:  op.TargetDir,
+				TargetDir:  targetDir,
 				OnEachFile: op.OnEachFile,
 			}); err != nil {
 				return
