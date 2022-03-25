@@ -339,12 +339,9 @@ func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request
 	rw.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(rw)
 
-	extensions := getExtensionsWithUrl(api.Extensions, api.GetApiRootUrlFromRequest(r))
-	extensions = getExtensionsWithLocalization(extensions)
-
 	encoder.Encode(extensionsResponse{
 		api.getResponse(r),
-		extensions,
+		getExtensionsWithUrl(api.Extensions, api.GetApiRootUrlFromRequest(r)),
 	})
 }
 

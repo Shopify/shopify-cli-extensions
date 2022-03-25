@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"sync"
 
+	"github.com/Shopify/shopify-cli-extensions/api"
 	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/Shopify/shopify-cli-extensions/create"
 	"gopkg.in/yaml.v3"
@@ -49,6 +50,13 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 		report(Result{false, err.Error(), extension})
 		return
 	}
+
+	localization, err := api.GetLocalization(&extension)
+
+	if err != nil {
+		report(Result{false, err.Error(), extension})
+	}
+	extension.Localization = localization
 
 	stdout, _ := script.StdoutPipe()
 	stderr, _ := script.StderrPipe()
@@ -94,7 +102,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 
 // Builds 'Next Steps'
 func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.IntegrationContext) string {
-	type contextRoot struct { 	// Wraps top-level elements, allowing them to be referenced in next-steps.txt
+	type contextRoot struct { // Wraps top-level elements, allowing them to be referenced in next-steps.txt
 		core.Extension
 		core.IntegrationContext
 	}
@@ -104,7 +112,7 @@ func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.Integrat
 	templ := template.New("templ")
 	templ, err := templ.Parse(rawTemplate)
 	if err == nil {
-		contextRoot := &contextRoot{ ext, ctx }
+		contextRoot := &contextRoot{ext, ctx}
 		templ.Execute(&buf, contextRoot)
 	}
 
