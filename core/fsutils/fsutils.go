@@ -64,7 +64,7 @@ func (fs *FS) Execute(op *Operation) (err error) {
 			relativeDir, targetDir := filepath.Join(op.SourceDir, fileName), op.TargetDir
 
 			if fs.FileExists(path.Join(fileName, ConfigYamlFile)) {
-				// While traversing the directory tree (DFS), skip other extension directories
+				// While traversing the embedded directory tree (DFS), skip other extension directories
 				continue 
 			} else {
 				targetDir = filepath.Join(targetDir, fileName)

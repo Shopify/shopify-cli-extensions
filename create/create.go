@@ -26,6 +26,7 @@ const (
 	cliConfigYamlFile string = ".shopify-cli.yml"
 	defaultBuildDir   string = "build"
 	defaultSourceDir  string = "src"
+	packageJson 	  string = "package.json"
 	templateRoot      string = "templates"
 	templateFileExt   string = ".tpl"
 )
@@ -44,7 +45,8 @@ func NewExtensionProject(extension core.Extension) (err error) {
 		mergeGlobalTemplates(fs, project),
 		mergeExtensionTemplates(fs, project),
 		createSourceFiles(fs, project),
-		mergeYamlAndJsonFiles(fs, project),
+		mergeGlobalYamlAndJsonFiles(fs, project),
+		mergeExtensionYamlAndJsonFiles(fs, project),
 		installDependencies(extension.Development.RootDir),
 	)
 
@@ -195,52 +197,64 @@ func mergeTemplates(fs *fsutils.FS, project *project, op *fsutils.Operation) pro
 	}
 }
 
-func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
+func mergeGlobalYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
+	return mergeYamlAndJsonFiles(fs, project, &fsutils.Operation{
+		SourceDir: "",
+		TargetDir: project.Development.RootDir,
+		Recursive: true,
+	})
+}
+
+func mergeExtensionYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
+	return mergeYamlAndJsonFiles(fs, project, &fsutils.Operation{
+		SourceDir: project.Type,
+		TargetDir: project.Development.RootDir,
+		Recursive: true,
+	})
+}
+
+func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project, op *fsutils.Operation) process.Task {
 	filesToRestore := make([]files, 0)
+	op.OnEachFile = func(filePath, targetPath string) (err error) {
+		if !strings.HasSuffix(targetPath, fsutils.JSON) && !strings.HasSuffix(targetPath, fsutils.YAML) {
+			return
+		}
+
+		targetFile, openErr := fsutils.OpenFileForAppend(targetPath)
+
+		if openErr != nil {
+			return fs.CopyFile(filePath, targetPath)
+		}
+
+		defer targetFile.Close()
+
+		newContent, err := templates.ReadFile(filePath)
+		if err != nil {
+			return
+		}
+
+		originalContent, err := os.ReadFile(targetPath)
+
+		if err != nil {
+			return
+		}
+
+		filesToRestore = append(filesToRestore, files{originalContent, targetPath})
+		formattedContent, err := getFormattedMergedContent(targetPath, originalContent, newContent, fs)
+
+		if err != nil {
+			return
+		}
+
+		if err = os.WriteFile(targetPath, formattedContent, 0600); err != nil {
+			return
+		}
+		return
+	}
+
 	return process.Task{
 		Run: func() error {
-			return fs.Execute(&fsutils.Operation{
-				SourceDir: "",
-				TargetDir: project.Development.RootDir,
-				OnEachFile: func(filePath, targetPath string) (err error) {
-					if !strings.HasSuffix(targetPath, fsutils.JSON) && !strings.HasSuffix(targetPath, fsutils.YAML) {
-						return
-					}
-
-					targetFile, openErr := fsutils.OpenFileForAppend(targetPath)
-
-					if openErr != nil {
-						return fs.CopyFile(filePath, targetPath)
-					}
-
-					defer targetFile.Close()
-
-					newContent, err := templates.ReadFile(filePath)
-					if err != nil {
-						return
-					}
-
-					originalContent, err := os.ReadFile(targetPath)
-
-					if err != nil {
-						return
-					}
-
-					filesToRestore = append(filesToRestore, files{originalContent, targetPath})
-					formattedContent, err := getFormattedMergedContent(targetPath, originalContent, newContent, fs)
-
-					if err != nil {
-						return
-					}
-
-					if err = os.WriteFile(targetPath, formattedContent, 0600); err != nil {
-						return
-					}
-
-					return
-				},
-				Recursive: true,
-			})
+			return fs.Execute(op)
 		},
 		Undo: func() (err error) {
 			for _, file := range filesToRestore {
@@ -261,8 +275,8 @@ func getFormattedMergedContent(targetPath string, originalContent []byte, newCon
 				return
 			}
 		}
-	} else if strings.HasSuffix(targetPath, fsutils.JSON) {
-		content, err = mergeJson(originalContent, newContent, fs)
+	} else if strings.HasSuffix(targetPath, packageJson) {
+		content, err = mergePackageJson(originalContent, newContent, fs)
 		if err != nil {
 			return
 		}
@@ -328,7 +342,7 @@ func appendComments(additionalContent []byte) (content []byte) {
 	return
 }
 
-func mergeJson(originalContent []byte, newContent []byte, fs *fsutils.FS) (content []byte, err error) {
+func mergePackageJson(originalContent []byte, newContent []byte, fs *fsutils.FS) (content []byte, err error) {
 	var result packageJSON
 	var newResult packageJSON
 	if err = json.Unmarshal(originalContent, &result); err != nil {
