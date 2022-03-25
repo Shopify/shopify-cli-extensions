@@ -20,12 +20,6 @@ import (
 )
 
 //go:embed templates/*
-//go:embed templates/.vscode/*
-//go:embed templates/.vscode/extensions.json
-//go:embed templates/.vscode/settings.json
-//go:embed templates/.shopify-cli.yml.tpl
-//go:embed templates/.eslintrc.js.tpl
-//go:embed templates/.prettierrc.tpl
 var templates embed.FS
 
 const (
@@ -206,7 +200,7 @@ func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
 	return process.Task{
 		Run: func() error {
 			return fs.Execute(&fsutils.Operation{
-				SourceDir: project.Type,
+				SourceDir: "",
 				TargetDir: project.Development.RootDir,
 				OnEachFile: func(filePath, targetPath string) (err error) {
 					if !strings.HasSuffix(targetPath, fsutils.JSON) && !strings.HasSuffix(targetPath, fsutils.YAML) {
