@@ -69,8 +69,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 		report(Result{false, err.Error(), extension})
 	}
 
-	//TODO: `watchLocalization` causes a blocking script which means nothing after the line below is executed, related to: (https://github.com/Shopify/checkout-web/issues/9581)
-	//watchLocalization(&extension)
+	go WatchLocalization(&extension)
 
 	script.Start()
 
@@ -165,7 +164,7 @@ func setLocalization(extension *core.Extension) error {
 	return nil
 }
 
-func watchLocalization(extension *core.Extension) {
+func WatchLocalization(extension *core.Extension) {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
