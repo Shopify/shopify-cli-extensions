@@ -2,15 +2,19 @@ package build
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 
 	"github.com/Shopify/shopify-cli-extensions/api"
 	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/Shopify/shopify-cli-extensions/create"
+	"github.com/fsnotify/fsnotify"
 	"gopkg.in/yaml.v3"
 
 	"text/template"
@@ -45,18 +49,12 @@ func Build(extension core.Extension, report ResultHandler) {
 }
 
 func Watch(extension core.Extension, integrationCtx core.IntegrationContext, report ResultHandler) {
+
 	script, err := script(extension.BuildDir(), "develop")
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
 	}
-
-	localization, err := api.GetLocalization(&extension)
-
-	if err != nil {
-		report(Result{false, err.Error(), extension})
-	}
-	extension.Localization = localization
 
 	stdout, _ := script.StdoutPipe()
 	stderr, _ := script.StderrPipe()
@@ -65,6 +63,14 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 		report(Result{false, err.Error(), extension})
 	}
 	ensureBuildDirectoryExists(extension)
+
+	err = setLocalization(&extension)
+	if err != nil {
+		report(Result{false, err.Error(), extension})
+	}
+
+	//TODO: `watchLocalization` causes a blocking script which means nothing after the line below is executed, related to: (https://github.com/Shopify/checkout-web/issues/9581)
+	//watchLocalization(&extension)
 
 	script.Start()
 
@@ -98,6 +104,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 
 	script.Wait()
 	logProcessors.Wait()
+
 }
 
 // Builds 'Next Steps'
@@ -137,3 +144,66 @@ func configureScript(script *exec.Cmd, extension core.Extension) error {
 }
 
 const rwxr_xr_x = 0755
+
+func setLocalization(extension *core.Extension) error {
+	//HACK: for debugging / output to console, related to: (https://github.com/Shopify/checkout-web/issues/9581)
+	fmt.Println("setLocalization() called...")
+	localization, err := api.GetLocalization(extension)
+
+	if err != nil {
+		return err
+	}
+	extension.Localization = localization
+
+	//HACK: for debugging / output to console, related to: (https://github.com/Shopify/checkout-web/issues/9581)
+	jsonBytes, err := json.Marshal(extension)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(jsonBytes))
+
+	return nil
+}
+
+func watchLocalization(extension *core.Extension) {
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+
+				log.Println("event:", event)
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					log.Println("modified file:", event.Name)
+					setLocalization(extension)
+					if err != nil {
+						log.Println("could not resolve localization, error:", err.Error())
+					}
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				log.Println("error:", err)
+			}
+		}
+	}()
+
+	directory := filepath.Join(".", extension.Development.RootDir, "locales")
+	err = watcher.Add(directory)
+	log.Println("Watcher added for:", directory)
+	if err != nil {
+		log.Fatal(err)
+	}
+	<-done
+}
