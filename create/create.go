@@ -33,7 +33,7 @@ const (
 )
 
 func ReadTemplateFile(path string) ([]byte, error) {
-	return templates.ReadFile(path)
+	return fsutils.NewFS(&templates, templateRoot).ReadTemplateFile(path)
 }
 
 func NewExtensionProject(extension core.Extension) (err error) {
