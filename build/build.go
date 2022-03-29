@@ -150,6 +150,7 @@ func setLocalization(extension *core.Extension) error {
 	localization, err := api.GetLocalization(extension)
 
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	extension.Localization = localization
@@ -181,9 +182,10 @@ func WatchLocalization(extension *core.Extension) {
 					return
 				}
 
-				log.Println("event:", event)
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					log.Println("modified file:", event.Name)
+				const t = true
+				triggers := map[string]bool{fsnotify.Create.String(): t, fsnotify.Rename.String(): t, fsnotify.Write.String(): t}
+
+				if triggers[event.Op.String()] {
 					setLocalization(extension)
 					if err != nil {
 						log.Println("could not resolve localization, error:", err.Error())
