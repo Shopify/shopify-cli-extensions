@@ -61,13 +61,9 @@ func (fs *FS) Execute(op *Operation) (err error) {
 			}
 
 			relativeDir := filepath.Join(op.SourceDir, fileName)
-			targetDir := op.TargetDir
-
-			if op.SourceDir == GlobalTemplateDir {
-				targetDir = filepath.Join(op.TargetDir, fileName)
-				if err := MakeDir(targetDir); err != nil {
-					return err
-				}
+			targetDir := filepath.Join(op.TargetDir, fileName)
+			if err := MakeDir(targetDir); err != nil {
+				return err
 			}
 
 			if err = fs.Execute(&Operation{
