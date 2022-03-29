@@ -48,7 +48,7 @@ func Build(extension core.Extension, report ResultHandler) {
 	report(Result{true, string(output), extension})
 }
 
-func Watch(extension core.Extension, integrationCtx core.IntegrationContext, report ResultHandler) {
+func Watch(extApi *api.ExtensionsApi, extension core.Extension, integrationCtx core.IntegrationContext, report ResultHandler) {
 
 	script, err := script(extension.BuildDir(), "develop")
 	if err != nil {
@@ -64,12 +64,12 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 	}
 	ensureBuildDirectoryExists(extension)
 
-	err = setLocalization(&extension)
+	err = setLocalization(extApi, &extension)
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 	}
 
-	go WatchLocalization(&extension)
+	go WatchLocalization(extApi, &extension)
 
 	script.Start()
 
@@ -144,7 +144,7 @@ func configureScript(script *exec.Cmd, extension core.Extension) error {
 
 const rwxr_xr_x = 0755
 
-func setLocalization(extension *core.Extension) error {
+func setLocalization(extApi *api.ExtensionsApi, extension *core.Extension) error {
 	//HACK: for debugging / output to console, related to: (https://github.com/Shopify/checkout-web/issues/9581)
 	fmt.Println("setLocalization() called...")
 	localization, err := api.GetLocalization(extension)
@@ -162,10 +162,13 @@ func setLocalization(extension *core.Extension) error {
 	}
 	fmt.Println(string(jsonBytes))
 
+	extension.Development.Status = "success"
+	extApi.Notify([]core.Extension{*extension})
+
 	return nil
 }
 
-func WatchLocalization(extension *core.Extension) {
+func WatchLocalization(api *api.ExtensionsApi, extension *core.Extension) {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -186,7 +189,7 @@ func WatchLocalization(extension *core.Extension) {
 				triggers := map[string]bool{fsnotify.Create.String(): t, fsnotify.Rename.String(): t, fsnotify.Write.String(): t}
 
 				if triggers[event.Op.String()] {
-					setLocalization(extension)
+					setLocalization(api, extension)
 					if err != nil {
 						log.Println("could not resolve localization, error:", err.Error())
 					}

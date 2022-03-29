@@ -196,6 +196,7 @@ func (api *ExtensionsApi) Shutdown() {
 }
 
 func (api *ExtensionsApi) Notify(extensions []core.Extension) {
+	fmt.Println("called Notify...")
 	for _, extension := range extensions {
 		updateData, found := api.updates.Load(extension.UUID)
 		if found {
@@ -214,6 +215,7 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 		if found {
 			castedData := updateData.(core.Extension)
 
+			fmt.Println(castedData.Development.Status == "success")
 			if castedData.Development.Status == "success" {
 				for entry := range api.Extensions[index].Assets {
 					api.Extensions[index].Assets[entry] = core.Asset{
@@ -226,6 +228,9 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 			if err != nil {
 				log.Printf("failed to merge update data %v", err)
 			}
+
+			// manually overwite localization data in api.Extensions[index]
+			// ...
 			updatedExtensions = append(updatedExtensions, api.Extensions[index])
 		}
 	}
