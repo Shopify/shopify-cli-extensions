@@ -208,6 +208,11 @@ func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
 						return
 					}
 
+					err = os.MkdirAll(filepath.Dir(targetPath), os.ModePerm)
+					if err != nil {
+						return err
+					}
+
 					targetFile, openErr := fsutils.OpenFileForAppend(targetPath)
 
 					if openErr != nil {
