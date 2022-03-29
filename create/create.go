@@ -33,7 +33,7 @@ const (
 )
 
 func ReadTemplateFile(path string) ([]byte, error) {
-    return templates.ReadFile(path)
+	return templates.ReadFile(path)
 }
 
 func NewExtensionProject(extension core.Extension) (err error) {
@@ -207,6 +207,11 @@ func mergeYamlAndJsonFiles(fs *fsutils.FS, project *project) process.Task {
 				OnEachFile: func(filePath, targetPath string) (err error) {
 					if !strings.HasSuffix(targetPath, fsutils.JSON) && !strings.HasSuffix(targetPath, fsutils.YAML) {
 						return
+					}
+
+					err = os.MkdirAll(filepath.Dir(targetPath), os.ModePerm)
+					if err != nil {
+						return err
 					}
 
 					targetFile, openErr := fsutils.OpenFileForAppend(targetPath)
