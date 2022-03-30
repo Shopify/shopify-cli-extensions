@@ -4,12 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 
+	"github.com/Shopify/shopify-cli-extensions/api"
 	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/Shopify/shopify-cli-extensions/create"
+	"github.com/fsnotify/fsnotify"
 	"gopkg.in/yaml.v3"
 
 	"text/template"
@@ -94,7 +98,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 
 // Builds 'Next Steps'
 func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.IntegrationContext) string {
-	type contextRoot struct { 	// Wraps top-level elements, allowing them to be referenced in next-steps.txt
+	type contextRoot struct { // Wraps top-level elements, allowing them to be referenced in next-steps.txt
 		core.Extension
 		core.IntegrationContext
 	}
@@ -104,7 +108,7 @@ func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.Integrat
 	templ := template.New("templ")
 	templ, err := templ.Parse(rawTemplate)
 	if err == nil {
-		contextRoot := &contextRoot{ ext, ctx }
+		contextRoot := &contextRoot{ext, ctx}
 		templ.Execute(&buf, contextRoot)
 	}
 
@@ -129,3 +133,72 @@ func configureScript(script *exec.Cmd, extension core.Extension) error {
 }
 
 const rwxr_xr_x = 0755
+
+func setLocalization(extension *core.Extension) error {
+	localization, err := api.GetLocalization(extension)
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	extension.Localization = localization
+	return nil
+}
+
+func WatchLocalization(extension core.Extension, report ResultHandler) {
+	directory := filepath.Join(".", extension.Development.RootDir, "locales")
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		// The extension does not have a locales directory.
+		return
+	}
+
+	err := setLocalization(&extension)
+	if err != nil {
+		report(Result{false, err.Error(), extension})
+	}
+	report(Result{true, "successfully built localization", extension})
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+
+				triggers := map[string]bool{
+					fsnotify.Create.String(): true,
+					fsnotify.Rename.String(): true,
+					fsnotify.Write.String():  true,
+				}
+
+				if triggers[event.Op.String()] {
+					err := setLocalization(&extension)
+					if err != nil {
+						report(Result{false, fmt.Sprintf("could not resolve localization, error: %s\n", err.Error()), extension})
+					}
+					report(Result{true, "successfully built localization", extension})
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				log.Println("error:", err)
+			}
+		}
+	}()
+
+	err = watcher.Add(directory)
+	log.Println("Watcher added for:", directory)
+	if err != nil {
+		log.Fatal(err)
+	}
+	<-done
+}

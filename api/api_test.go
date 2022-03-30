@@ -736,6 +736,7 @@ func TestWebsocketClientDispatchEventWithoutMutatingData(t *testing.T) {
 			"hidden": false,
 			"resource": {"url": ""},
 			"root": {"url": "%v/extensions/00000000-0000-0000-0000-000000000000"},
+			"localizationStatus": "",
 			"status": "success",
 			"resource": {"url": "cart/1234"}
 		  },

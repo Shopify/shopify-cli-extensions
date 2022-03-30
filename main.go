@@ -107,6 +107,19 @@ func (cli *CLI) serve(args ...string) {
 
 			api.Notify([]core.Extension{extension})
 		})
+
+		go build.WatchLocalization(extension, func(result build.Result) {
+			extension := result.Extension
+
+			if result.Success {
+				extension.Development.LocalizationStatus = "success"
+				api.Notify([]core.Extension{extension})
+				fmt.Println(result)
+			} else {
+				extension.Development.LocalizationStatus = "error"
+				fmt.Fprintln(os.Stderr, result)
+			}
+		})
 	}
 
 	addr := fmt.Sprintf(":%d", cli.config.Port)

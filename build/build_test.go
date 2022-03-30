@@ -10,6 +10,7 @@ import (
 )
 
 var config *core.Config
+var apiRoot = "/extensions/"
 
 func init() {
 	configFile, err := os.Open("testdata/extension.config.yml")
@@ -79,5 +80,9 @@ func TestWatch(t *testing.T) {
 
 	if _, err = os.Stat(filepath.Join(extension.BuildDir(), "main.js")); err != nil {
 		t.Error("expected main.js to exist")
+	}
+
+	if extension.Localization != nil {
+		t.Error("expect localization to be nil without defined locales")
 	}
 }
