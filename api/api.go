@@ -215,7 +215,6 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 		if found {
 			castedData := updateData.(core.Extension)
 
-			fmt.Println(castedData.Development.Status == "success")
 			if castedData.Development.Status == "success" {
 				for entry := range api.Extensions[index].Assets {
 					api.Extensions[index].Assets[entry] = core.Asset{
@@ -224,13 +223,14 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 					}
 				}
 			}
+
 			err := mergeWithOverwrite(&api.Extensions[index], &castedData)
 			if err != nil {
 				log.Printf("failed to merge update data %v", err)
 			}
 
-			// manually overwite localization data in api.Extensions[index]
-			// ...
+			// manually overwite localization data
+			api.Extensions[index].Localization = castedData.Localization
 			updatedExtensions = append(updatedExtensions, api.Extensions[index])
 		}
 	}
