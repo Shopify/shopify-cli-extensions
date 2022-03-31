@@ -100,8 +100,25 @@ func (t *templateEngine) deleteProject() {
 }
 
 func (t *templateEngine) makeRenderTask(source, target string) process.Task {
+	confirm := func(source, target string) (string, string) {
+		if source == "src/index.js.tpl" && t.extension.Development.UsesTypeScript() {
+			ext := ".ts"
+			if t.extension.Development.UsesReact() {
+				ext = ".tsx"
+			}
+			return source, strings.TrimSuffix(target, ".js") + ext
+		} else {
+			return source, target
+		}
+	}
+
 	return process.Task{
 		Run: func() error {
+			source, target = confirm(source, target)
+			if target == "" {
+				return nil
+			}
+
 			output, err := os.Create(target)
 			if err != nil {
 				panic(err)
