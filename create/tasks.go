@@ -60,6 +60,14 @@ type FileReference struct {
 	path string
 }
 
+func (r FileReference) Create() (*os.File, error) {
+	return os.Create(r.path)
+}
+
+func (r FileReference) Open() (fs.File, error) {
+	return r.FS.Open(r.path)
+}
+
 type RenderTask struct {
 	Source FileReference
 	Target FileReference
@@ -68,7 +76,7 @@ type RenderTask struct {
 }
 
 func (t RenderTask) Run() error {
-	output, err := os.Create(t.Target.path)
+	output, err := t.Target.Create()
 	if err != nil {
 		panic(err)
 	}
@@ -91,13 +99,13 @@ type CopyFileTask struct {
 }
 
 func (t CopyFileTask) Run() error {
-	output, err := os.Create(t.Target.path)
+	output, err := t.Target.Create()
 	if err != nil {
 		panic(err)
 	}
 	defer output.Close()
 
-	input, err := t.Source.Open(t.Source.path)
+	input, err := t.Source.Open()
 	if err != nil {
 		panic(err)
 	}
