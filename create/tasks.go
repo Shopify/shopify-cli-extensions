@@ -55,6 +55,10 @@ func (path InstallDependencies) Undo() error {
 	return nil
 }
 
+func NewFileReference(fs fs.FS, path string) *FileReference {
+	return &FileReference{fs, path, nil, nil}
+}
+
 type FileReference struct {
 	fs.FS
 	Path   string

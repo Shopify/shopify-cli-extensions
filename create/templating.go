@@ -69,7 +69,7 @@ func (t *templateEngine) createProject() {
 	actions := NewProcess()
 
 	fs.WalkDir(t.project, ".", func(path string, d fs.DirEntry, err error) error {
-		source := &FileReference{t.project, path, nil, nil}
+		source := NewFileReference(t.project, path)
 		target := buildTargetReference(t.extension.Development.RootDir, path)
 
 		if d.IsDir() {
@@ -126,5 +126,5 @@ func buildTargetReference(parts ...string) *FileReference {
 		}
 		path = append(path, strings.Split(part, "/")...)
 	}
-	return &FileReference{os.DirFS("./"), filepath.Join(path...), nil, nil}
+	return NewFileReference(os.DirFS("./"), filepath.Join(path...))
 }
