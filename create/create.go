@@ -4,7 +4,6 @@ import (
 	"os/exec"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
-	"github.com/Shopify/shopify-cli-extensions/create/process"
 )
 
 const (
@@ -21,7 +20,7 @@ func ReadTemplateFile(path string) ([]byte, error) {
 }
 
 func NewExtensionProject(extension core.Extension) (err error) {
-	setup := process.NewProcess(
+	setup := NewProcess(
 		MakeDir(extension.Development.RootDir),
 		CreateProject(extension),
 		InstallDependencies(extension.Development.RootDir),

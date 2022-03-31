@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
-	"github.com/Shopify/shopify-cli-extensions/create/process"
 )
 
 //go:embed templates/*
@@ -68,7 +67,7 @@ type templateEngine struct {
 }
 
 func (t *templateEngine) createProject() {
-	actions := process.NewProcess()
+	actions := NewProcess()
 
 	fs.WalkDir(t.project, ".", func(source string, d fs.DirEntry, err error) error {
 		target := buildTargetPath(t.extension.Development.RootDir, source)
@@ -94,7 +93,7 @@ func (t *templateEngine) createProject() {
 	}
 }
 
-func (t *templateEngine) makeRenderTask(source, target string) process.Task {
+func (t *templateEngine) makeRenderTask(source, target string) Task {
 	confirm := func(source, target string) (string, string) {
 		if source == "src/index.js.tpl" && t.extension.Development.UsesTypeScript() {
 			ext := ".ts"
@@ -132,7 +131,7 @@ func (t *templateEngine) makeRenderTask(source, target string) process.Task {
 	}
 }
 
-func (t *templateEngine) makeCopyTask(source, target string) process.Task {
+func (t *templateEngine) makeCopyTask(source, target string) Task {
 	return DynamicTask{
 		OnRun: func() error {
 			output, err := os.Create(target)
@@ -185,17 +184,4 @@ func buildTargetPath(parts ...string) string {
 		path = append(path, strings.Split(part, "/")...)
 	}
 	return filepath.Join(path...)
-}
-
-type DynamicTask struct {
-	OnRun  func() error
-	OnUndo func() error
-}
-
-func (t DynamicTask) Run() error {
-	return t.OnRun()
-}
-
-func (t DynamicTask) Undo() error {
-	return t.OnUndo()
 }

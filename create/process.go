@@ -1,4 +1,4 @@
-package process
+package create
 
 import (
 	"log"
@@ -9,6 +9,11 @@ func NewProcess(tasks ...Task) Process {
 		tasks:  tasks,
 		status: make([]string, len(tasks)),
 	}
+}
+
+type Process struct {
+	tasks  []Task
+	status []string
 }
 
 func (p *Process) Run() (err error) {
@@ -40,12 +45,20 @@ func (p *Process) Add(task Task) {
 	p.status = append(p.status, "")
 }
 
+type DynamicTask struct {
+	OnRun  func() error
+	OnUndo func() error
+}
+
+func (t DynamicTask) Run() error {
+	return t.OnRun()
+}
+
+func (t DynamicTask) Undo() error {
+	return t.OnUndo()
+}
+
 type Task interface {
 	Run() error
 	Undo() error
-}
-
-type Process struct {
-	tasks  []Task
-	status []string
 }
