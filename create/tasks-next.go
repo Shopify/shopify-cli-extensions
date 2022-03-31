@@ -69,45 +69,62 @@ type templateEngine struct {
 }
 
 func (t *templateEngine) createProject() {
-	files := make(map[string]string)
+	actions := process.NewProcess()
 
 	fs.WalkDir(t.project, ".", func(source string, d fs.DirEntry, err error) error {
-		target := filepath.Join(append(strings.Split(
-			t.extension.Development.RootDir, "/"),
-			strings.Split(source, "/")...)...,
-		)
+		target := buildTargetPath(t.extension.Development.RootDir, source)
 
 		if d.IsDir() {
-			if err := os.Mkdir(target, 0755); err != nil && !os.IsExist(err) {
-				panic(err)
-			}
+			actions.Add(makeDir(target))
+		} else if isTemplate(source) {
+			actions.Add(t.makeRenderTask(source, target))
 		} else {
-			data, err := fs.ReadFile(t.project, source)
-			if err != nil {
-				panic(err)
-			}
-
-			if path.Ext(source) == ".tpl" {
-				template.Must(t.New(source).Parse(string(data)))
-			}
-			files[source] = target
+			actions.Add(t.makeCopyTask(source, target))
 		}
 
 		return nil
 	})
 
-	for source, target := range files {
-		output, err := os.Create(target)
-		if err != nil {
-			panic(err)
-		}
-		defer output.Close()
+	if err := actions.Run(); err != nil {
+		actions.Undo()
+	}
+}
 
-		if path.Ext(source) == ".tpl" {
-			if err := t.ExecuteTemplate(output, source, t.extension); err != nil {
+func (t *templateEngine) deleteProject() {
+
+}
+
+func (t *templateEngine) makeRenderTask(source, target string) process.Task {
+	return process.Task{
+		Run: func() error {
+			output, err := os.Create(target)
+			if err != nil {
 				panic(err)
 			}
-		} else {
+			defer output.Close()
+
+			t.ParseFS(t.project, source)
+			if err := t.Execute(output, t.extension); err != nil {
+				panic(err)
+			}
+
+			return nil
+		},
+		Undo: func() error {
+			return nil
+		},
+	}
+}
+
+func (t *templateEngine) makeCopyTask(source, target string) process.Task {
+	return process.Task{
+		Run: func() error {
+			output, err := os.Create(target)
+			if err != nil {
+				panic(err)
+			}
+			defer output.Close()
+
 			input, err := t.project.Open(source)
 			if err != nil {
 				panic(err)
@@ -115,12 +132,13 @@ func (t *templateEngine) createProject() {
 			defer input.Close()
 
 			io.Copy(output, input)
-		}
+
+			return nil
+		},
+		Undo: func() error {
+			return nil
+		},
 	}
-}
-
-func (t *templateEngine) deleteProject() {
-
 }
 
 func buildTemplateHelpers(extension core.Extension) template.FuncMap {
@@ -129,4 +147,19 @@ func buildTemplateHelpers(extension core.Extension) template.FuncMap {
 			return template.HTML(value)
 		},
 	}
+}
+
+func isTemplate(path string) bool {
+	return filepath.Ext(path) == ".tpl"
+}
+
+func buildTargetPath(parts ...string) string {
+	path := []string{}
+	for _, part := range parts {
+		if isTemplate(part) {
+			part = strings.TrimSuffix(part, ".tpl")
+		}
+		path = append(path, strings.Split(part, "/")...)
+	}
+	return filepath.Join(path...)
 }

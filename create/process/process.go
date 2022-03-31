@@ -35,6 +35,11 @@ func (p *Process) Undo() (err error) {
 	return
 }
 
+func (p *Process) Add(task Task) {
+	p.tasks = append(p.tasks, task)
+	p.status = append(p.status, "")
+}
+
 type Task struct {
 	Run  func() error
 	Undo func() error
