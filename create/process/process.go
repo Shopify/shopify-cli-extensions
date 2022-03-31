@@ -40,9 +40,9 @@ func (p *Process) Add(task Task) {
 	p.status = append(p.status, "")
 }
 
-type Task struct {
-	Run  func() error
-	Undo func() error
+type Task interface {
+	Run() error
+	Undo() error
 }
 
 type Process struct {

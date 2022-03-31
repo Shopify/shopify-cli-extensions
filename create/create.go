@@ -22,9 +22,9 @@ func ReadTemplateFile(path string) ([]byte, error) {
 
 func NewExtensionProject(extension core.Extension) (err error) {
 	setup := process.NewProcess(
-		makeDir(extension.Development.RootDir),
-		createProject(extension),
-		installDependencies(extension.Development.RootDir),
+		MakeDir(extension.Development.RootDir),
+		CreateProject(extension),
+		InstallDependencies(extension.Development.RootDir),
 	)
 
 	return setup.Run()

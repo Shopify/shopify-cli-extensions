@@ -18,22 +18,21 @@ import (
 //go:embed templates/*
 var templates embed.FS
 
-func createProject(extension core.Extension) process.Task {
+type CreateProject core.Extension
+
+func (e CreateProject) Run() error {
+	extension := core.Extension(e)
 	shared, _ := fs.Sub(templates, "templates/shared")
 	project, _ := fs.Sub(templates, path.Join("templates/projects", extension.Type))
 
 	engine := newTemplateEngine(extension, shared, project)
+	engine.createProject()
 
-	return process.Task{
-		Run: func() error {
-			engine.createProject()
-			return nil
-		},
-		Undo: func() error {
-			engine.deleteProject()
-			return nil
-		},
-	}
+	return nil
+}
+
+func (ext CreateProject) Undo() error {
+	return nil
 }
 
 func newTemplateEngine(extension core.Extension, shared, project fs.FS) *templateEngine {
@@ -75,7 +74,7 @@ func (t *templateEngine) createProject() {
 		target := buildTargetPath(t.extension.Development.RootDir, source)
 
 		if d.IsDir() {
-			actions.Add(makeDir(target))
+			actions.Add(MakeDir(target))
 		} else if isTemplate(source) {
 			data, err := fs.ReadFile(t.project, source)
 			if err != nil {
@@ -95,10 +94,6 @@ func (t *templateEngine) createProject() {
 	}
 }
 
-func (t *templateEngine) deleteProject() {
-
-}
-
 func (t *templateEngine) makeRenderTask(source, target string) process.Task {
 	confirm := func(source, target string) (string, string) {
 		if source == "src/index.js.tpl" && t.extension.Development.UsesTypeScript() {
@@ -112,8 +107,8 @@ func (t *templateEngine) makeRenderTask(source, target string) process.Task {
 		}
 	}
 
-	return process.Task{
-		Run: func() error {
+	return DynamicTask{
+		OnRun: func() error {
 			source, target = confirm(source, target)
 			if target == "" {
 				return nil
@@ -131,15 +126,15 @@ func (t *templateEngine) makeRenderTask(source, target string) process.Task {
 
 			return nil
 		},
-		Undo: func() error {
+		OnUndo: func() error {
 			return nil
 		},
 	}
 }
 
 func (t *templateEngine) makeCopyTask(source, target string) process.Task {
-	return process.Task{
-		Run: func() error {
+	return DynamicTask{
+		OnRun: func() error {
 			output, err := os.Create(target)
 			if err != nil {
 				panic(err)
@@ -156,7 +151,7 @@ func (t *templateEngine) makeCopyTask(source, target string) process.Task {
 
 			return nil
 		},
-		Undo: func() error {
+		OnUndo: func() error {
 			return nil
 		},
 	}
@@ -190,4 +185,17 @@ func buildTargetPath(parts ...string) string {
 		path = append(path, strings.Split(part, "/")...)
 	}
 	return filepath.Join(path...)
+}
+
+type DynamicTask struct {
+	OnRun  func() error
+	OnUndo func() error
+}
+
+func (t DynamicTask) Run() error {
+	return t.OnRun()
+}
+
+func (t DynamicTask) Undo() error {
+	return t.OnUndo()
 }
