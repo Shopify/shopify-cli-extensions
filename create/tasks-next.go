@@ -2,18 +2,20 @@ package create
 
 import (
 	"embed"
+	"fmt"
+	"html/template"
+	"io"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/Shopify/shopify-cli-extensions/create/process"
 )
 
-//go:embed templates/* templates/.shopify-cli.yml.tpl
+//go:embed templates/*
 var templates embed.FS
 
 func createProject(extension core.Extension) process.Task {
@@ -35,13 +37,19 @@ func createProject(extension core.Extension) process.Task {
 }
 
 func newTemplateEngine(extension core.Extension, shared, project fs.FS) *templateEngine {
-	template := template.Template{}
+	template := template.Must(template.New("").Parse(""))
 	template.Funcs(buildTemplateHelpers(extension))
 
 	fs.WalkDir(shared, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() {
-			data, _ := fs.ReadFile(shared, path)
-			template.New("shared/" + path).Parse(string(data))
+			data, err := fs.ReadFile(shared, path)
+			if err != nil {
+				panic(fmt.Errorf("failed to read file %s: %w", path, err))
+			}
+
+			if _, err := template.New("shared/" + path).Parse(string(data)); err != nil {
+				panic(fmt.Errorf("failed to parse template %s: %w", path, err))
+			}
 		}
 
 		return nil
@@ -57,10 +65,12 @@ func newTemplateEngine(extension core.Extension, shared, project fs.FS) *templat
 type templateEngine struct {
 	extension core.Extension
 	project   fs.FS
-	template.Template
+	*template.Template
 }
 
 func (t *templateEngine) createProject() {
+	files := make(map[string]string)
+
 	fs.WalkDir(t.project, ".", func(source string, d fs.DirEntry, err error) error {
 		target := filepath.Join(append(strings.Split(
 			t.extension.Development.RootDir, "/"),
@@ -77,24 +87,36 @@ func (t *templateEngine) createProject() {
 				panic(err)
 			}
 
-			t.New(source)
-			if _, err := t.Parse(string(data)); err != nil {
-				panic(err)
+			if path.Ext(source) == ".tpl" {
+				template.Must(t.New(source).Parse(string(data)))
 			}
-
-			file, err := os.Create(target)
-			if err != nil {
-				panic(err)
-			}
-			defer file.Close()
-
-			if err := t.Execute(file, t.extension); err != nil {
-				panic(err)
-			}
+			files[source] = target
 		}
 
 		return nil
 	})
+
+	for source, target := range files {
+		output, err := os.Create(target)
+		if err != nil {
+			panic(err)
+		}
+		defer output.Close()
+
+		if path.Ext(source) == ".tpl" {
+			if err := t.ExecuteTemplate(output, source, t.extension); err != nil {
+				panic(err)
+			}
+		} else {
+			input, err := t.project.Open(source)
+			if err != nil {
+				panic(err)
+			}
+			defer input.Close()
+
+			io.Copy(output, input)
+		}
+	}
 }
 
 func (t *templateEngine) deleteProject() {
@@ -102,5 +124,9 @@ func (t *templateEngine) deleteProject() {
 }
 
 func buildTemplateHelpers(extension core.Extension) template.FuncMap {
-	return template.FuncMap{}
+	return template.FuncMap{
+		"raw": func(value string) template.HTML {
+			return template.HTML(value)
+		},
+	}
 }
