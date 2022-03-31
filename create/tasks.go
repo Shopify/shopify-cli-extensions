@@ -57,33 +57,60 @@ func (path InstallDependencies) Undo() error {
 
 type FileReference struct {
 	fs.FS
-	path string
+	Path   string
+	output io.WriteCloser
+	input  io.ReadCloser
 }
 
-func (r FileReference) Create() (*os.File, error) {
-	return os.Create(r.path)
+func (r *FileReference) Open() (err error) {
+	r.output, err = os.Create(r.Path)
+	return
 }
 
-func (r FileReference) Open() (fs.File, error) {
-	return r.FS.Open(r.path)
+func (r *FileReference) Close() error {
+	return r.output.Close()
+}
+
+func (r *FileReference) Read(p []byte) (int, error) {
+	if r.input == nil {
+		file, err := r.FS.Open(r.Path)
+		if err != nil {
+			return 0, err
+		}
+		r.input = file
+	}
+
+	n, err := r.input.Read(p)
+	if err == io.EOF {
+		r.input.Close()
+	}
+
+	return n, err
+}
+
+func (r *FileReference) Write(p []byte) (int, error) {
+	if r.output == nil {
+		return 0, fmt.Errorf("file not opened")
+	}
+
+	return r.output.Write(p)
 }
 
 type RenderTask struct {
-	Source FileReference
-	Target FileReference
+	Source *FileReference
+	Target *FileReference
 	Data   interface{}
 	*template.Template
 }
 
 func (t RenderTask) Run() error {
-	output, err := t.Target.Create()
-	if err != nil {
-		panic(err)
+	if err := t.Target.Open(); err != nil {
+		return err
 	}
-	defer output.Close()
+	defer t.Target.Close()
 
-	if err := t.ExecuteTemplate(output, t.Source.path, t.Data); err != nil {
-		panic(err)
+	if err := t.ExecuteTemplate(t.Target, t.Source.Path, t.Data); err != nil {
+		return err
 	}
 
 	return nil
@@ -94,24 +121,19 @@ func (t RenderTask) Undo() error {
 }
 
 type CopyFileTask struct {
-	Source FileReference
-	Target FileReference
+	Source *FileReference
+	Target *FileReference
 }
 
 func (t CopyFileTask) Run() error {
-	output, err := t.Target.Create()
-	if err != nil {
-		panic(err)
+	if err := t.Target.Open(); err != nil {
+		return err
 	}
-	defer output.Close()
+	defer t.Target.Close()
 
-	input, err := t.Source.Open()
-	if err != nil {
-		panic(err)
+	if _, err := io.Copy(t.Target, t.Source); err != nil {
+		return err
 	}
-	defer input.Close()
-
-	io.Copy(output, input)
 
 	return nil
 }
