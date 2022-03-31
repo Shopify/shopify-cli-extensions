@@ -6,6 +6,10 @@ import (
 	"github.com/Shopify/shopify-cli-extensions/core"
 )
 
+func ReadTemplateFile(path string) ([]byte, error) {
+	return templates.ReadFile(path)
+}
+
 func NewExtensionProject(extension core.Extension) error {
 	setup := NewProcess(
 		MakeDir(extension.Development.RootDir),
