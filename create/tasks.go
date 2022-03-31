@@ -3,6 +3,9 @@ package create
 import (
 	"errors"
 	"fmt"
+	"html/template"
+	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 )
@@ -49,5 +52,62 @@ func (path InstallDependencies) Undo() error {
 		return err
 	}
 
+	return nil
+}
+
+type FileReference struct {
+	fs.FS
+	path string
+}
+
+type RenderTask struct {
+	Source FileReference
+	Target FileReference
+	Data   interface{}
+	*template.Template
+}
+
+func (t RenderTask) Run() error {
+	output, err := os.Create(t.Target.path)
+	if err != nil {
+		panic(err)
+	}
+	defer output.Close()
+
+	if err := t.ExecuteTemplate(output, t.Source.path, t.Data); err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
+func (t RenderTask) Undo() error {
+	return nil
+}
+
+type CopyFileTask struct {
+	Source FileReference
+	Target FileReference
+}
+
+func (t CopyFileTask) Run() error {
+	output, err := os.Create(t.Target.path)
+	if err != nil {
+		panic(err)
+	}
+	defer output.Close()
+
+	input, err := t.Source.Open(t.Source.path)
+	if err != nil {
+		panic(err)
+	}
+	defer input.Close()
+
+	io.Copy(output, input)
+
+	return nil
+}
+
+func (t CopyFileTask) Undo() error {
 	return nil
 }

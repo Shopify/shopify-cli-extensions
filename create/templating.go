@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
-	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -69,20 +68,27 @@ type templateEngine struct {
 func (t *templateEngine) createProject() {
 	actions := NewProcess()
 
-	fs.WalkDir(t.project, ".", func(source string, d fs.DirEntry, err error) error {
-		target := buildTargetPath(t.extension.Development.RootDir, source)
+	fs.WalkDir(t.project, ".", func(path string, d fs.DirEntry, err error) error {
+		source := FileReference{t.project, path}
+		target := buildTargetReference(t.extension.Development.RootDir, path)
 
 		if d.IsDir() {
-			actions.Add(MakeDir(target))
-		} else if isTemplate(source) {
-			data, err := fs.ReadFile(t.project, source)
+			actions.Add(MakeDir(target.path))
+		} else if isTemplate(path) {
+			data, err := fs.ReadFile(t.project, path)
 			if err != nil {
 				panic(err)
 			}
-			template.Must(t.New(source).Parse(string(data)))
-			actions.Add(t.makeRenderTask(source, target))
+			template.Must(t.New(path).Parse(string(data)))
+
+			actions.Add(RenderTask{
+				Source:   source,
+				Target:   target,
+				Data:     t.extension,
+				Template: t.Template,
+			})
 		} else {
-			actions.Add(t.makeCopyTask(source, target))
+			actions.Add(CopyFileTask{source, target})
 		}
 
 		return nil
@@ -90,69 +96,6 @@ func (t *templateEngine) createProject() {
 
 	if err := actions.Run(); err != nil {
 		actions.Undo()
-	}
-}
-
-func (t *templateEngine) makeRenderTask(source, target string) Task {
-	confirm := func(source, target string) (string, string) {
-		if source == "src/index.js.tpl" && t.extension.Development.UsesTypeScript() {
-			ext := ".ts"
-			if t.extension.Development.UsesReact() {
-				ext = ".tsx"
-			}
-			return source, strings.TrimSuffix(target, ".js") + ext
-		} else {
-			return source, target
-		}
-	}
-
-	return DynamicTask{
-		OnRun: func() error {
-			source, target = confirm(source, target)
-			if target == "" {
-				return nil
-			}
-
-			output, err := os.Create(target)
-			if err != nil {
-				panic(err)
-			}
-			defer output.Close()
-
-			if err := t.ExecuteTemplate(output, source, t.extension); err != nil {
-				panic(err)
-			}
-
-			return nil
-		},
-		OnUndo: func() error {
-			return nil
-		},
-	}
-}
-
-func (t *templateEngine) makeCopyTask(source, target string) Task {
-	return DynamicTask{
-		OnRun: func() error {
-			output, err := os.Create(target)
-			if err != nil {
-				panic(err)
-			}
-			defer output.Close()
-
-			input, err := t.project.Open(source)
-			if err != nil {
-				panic(err)
-			}
-			defer input.Close()
-
-			io.Copy(output, input)
-
-			return nil
-		},
-		OnUndo: func() error {
-			return nil
-		},
 	}
 }
 
@@ -175,7 +118,7 @@ func isTemplate(path string) bool {
 	return filepath.Ext(path) == ".tpl"
 }
 
-func buildTargetPath(parts ...string) string {
+func buildTargetReference(parts ...string) FileReference {
 	path := []string{}
 	for _, part := range parts {
 		if isTemplate(part) {
@@ -183,5 +126,5 @@ func buildTargetPath(parts ...string) string {
 		}
 		path = append(path, strings.Split(part, "/")...)
 	}
-	return filepath.Join(path...)
+	return FileReference{os.DirFS("./"), filepath.Join(path...)}
 }
