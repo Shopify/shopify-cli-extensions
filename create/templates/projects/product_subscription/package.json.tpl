@@ -1,1 +1,1 @@
-{{template "shared/package.json"}}
+{{template "shared/package.json" .}}

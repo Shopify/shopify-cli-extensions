@@ -1,16 +1,18 @@
 {
-    "name": "{{ .Type }}",
-    "license": "MIT",
-    "dependencies": {
-      {{ if .React }}"{{ .Development.Renderer.Name }}-react": "{{ raw .Development.Renderer.Version }}",{{ end }}
-      {{ if .React }}"react": "^17.0.0"{{ else }}"{{ .Development.Renderer.Name }}": "{{ raw .Development.Renderer.Version }}"{{ end }}
-    },
-    "devDependencies": {
-      {{ if .TypeScript }}"typescript": "^4.1.0",{{ end }}
-      "@shopify/shopify-cli-extensions": "latest"
-    },
-    "scripts": {
-      "build": "shopify-cli-extensions build",
-      "develop": "shopify-cli-extensions develop"
-    }
+  "name": "{{.Type}}",
+  "license": "MIT",
+  "dependencies": {
+    {{- with .Development}}
+    {{ if .UsesReact }}"{{ .Renderer.Name }}-react": "{{ raw .Renderer.Version }}",{{ end }}
+    {{ if .UsesReact }}"react": "^17.0.0"{{ else }}"{{ .Renderer.Name }}": "{{ raw .Renderer.Version }}"{{ end }}
+    {{- end }}
+  },
+  "devDependencies": {
+    {{ if .Development.UsesTypeScript }}"typescript": "^4.1.0",{{ end }}
+    "@shopify/shopify-cli-extensions": "latest"
+  },
+  "scripts": {
+    "build": "shopify-cli-extensions build",
+    "develop": "shopify-cli-extensions develop"
   }
+}

@@ -140,6 +140,14 @@ type Development struct {
 	Template string            `json:"-" yaml:"template,omitempty"`
 }
 
+func (d Development) UsesReact() bool {
+	return strings.Contains(d.Template, "react")
+}
+
+func (d Development) UsesTypeScript() bool {
+	return strings.Contains(d.Template, "typescript")
+}
+
 type Renderer struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`

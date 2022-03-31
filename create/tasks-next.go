@@ -38,7 +38,7 @@ func createProject(extension core.Extension) process.Task {
 
 func newTemplateEngine(extension core.Extension, shared, project fs.FS) *templateEngine {
 	template := template.Must(template.New("").Parse(""))
-	template.Funcs(buildTemplateHelpers(extension))
+	template.Funcs(buildTemplateHelpers(extension, shared))
 
 	fs.WalkDir(shared, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() {
@@ -77,6 +77,11 @@ func (t *templateEngine) createProject() {
 		if d.IsDir() {
 			actions.Add(makeDir(target))
 		} else if isTemplate(source) {
+			data, err := fs.ReadFile(t.project, source)
+			if err != nil {
+				panic(err)
+			}
+			template.Must(t.New(source).Parse(string(data)))
 			actions.Add(t.makeRenderTask(source, target))
 		} else {
 			actions.Add(t.makeCopyTask(source, target))
@@ -103,8 +108,7 @@ func (t *templateEngine) makeRenderTask(source, target string) process.Task {
 			}
 			defer output.Close()
 
-			t.ParseFS(t.project, source)
-			if err := t.Execute(output, t.extension); err != nil {
+			if err := t.ExecuteTemplate(output, source, t.extension); err != nil {
 				panic(err)
 			}
 
@@ -141,10 +145,17 @@ func (t *templateEngine) makeCopyTask(source, target string) process.Task {
 	}
 }
 
-func buildTemplateHelpers(extension core.Extension) template.FuncMap {
+func buildTemplateHelpers(extension core.Extension, shared fs.FS) template.FuncMap {
 	return template.FuncMap{
 		"raw": func(value string) template.HTML {
 			return template.HTML(value)
+		},
+		"file": func(name string) template.HTML {
+			data, err := fs.ReadFile(shared, strings.TrimPrefix(name, "shared/"))
+			if err != nil {
+				panic(err)
+			}
+			return template.HTML(string(data))
 		},
 	}
 }
