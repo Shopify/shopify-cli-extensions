@@ -3,20 +3,19 @@ package create
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
-
-	"github.com/Shopify/shopify-cli-extensions/core/fsutils"
 )
 
 // MakeDir is a process.Task that creates a directory.
 type MakeDir string
 
 func (path MakeDir) Run() error {
-	return fsutils.MakeDir(string(path))
+	return os.MkdirAll(string(path), 0755)
 }
 
 func (path MakeDir) Undo() error {
-	return fsutils.RemoveDir(string(path))
+	return os.Remove(string(path))
 }
 
 // InstallDependencies is a process.Task for installing the JavaScript packages required
