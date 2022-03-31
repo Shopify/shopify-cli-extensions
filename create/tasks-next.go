@@ -1,6 +1,7 @@
 package create
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
@@ -9,10 +10,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
 	"github.com/Shopify/shopify-cli-extensions/create/process"
+	"github.com/imdario/mergo"
+	"gopkg.in/yaml.v3"
 )
 
 //go:embed templates/*
@@ -38,7 +42,7 @@ func createProject(extension core.Extension) process.Task {
 
 func newTemplateEngine(extension core.Extension, shared, project fs.FS) *templateEngine {
 	template := template.Must(template.New("").Parse(""))
-	template.Funcs(buildTemplateHelpers(extension, shared))
+	template.Funcs(buildTemplateHelpers(template, extension, shared))
 
 	fs.WalkDir(shared, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() {
@@ -162,7 +166,7 @@ func (t *templateEngine) makeCopyTask(source, target string) process.Task {
 	}
 }
 
-func buildTemplateHelpers(extension core.Extension, shared fs.FS) template.FuncMap {
+func buildTemplateHelpers(t *template.Template, extension core.Extension, shared fs.FS) template.FuncMap {
 	return template.FuncMap{
 		"raw": func(value string) template.HTML {
 			return template.HTML(value)
@@ -173,6 +177,29 @@ func buildTemplateHelpers(extension core.Extension, shared fs.FS) template.FuncM
 				panic(err)
 			}
 			return template.HTML(string(data))
+		},
+		"merge": func(paths ...string) string {
+			fragments := make([]fragment, 0, len(paths))
+
+			for _, path := range paths {
+				buffer := bytes.Buffer{}
+				t.ExecuteTemplate(&buffer, path, "TODO")
+
+				fragment := make(fragment)
+				yaml.Unmarshal(buffer.Bytes(), fragment)
+				fragments = append(fragments, fragment)
+			}
+
+			result := fragments[0]
+			for _, fragment := range fragments[1:] {
+				// result = mergeFragments(result, fragment)
+				err := mergo.Merge(&result, &fragment, mergo.WithTransformers(fragmentTransformer{}))
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+			serializedResult, _ := yaml.Marshal(result)
+			return strings.TrimSpace(string(serializedResult))
 		},
 	}
 }
@@ -190,4 +217,88 @@ func buildTargetPath(parts ...string) string {
 		path = append(path, strings.Split(part, "/")...)
 	}
 	return filepath.Join(path...)
+}
+
+type fragment = map[interface{}]interface{}
+
+type fragmentTransformer struct {}
+
+func (ft fragmentTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
+	if typ == reflect.TypeOf(fragment{}) {
+		return func(dst, src reflect.Value) error {
+			srcFragment, ok := src.Interface().(fragment)
+			if (!ok) {
+				return nil
+			}
+
+			dstFragment, ok := dst.Interface().(fragment)
+			if (!ok) {
+				return nil
+			}
+
+			for srcKey, srcValue := range srcFragment {
+				if reflect.TypeOf(srcValue) != reflect.TypeOf([]interface{}{}) {
+					continue	// src value is not a list
+				}
+				srcList, ok := reflect.ValueOf(srcValue).Interface().([]interface{})
+				if !ok {
+					return nil
+				} else if len(srcList) == 0 {
+					continue
+				}
+
+				dstValue, dstContainsValue := dstFragment[srcKey]
+				if reflect.TypeOf(dstValue) != reflect.TypeOf(srcValue){
+					return nil
+				}
+
+				dstList, ok := reflect.ValueOf(dstValue).Interface().([]interface{})
+				if !ok || reflect.TypeOf(srcList) != reflect.TypeOf(dstList){
+					return nil
+				}
+
+				if (reflect.TypeOf(srcList[0]) == reflect.TypeOf(map[string]interface{}{})) {
+					// value is a list of maps
+					if dstContainsValue {
+						outer:
+						for _, m := range srcList {
+							srcMap, ok := reflect.ValueOf(m).Interface().(map[string]interface{})
+							if !ok {
+								return nil
+							}
+							for _, m := range dstList {
+								dstMap, ok := reflect.ValueOf(m).Interface().(map[string]interface{})
+								if !ok {
+									return nil
+								}
+								if reflect.DeepEqual(srcMap, dstMap) {
+									continue outer
+								}
+							}
+							dstList = append(dstList, srcMap)
+						}
+						dstFragment[srcKey] = dstList
+					}
+				} else {
+					// value is a list
+					if dstContainsValue {
+						dstSet := map[interface{}]struct{}{}
+						for _, l := range dstList {
+							if _, exists := dstSet[l]; !exists {
+								dstSet[l]= struct{}{}
+							}
+						}
+						for _, l := range srcList {
+							if _, exists := dstSet[l]; !exists {
+								dstList = append(dstList, l)
+							}
+						}
+						dstFragment[srcKey] = dstList
+					}
+				}
+			}
+			return nil
+		}
+	}
+	return nil
 }
