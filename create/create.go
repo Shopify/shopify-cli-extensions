@@ -6,20 +6,7 @@ import (
 	"github.com/Shopify/shopify-cli-extensions/core"
 )
 
-const (
-	cliConfigYamlFile string = ".shopify-cli.yml"
-	configYamlFile    string = "extension.config.yml"
-	defaultBuildDir   string = "build"
-	defaultSourceDir  string = "src"
-	templateRoot      string = "templates"
-	templateFileExt   string = ".tpl"
-)
-
-func ReadTemplateFile(path string) ([]byte, error) {
-	return templates.ReadFile(path)
-}
-
-func NewExtensionProject(extension core.Extension) (err error) {
+func NewExtensionProject(extension core.Extension) error {
 	setup := NewProcess(
 		MakeDir(extension.Development.RootDir),
 		CreateProject(extension),
