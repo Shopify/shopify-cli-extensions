@@ -47,7 +47,7 @@ func (t *templateEngine) createProject() {
 		target := source.InferTarget(t.Extension.Development.RootDir)
 
 		if source.IsDir() {
-			actions.Add(MakeDir(target.Path()))
+			actions.Add(MakeDir(target.FilePath()))
 		} else if source.IsTemplate() {
 			t.register(source)
 
