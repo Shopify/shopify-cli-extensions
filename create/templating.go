@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -76,6 +77,20 @@ func (t *templateEngine) createProject() {
 	if err := actions.Run(); err != nil {
 		actions.Undo()
 	}
+}
+
+func (t *templateEngine) register(source *FileReference) error {
+	return t.registerAs(source.Path, source)
+}
+
+func (t *templateEngine) registerAs(name string, source *FileReference) error {
+	data, err := io.ReadAll(source)
+	if err != nil {
+		return err
+	}
+
+	_, err = t.New(name).Parse(string(data))
+	return err
 }
 
 func buildTemplateHelpers(t *template.Template, extension core.Extension, shared fs.FS) template.FuncMap {
