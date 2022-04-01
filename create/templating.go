@@ -6,8 +6,6 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -21,16 +19,12 @@ func NewTemplateEngine(extension core.Extension, shared, project FS) *templateEn
 	template.Funcs(buildTemplateHelpers(template, extension, shared))
 	engine := &templateEngine{extension, project, template}
 
-	shared.WalkDir(func(source *SourceFileReference, err error) error {
-		if err != nil {
-			return err
-		}
-
+	shared.WalkDir(func(source *SourceFileReference) error {
 		if source.IsDir() {
 			return nil
 		}
 
-		if err := engine.registerAs("shared/"+source.Path, source); err != nil {
+		if err := engine.registerAs("shared/"+source.Path(), source); err != nil {
 			return fmt.Errorf("failed to parse template %s: %w", source, err)
 		}
 
@@ -49,15 +43,11 @@ type templateEngine struct {
 func (t *templateEngine) createProject() {
 	actions := NewProcess()
 
-	t.project.WalkDir(func(source *SourceFileReference, err error) error {
-		if err != nil {
-			return err
-		}
-
-		target := buildTargetReference(t.Extension.Development.RootDir, source.Path)
+	t.project.WalkDir(func(source *SourceFileReference) error {
+		target := source.InferTarget(t.Extension.Development.RootDir)
 
 		if source.IsDir() {
-			actions.Add(MakeDir(target.Path))
+			actions.Add(MakeDir(target.Path()))
 		} else if source.IsTemplate() {
 			t.register(source)
 
@@ -80,7 +70,7 @@ func (t *templateEngine) createProject() {
 }
 
 func (t *templateEngine) register(source *SourceFileReference) error {
-	return t.registerAs(source.Path, source)
+	return t.registerAs(source.Path(), source)
 }
 
 func (t *templateEngine) registerAs(name string, source *SourceFileReference) error {
@@ -117,7 +107,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 				fragments = append(fragments, fragment)
 			}
 
-			mergeFn := func (fragments ...core.Fragment) core.Fragment {
+			mergeFn := func(fragments ...core.Fragment) core.Fragment {
 				result := fragments[0]
 				for _, fragment := range fragments[1:] {
 					err := mergo.Merge(&result, &fragment, mergo.WithAppendSlice)
@@ -141,13 +131,13 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 					src := value.([]interface{})
 					dst := make([]interface{}, 0, len(src))
 
-					if (reflect.TypeOf(src[0]) == reflect.TypeOf(map[string]interface{}{})) {
+					if reflect.TypeOf(src[0]) == reflect.TypeOf(map[string]interface{}{}) {
 						/*
 						 * Assertion - value is a slice of maps
 						 * O(n^2) approach used with inner maps because Go maps
 						 * are not comparable and thus cannot act as key values
-						 */ 
-						outer:
+						 */
+					outer:
 						for _, srcMap := range src {
 							for _, dstMap := range dst {
 								if reflect.DeepEqual(srcMap, dstMap) {
@@ -159,9 +149,9 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 					} else {
 						// Assertion - value is a slice (but not a slice of maps)
 						set := map[interface{}]struct{}{}
-						for _, l := range src { 
+						for _, l := range src {
 							if _, exists := set[l]; !exists {
-								set[l]= struct{}{}
+								set[l] = struct{}{}
 								dst = append(dst, l)
 							}
 						}
@@ -176,19 +166,4 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			return strings.TrimSpace(string(serializedResult))
 		},
 	}
-}
-
-func buildTargetReference(parts ...string) *TargetFileReference {
-	path := []string{}
-	for _, part := range parts {
-		if isTemplate(part) {
-			part = strings.TrimSuffix(part, ".tpl")
-		}
-		path = append(path, strings.Split(part, "/")...)
-	}
-	return NewTargetFileReference(os.DirFS("."), filepath.Join(path...))
-}
-
-func isTemplate(path string) bool {
-	return filepath.Ext(path) == ".tpl"
 }

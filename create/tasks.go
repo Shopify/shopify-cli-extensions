@@ -92,7 +92,7 @@ func (t RenderTask) Run() error {
 	}
 	defer t.Target.Close()
 
-	if err := t.ExecuteTemplate(t.Target, t.Source.Path, t.Data); err != nil {
+	if err := t.ExecuteTemplate(t.Target, t.Source.Path(), t.Data); err != nil {
 		return err
 	}
 
