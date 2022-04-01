@@ -38,8 +38,12 @@ func newTemplateEngine(extension core.Extension, shared, project FS) *templateEn
 	template := template.Must(template.New("").Parse(""))
 	template.Funcs(buildTemplateHelpers(extension, shared))
 
-	shared.WalkDir(func(source *FileReference, d fs.DirEntry, err error) error {
-		if !d.IsDir() {
+	shared.WalkDir(func(source *FileReference, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !source.IsDir() {
 			data, err := io.ReadAll(source)
 			if err != nil {
 				return fmt.Errorf("failed to read file %s: %w", source, err)
@@ -69,12 +73,16 @@ type templateEngine struct {
 func (t *templateEngine) createProject() {
 	actions := NewProcess()
 
-	t.project.WalkDir(func(source *FileReference, d fs.DirEntry, err error) error {
+	t.project.WalkDir(func(source *FileReference, err error) error {
+		if err != nil {
+			return err
+		}
+
 		target := buildTargetReference(t.extension.Development.RootDir, source.Path)
 
-		if d.IsDir() {
+		if source.IsDir() {
 			actions.Add(MakeDir(target.Path))
-		} else if isTemplate(source.Path) {
+		} else if source.IsTemplate() {
 			data, err := io.ReadAll(source)
 			if err != nil {
 				return fmt.Errorf("failed to read template %s: %w", source, err)
@@ -114,10 +122,6 @@ func buildTemplateHelpers(extension core.Extension, shared fs.FS) template.FuncM
 	}
 }
 
-func isTemplate(path string) bool {
-	return filepath.Ext(path) == ".tpl"
-}
-
 func buildTargetReference(parts ...string) *FileReference {
 	path := []string{}
 	for _, part := range parts {
@@ -126,5 +130,9 @@ func buildTargetReference(parts ...string) *FileReference {
 		}
 		path = append(path, strings.Split(part, "/")...)
 	}
-	return NewFileReference(os.DirFS("./"), filepath.Join(path...))
+	return NewFileReference(os.DirFS("."), filepath.Join(path...))
+}
+
+func isTemplate(path string) bool {
+	return filepath.Ext(path) == ".tpl"
 }

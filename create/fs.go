@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"strings"
 )
 
 type Person struct {
@@ -18,11 +19,11 @@ type FS struct {
 
 func (_fs FS) WalkDir(walk WalkDirFunc) error {
 	return fs.WalkDir(_fs.FS, ".", func(path string, d fs.DirEntry, err error) error {
-		return walk(NewFileReference(_fs.FS, path), d, err)
+		return walk(NewFileReference(_fs.FS, path), err)
 	})
 }
 
-type WalkDirFunc func(ref *FileReference, d fs.DirEntry, err error) error
+type WalkDirFunc func(ref *FileReference, err error) error
 
 type FileReference struct {
 	fs.FS
@@ -38,6 +39,18 @@ func (r *FileReference) Open() (err error) {
 
 func (r *FileReference) Close() error {
 	return r.output.Close()
+}
+
+func (r *FileReference) IsDir() bool {
+	fileInfo, err := fs.Stat(r.FS, r.Path)
+	if err != nil {
+		panic(err)
+	}
+	return fileInfo.IsDir()
+}
+
+func (r *FileReference) IsTemplate() bool {
+	return !r.IsDir() && strings.HasSuffix(r.Path, ".tpl")
 }
 
 func (r *FileReference) Read(p []byte) (int, error) {
