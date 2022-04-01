@@ -79,13 +79,9 @@ func (path InstallDependencies) Undo() error {
 	return nil
 }
 
-func NewFileReference(fs fs.FS, path string) *FileReference {
-	return &FileReference{fs, path, nil, nil}
-}
-
 type RenderTask struct {
-	Source *FileReference
-	Target *FileReference
+	Source *SourceFileReference
+	Target *TargetFileReference
 	Data   interface{}
 	*template.Template
 }
@@ -108,8 +104,8 @@ func (t RenderTask) Undo() error {
 }
 
 type CopyFileTask struct {
-	Source *FileReference
-	Target *FileReference
+	Source *SourceFileReference
+	Target *TargetFileReference
 }
 
 func (t CopyFileTask) Run() error {

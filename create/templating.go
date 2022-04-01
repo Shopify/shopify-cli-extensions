@@ -21,7 +21,7 @@ func NewTemplateEngine(extension core.Extension, shared, project FS) *templateEn
 	template.Funcs(buildTemplateHelpers(template, extension, shared))
 	engine := &templateEngine{extension, project, template}
 
-	shared.WalkDir(func(source *FileReference, err error) error {
+	shared.WalkDir(func(source *SourceFileReference, err error) error {
 		if err != nil {
 			return err
 		}
@@ -49,7 +49,7 @@ type templateEngine struct {
 func (t *templateEngine) createProject() {
 	actions := NewProcess()
 
-	t.project.WalkDir(func(source *FileReference, err error) error {
+	t.project.WalkDir(func(source *SourceFileReference, err error) error {
 		if err != nil {
 			return err
 		}
@@ -79,11 +79,11 @@ func (t *templateEngine) createProject() {
 	}
 }
 
-func (t *templateEngine) register(source *FileReference) error {
+func (t *templateEngine) register(source *SourceFileReference) error {
 	return t.registerAs(source.Path, source)
 }
 
-func (t *templateEngine) registerAs(name string, source *FileReference) error {
+func (t *templateEngine) registerAs(name string, source *SourceFileReference) error {
 	data, err := io.ReadAll(source)
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 	}
 }
 
-func buildTargetReference(parts ...string) *FileReference {
+func buildTargetReference(parts ...string) *TargetFileReference {
 	path := []string{}
 	for _, part := range parts {
 		if isTemplate(part) {
@@ -186,7 +186,7 @@ func buildTargetReference(parts ...string) *FileReference {
 		}
 		path = append(path, strings.Split(part, "/")...)
 	}
-	return NewFileReference(os.DirFS("."), filepath.Join(path...))
+	return NewTargetFileReference(os.DirFS("."), filepath.Join(path...))
 }
 
 func isTemplate(path string) bool {

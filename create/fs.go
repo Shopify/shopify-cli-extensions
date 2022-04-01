@@ -19,29 +19,23 @@ type FS struct {
 
 func (_fs FS) WalkDir(walk WalkDirFunc) error {
 	return fs.WalkDir(_fs.FS, ".", func(path string, d fs.DirEntry, err error) error {
-		return walk(NewFileReference(_fs.FS, path), err)
+		return walk(NewSourceFileReference(_fs.FS, path), err)
 	})
 }
 
-type WalkDirFunc func(ref *FileReference, err error) error
+type WalkDirFunc func(ref *SourceFileReference, err error) error
 
-type FileReference struct {
+func NewSourceFileReference(fs fs.FS, path string) *SourceFileReference {
+	return &SourceFileReference{fs, path, nil}
+}
+
+type SourceFileReference struct {
 	fs.FS
-	Path   string
-	output io.WriteCloser
-	input  io.ReadCloser
+	Path string
+	file io.ReadCloser
 }
 
-func (r *FileReference) Open() (err error) {
-	r.output, err = os.Create(r.Path)
-	return
-}
-
-func (r *FileReference) Close() error {
-	return r.output.Close()
-}
-
-func (r *FileReference) IsDir() bool {
+func (r *SourceFileReference) IsDir() bool {
 	fileInfo, err := fs.Stat(r.FS, r.Path)
 	if err != nil {
 		panic(err)
@@ -49,31 +43,50 @@ func (r *FileReference) IsDir() bool {
 	return fileInfo.IsDir()
 }
 
-func (r *FileReference) IsTemplate() bool {
+func (r *SourceFileReference) IsTemplate() bool {
 	return !r.IsDir() && strings.HasSuffix(r.Path, ".tpl")
 }
 
-func (r *FileReference) Read(p []byte) (int, error) {
-	if r.input == nil {
+func (r *SourceFileReference) Read(p []byte) (int, error) {
+	if r.file == nil {
 		file, err := r.FS.Open(r.Path)
 		if err != nil {
 			return 0, err
 		}
-		r.input = file
+		r.file = file
 	}
 
-	n, err := r.input.Read(p)
+	n, err := r.file.Read(p)
 	if err == io.EOF {
-		r.input.Close()
+		r.file.Close()
 	}
 
 	return n, err
 }
 
-func (r *FileReference) Write(p []byte) (int, error) {
-	if r.output == nil {
+func NewTargetFileReference(fs fs.FS, path string) *TargetFileReference {
+	return &TargetFileReference{fs, path, nil}
+}
+
+type TargetFileReference struct {
+	fs.FS
+	Path string
+	file io.WriteCloser
+}
+
+func (r *TargetFileReference) Open() (err error) {
+	r.file, err = os.Create(r.Path)
+	return
+}
+
+func (r *TargetFileReference) Close() error {
+	return r.file.Close()
+}
+
+func (r *TargetFileReference) Write(p []byte) (int, error) {
+	if r.file == nil {
 		return 0, fmt.Errorf("file not opened")
 	}
 
-	return r.output.Write(p)
+	return r.file.Write(p)
 }
