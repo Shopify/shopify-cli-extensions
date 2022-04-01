@@ -183,3 +183,5 @@ func GetSurface(extension *Extension) string {
 	}
 	return Admin
 }
+
+type Fragment map[interface{}]interface{}
