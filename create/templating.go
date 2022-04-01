@@ -74,13 +74,15 @@ func (t *templateEngine) register(source *SourceFileReference) error {
 }
 
 func (t *templateEngine) registerAs(name string, source *SourceFileReference) error {
-	data, err := io.ReadAll(source)
-	if err != nil {
-		return err
-	}
+	return source.Open(func(r io.Reader) error {
+		data, err := io.ReadAll(r)
+		if err != nil {
+			return err
+		}
 
-	_, err = t.New(name).Parse(string(data))
-	return err
+		_, err = t.New(name).Parse(string(data))
+		return err
+	})
 }
 
 func buildTemplateHelpers(t *template.Template, extension core.Extension, shared fs.FS) template.FuncMap {

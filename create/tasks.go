@@ -72,11 +72,7 @@ func (path InstallDependencies) Undo() error {
 	// TODO: Skip if directory doesn't exist
 	cmd := exec.Command("rm", "-rf", "node_modules")
 	cmd.Dir = string(path)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Run()
 }
 
 type RenderTask struct {
@@ -87,16 +83,9 @@ type RenderTask struct {
 }
 
 func (t RenderTask) Run() error {
-	if err := t.Target.Open(); err != nil {
-		return err
-	}
-	defer t.Target.Close()
-
-	if err := t.ExecuteTemplate(t.Target, t.Source.Path(), t.Data); err != nil {
-		return err
-	}
-
-	return nil
+	return t.Target.Open(func(w io.Writer) error {
+		return t.ExecuteTemplate(w, t.Source.Path(), t.Data)
+	})
 }
 
 func (t RenderTask) Undo() error {
@@ -109,16 +98,12 @@ type CopyFileTask struct {
 }
 
 func (t CopyFileTask) Run() error {
-	if err := t.Target.Open(); err != nil {
-		return err
-	}
-	defer t.Target.Close()
-
-	if _, err := io.Copy(t.Target, t.Source); err != nil {
-		return err
-	}
-
-	return nil
+	return t.Target.Open(func(w io.Writer) error {
+		return t.Source.Open(func(r io.Reader) error {
+			_, err := io.Copy(w, r)
+			return err
+		})
+	})
 }
 
 func (t CopyFileTask) Undo() error {

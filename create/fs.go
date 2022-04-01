@@ -41,6 +41,18 @@ type SourceFileReference struct {
 	file io.ReadCloser
 }
 
+func (r *SourceFileReference) Open(read ReaderFunc) error {
+	file, err := r.FS.Open(r.Path())
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return read(file)
+}
+
+type ReaderFunc func(r io.Reader) error
+
 func (r *SourceFileReference) IsDir() bool {
 	fileInfo, err := fs.Stat(r.FS, r.Path())
 	if err != nil {
@@ -51,23 +63,6 @@ func (r *SourceFileReference) IsDir() bool {
 
 func (r *SourceFileReference) IsTemplate() bool {
 	return !r.IsDir() && strings.HasSuffix(r.Path(), ".tpl")
-}
-
-func (r *SourceFileReference) Read(p []byte) (int, error) {
-	if r.file == nil {
-		file, err := r.FS.Open(r.Path())
-		if err != nil {
-			return 0, err
-		}
-		r.file = file
-	}
-
-	n, err := r.file.Read(p)
-	if err == io.EOF {
-		r.file.Close()
-	}
-
-	return n, err
 }
 
 func (r *SourceFileReference) InferTarget(projectDir string) *TargetFileReference {
@@ -81,31 +76,24 @@ func (r *SourceFileReference) InferTarget(projectDir string) *TargetFileReferenc
 }
 
 func NewTargetFileReference(fs fs.FS, path ...string) *TargetFileReference {
-	return &TargetFileReference{fs, UniversalPath(path...), nil}
+	return &TargetFileReference{fs, UniversalPath(path...)}
 }
 
 type TargetFileReference struct {
 	fs.FS
 	universalPath
-	file io.WriteCloser
 }
 
-func (r *TargetFileReference) Open() (err error) {
-	r.file, err = os.Create(r.FilePath())
-	return
-}
-
-func (r *TargetFileReference) Close() error {
-	return r.file.Close()
-}
-
-func (r *TargetFileReference) Write(p []byte) (int, error) {
-	if r.file == nil {
-		return 0, fmt.Errorf("file not opened")
+func (r *TargetFileReference) Open(write WriterFunc) (err error) {
+	file, err := os.Create(r.FilePath())
+	if err != nil {
+		return fmt.Errorf("unable to create target file %s: %w", r.FilePath(), err)
 	}
-
-	return r.file.Write(p)
+	defer file.Close()
+	return write(file)
 }
+
+type WriterFunc func(w io.Writer) error
 
 func UniversalPath(paths ...string) universalPath {
 	fragments := make([]string, 0)
