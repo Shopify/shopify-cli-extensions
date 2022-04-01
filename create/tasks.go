@@ -59,47 +59,6 @@ func NewFileReference(fs fs.FS, path string) *FileReference {
 	return &FileReference{fs, path, nil, nil}
 }
 
-type FileReference struct {
-	fs.FS
-	Path   string
-	output io.WriteCloser
-	input  io.ReadCloser
-}
-
-func (r *FileReference) Open() (err error) {
-	r.output, err = os.Create(r.Path)
-	return
-}
-
-func (r *FileReference) Close() error {
-	return r.output.Close()
-}
-
-func (r *FileReference) Read(p []byte) (int, error) {
-	if r.input == nil {
-		file, err := r.FS.Open(r.Path)
-		if err != nil {
-			return 0, err
-		}
-		r.input = file
-	}
-
-	n, err := r.input.Read(p)
-	if err == io.EOF {
-		r.input.Close()
-	}
-
-	return n, err
-}
-
-func (r *FileReference) Write(p []byte) (int, error) {
-	if r.output == nil {
-		return 0, fmt.Errorf("file not opened")
-	}
-
-	return r.output.Write(p)
-}
-
 type RenderTask struct {
 	Source *FileReference
 	Target *FileReference

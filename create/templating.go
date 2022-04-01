@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -23,7 +24,7 @@ func (e CreateProject) Run() error {
 	shared, _ := fs.Sub(templates, "templates/shared")
 	project, _ := fs.Sub(templates, path.Join("templates/projects", extension.Type))
 
-	engine := newTemplateEngine(extension, shared, project)
+	engine := newTemplateEngine(extension, FS{shared}, FS{project})
 	engine.createProject()
 
 	return nil
@@ -33,19 +34,19 @@ func (ext CreateProject) Undo() error {
 	return nil
 }
 
-func newTemplateEngine(extension core.Extension, shared, project fs.FS) *templateEngine {
+func newTemplateEngine(extension core.Extension, shared, project FS) *templateEngine {
 	template := template.Must(template.New("").Parse(""))
 	template.Funcs(buildTemplateHelpers(extension, shared))
 
-	fs.WalkDir(shared, ".", func(path string, d fs.DirEntry, err error) error {
+	shared.WalkDir(func(source *FileReference, d fs.DirEntry, err error) error {
 		if !d.IsDir() {
-			data, err := fs.ReadFile(shared, path)
+			data, err := io.ReadAll(source)
 			if err != nil {
-				panic(fmt.Errorf("failed to read file %s: %w", path, err))
+				return fmt.Errorf("failed to read file %s: %w", source, err)
 			}
 
-			if _, err := template.New("shared/" + path).Parse(string(data)); err != nil {
-				panic(fmt.Errorf("failed to parse template %s: %w", path, err))
+			if _, err := template.New("shared/" + source.Path).Parse(string(data)); err != nil {
+				panic(fmt.Errorf("failed to parse template %s: %w", source, err))
 			}
 		}
 
@@ -61,25 +62,24 @@ func newTemplateEngine(extension core.Extension, shared, project fs.FS) *templat
 
 type templateEngine struct {
 	extension core.Extension
-	project   fs.FS
+	project   FS
 	*template.Template
 }
 
 func (t *templateEngine) createProject() {
 	actions := NewProcess()
 
-	fs.WalkDir(t.project, ".", func(path string, d fs.DirEntry, err error) error {
-		source := NewFileReference(t.project, path)
-		target := buildTargetReference(t.extension.Development.RootDir, path)
+	t.project.WalkDir(func(source *FileReference, d fs.DirEntry, err error) error {
+		target := buildTargetReference(t.extension.Development.RootDir, source.Path)
 
 		if d.IsDir() {
 			actions.Add(MakeDir(target.Path))
-		} else if isTemplate(path) {
-			data, err := fs.ReadFile(t.project, path)
+		} else if isTemplate(source.Path) {
+			data, err := io.ReadAll(source)
 			if err != nil {
-				panic(err)
+				return fmt.Errorf("failed to read template %s: %w", source, err)
 			}
-			template.Must(t.New(path).Parse(string(data)))
+			template.Must(t.New(source.Path).Parse(string(data)))
 
 			actions.Add(RenderTask{
 				Source:   source,
