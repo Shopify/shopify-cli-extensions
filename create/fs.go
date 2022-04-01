@@ -107,24 +107,20 @@ func (r *TargetFileReference) Write(p []byte) (int, error) {
 	return r.file.Write(p)
 }
 
-func UniversalPath(chunks ...string) universalPath {
-	return universalPath(chunks)
+func UniversalPath(paths ...string) universalPath {
+	fragments := make([]string, 0)
+	for _, fragment := range paths {
+		fragments = append(fragments, strings.Split(fragment, "/")...)
+	}
+	return universalPath(fragments)
 }
 
 type universalPath []string
 
 func (p universalPath) Path() string {
-	return path.Join(p.Fragments()...)
+	return path.Join(p...)
 }
 
 func (p universalPath) FilePath() string {
-	return filepath.Join(p.Fragments()...)
-}
-
-func (p universalPath) Fragments() []string {
-	fragments := make([]string, 0)
-	for _, fragment := range p {
-		fragments = append(fragments, strings.Split(fragment, "/")...)
-	}
-	return fragments
+	return filepath.Join(p...)
 }
