@@ -10,11 +10,6 @@ import (
 	"strings"
 )
 
-type Person struct {
-	Name string
-	Age  int
-}
-
 type FS struct {
 	fs.FS
 }
@@ -32,13 +27,12 @@ func (_fs FS) WalkDir(walk WalkDirFunc) error {
 type WalkDirFunc func(ref *SourceFileReference) error
 
 func NewSourceFileReference(fs fs.FS, path ...string) *SourceFileReference {
-	return &SourceFileReference{fs, UniversalPath(path...), nil}
+	return &SourceFileReference{fs, UniversalPath(path...)}
 }
 
 type SourceFileReference struct {
 	fs.FS
 	universalPath
-	file io.ReadCloser
 }
 
 func (r *SourceFileReference) Open(read ReaderFunc) error {
@@ -93,8 +87,6 @@ func (r *TargetFileReference) Open(write WriterFunc) (err error) {
 	return write(file)
 }
 
-type WriterFunc func(w io.Writer) error
-
 func UniversalPath(paths ...string) universalPath {
 	fragments := make([]string, 0)
 	for _, fragment := range paths {
@@ -112,3 +104,5 @@ func (p universalPath) Path() string {
 func (p universalPath) FilePath() string {
 	return filepath.Join(p...)
 }
+
+type WriterFunc func(w io.Writer) error
