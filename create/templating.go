@@ -1,71 +1,43 @@
 package create
 
 import (
-	"embed"
 	"fmt"
 	"html/template"
 	"io"
 	"io/fs"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
 )
 
-//go:embed templates/*
-var templates embed.FS
-
-type CreateProject core.Extension
-
-func (e CreateProject) Run() error {
-	extension := core.Extension(e)
-	shared, _ := fs.Sub(templates, "templates/shared")
-	project, _ := fs.Sub(templates, path.Join("templates/projects", extension.Type))
-
-	engine := newTemplateEngine(extension, FS{shared}, FS{project})
-	engine.createProject()
-
-	return nil
-}
-
-func (ext CreateProject) Undo() error {
-	return nil
-}
-
-func newTemplateEngine(extension core.Extension, shared, project FS) *templateEngine {
+func NewTemplateEngine(extension core.Extension, shared, project FS) *templateEngine {
 	template := template.Must(template.New("").Parse(""))
 	template.Funcs(buildTemplateHelpers(extension, shared))
+	engine := &templateEngine{extension, project, template}
 
 	shared.WalkDir(func(source *FileReference, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if !source.IsDir() {
-			data, err := io.ReadAll(source)
-			if err != nil {
-				return fmt.Errorf("failed to read file %s: %w", source, err)
-			}
+		if source.IsDir() {
+			return nil
+		}
 
-			if _, err := template.New("shared/" + source.Path).Parse(string(data)); err != nil {
-				panic(fmt.Errorf("failed to parse template %s: %w", source, err))
-			}
+		if err := engine.registerAs("shared/"+source.Path, source); err != nil {
+			return fmt.Errorf("failed to parse template %s: %w", source, err)
 		}
 
 		return nil
 	})
 
-	return &templateEngine{
-		extension,
-		project,
-		template,
-	}
+	return engine
 }
 
 type templateEngine struct {
-	extension core.Extension
+	Extension core.Extension
 	project   FS
 	*template.Template
 }
@@ -78,21 +50,17 @@ func (t *templateEngine) createProject() {
 			return err
 		}
 
-		target := buildTargetReference(t.extension.Development.RootDir, source.Path)
+		target := buildTargetReference(t.Extension.Development.RootDir, source.Path)
 
 		if source.IsDir() {
 			actions.Add(MakeDir(target.Path))
 		} else if source.IsTemplate() {
-			data, err := io.ReadAll(source)
-			if err != nil {
-				return fmt.Errorf("failed to read template %s: %w", source, err)
-			}
-			template.Must(t.New(source.Path).Parse(string(data)))
+			t.register(source)
 
 			actions.Add(RenderTask{
 				Source:   source,
 				Target:   target,
-				Data:     t.extension,
+				Data:     t.Extension,
 				Template: t.Template,
 			})
 		} else {
@@ -105,6 +73,20 @@ func (t *templateEngine) createProject() {
 	if err := actions.Run(); err != nil {
 		actions.Undo()
 	}
+}
+
+func (t *templateEngine) register(source *FileReference) error {
+	return t.registerAs(source.Path, source)
+}
+
+func (t *templateEngine) registerAs(name string, source *FileReference) error {
+	data, err := io.ReadAll(source)
+	if err != nil {
+		return err
+	}
+
+	_, err = t.New(name).Parse(string(data))
+	return err
 }
 
 func buildTemplateHelpers(extension core.Extension, shared fs.FS) template.FuncMap {

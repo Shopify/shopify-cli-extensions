@@ -1,6 +1,7 @@
 package create
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"html/template"
@@ -8,7 +9,30 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"path"
+
+	"github.com/Shopify/shopify-cli-extensions/core"
 )
+
+//go:embed templates/*
+var templates embed.FS
+
+type CreateProject core.Extension
+
+func (e CreateProject) Run() error {
+	extension := core.Extension(e)
+	shared, _ := fs.Sub(templates, "templates/shared")
+	project, _ := fs.Sub(templates, path.Join("templates/projects", extension.Type))
+
+	engine := NewTemplateEngine(extension, FS{shared}, FS{project})
+	engine.createProject()
+
+	return nil
+}
+
+func (ext CreateProject) Undo() error {
+	return nil
+}
 
 // MakeDir is a process.Task that creates a directory.
 type MakeDir string
