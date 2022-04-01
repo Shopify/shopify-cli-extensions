@@ -1,0 +1,12 @@
+---
+single_key2: single_value2
+single_key: single_value
+extension_points:
+  - ExtensionPoint1
+    ExtensionPoint1a
+  - ExtensionPoint3
+metafields:
+  - namespace: MetaNS1
+    key: MetaKey1
+  - namespace: MetaNS2
+    key: MetaKey2

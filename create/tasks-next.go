@@ -190,19 +190,63 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 				fragments = append(fragments, fragment)
 			}
 
-			result := fragments[0]
-			for _, fragment := range fragments[1:] {
-				// result = mergeFragments(result, fragment)
-				err := mergo.Merge(&result, &fragment, mergo.WithTransformers(fragmentTransformer{}))
-				if err != nil {
-					fmt.Println(err)
+			mergeFn := func (fragments ...fragment) fragment {
+				result := fragments[0]
+				for _, fragment := range fragments[1:] {
+					err := mergo.Merge(&result, &fragment, mergo.WithAppendSlice)
+					if err != nil {
+						fmt.Println(err)
+					}
 				}
+				return result
 			}
+			result := mergeFn(fragments...)
+
+			deduplicateFn := func(merged fragment) fragment {
+				deduped := make(fragment)
+				for key, value := range merged {
+					if reflect.TypeOf(value) != reflect.TypeOf([]interface{}{}) {
+						deduped[key] = value
+						continue
+					}
+					// assert: value is a slice
+
+					src := value.([]interface{})
+					dst := make([]interface{}, 0, len(src))
+
+					if (reflect.TypeOf(src[0]) == reflect.TypeOf(map[string]interface{}{})) {
+						// assert: value is a slice of maps
+						// O(n^2) approach used because maps are not comparable and cannot act as key values
+						outer:
+						for _, srcMap := range src {
+							for _, dstMap := range dst {
+								if reflect.DeepEqual(srcMap, dstMap) {
+									continue outer
+								}
+							}
+							dst = append(dst, srcMap)
+						}
+					} else {
+						set := map[interface{}]struct{}{}
+						for _, l := range src { 
+							if _, exists := set[l]; !exists {
+								set[l]= struct{}{}
+								dst = append(dst, l)
+							}
+						}
+					}
+					deduped[key] = dst
+				}
+				return deduped
+			}
+			result = deduplicateFn(result)
+
 			serializedResult, _ := yaml.Marshal(result)
 			return strings.TrimSpace(string(serializedResult))
 		},
 	}
 }
+
 
 func isTemplate(path string) bool {
 	return filepath.Ext(path) == ".tpl"
@@ -230,7 +274,6 @@ func (ft fragmentTransformer) Transformer(typ reflect.Type) func(dst, src reflec
 			if (!ok) {
 				return nil
 			}
-
 			dstFragment, ok := dst.Interface().(fragment)
 			if (!ok) {
 				return nil
@@ -238,13 +281,13 @@ func (ft fragmentTransformer) Transformer(typ reflect.Type) func(dst, src reflec
 
 			for srcKey, srcValue := range srcFragment {
 				if reflect.TypeOf(srcValue) != reflect.TypeOf([]interface{}{}) {
-					continue	// src value is not a list
+					return nil	// src value is not a list
 				}
 				srcList, ok := reflect.ValueOf(srcValue).Interface().([]interface{})
 				if !ok {
 					return nil
 				} else if len(srcList) == 0 {
-					continue
+					return nil
 				}
 
 				dstValue, dstContainsValue := dstFragment[srcKey]
