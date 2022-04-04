@@ -52,10 +52,10 @@ func (t *templateEngine) createProject() {
 			t.register(source)
 
 			actions.Add(RenderTask{
-				Source:   source,
-				Target:   target,
-				Data:     t.Extension,
-				Template: t.Template,
+				Source:    source,
+				Target:    target,
+				Extension: t.Extension,
+				Template:  t.Template,
 			})
 		} else {
 			actions.Add(CopyFileTask{source, target})

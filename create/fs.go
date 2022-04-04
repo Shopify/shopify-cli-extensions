@@ -87,6 +87,10 @@ func (r *TargetFileReference) Open(write WriterFunc) (err error) {
 	return write(file)
 }
 
+func (r *TargetFileReference) Rename(name string) *TargetFileReference {
+	return &TargetFileReference{r.FS, r.universalPath.Rename(name)}
+}
+
 func UniversalPath(paths ...string) universalPath {
 	fragments := make([]string, 0)
 	for _, fragment := range paths {
@@ -103,6 +107,10 @@ func (p universalPath) Path() string {
 
 func (p universalPath) FilePath() string {
 	return filepath.Join(p...)
+}
+
+func (p universalPath) Rename(name string) universalPath {
+	return append(p[0:len(p)-1], name)
 }
 
 type WriterFunc func(w io.Writer) error

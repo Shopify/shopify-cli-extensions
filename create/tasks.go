@@ -76,15 +76,18 @@ func (path InstallDependencies) Undo() error {
 }
 
 type RenderTask struct {
-	Source *SourceFileReference
-	Target *TargetFileReference
-	Data   interface{}
+	Source    *SourceFileReference
+	Target    *TargetFileReference
+	Extension core.Extension
 	*template.Template
 }
 
 func (t RenderTask) Run() error {
-	return t.Target.Open(func(w io.Writer) error {
-		return t.ExecuteTemplate(w, t.Source.Path(), t.Data)
+	rule := LookupRule(t.Extension, t.Source, t.Target)
+	target := rule(t.Extension, t.Source, t.Target)
+
+	return target.Open(func(w io.Writer) error {
+		return t.ExecuteTemplate(w, t.Source.Path(), t.Extension)
 	})
 }
 
