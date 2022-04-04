@@ -45,19 +45,6 @@ func (p *Process) Add(task Task) {
 	p.status = append(p.status, "")
 }
 
-type DynamicTask struct {
-	OnRun  func() error
-	OnUndo func() error
-}
-
-func (t DynamicTask) Run() error {
-	return t.OnRun()
-}
-
-func (t DynamicTask) Undo() error {
-	return t.OnUndo()
-}
-
 type Task interface {
 	Run() error
 	Undo() error
