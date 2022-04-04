@@ -1,0 +1,12 @@
+simple_key_1: correct-simple-value
+simple_key_4: wrong-simple-value-4
+some_list:
+  - list-element-1a
+    list-element-1b
+  - list-element-2
+  - list-element-3
+some_maps:
+  - key: value-1
+    namespace: namespace-1
+  - key: value-3
+    namespace: namespace-3
