@@ -4,10 +4,11 @@ import (
 	"os/exec"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
+	"github.com/Shopify/shopify-cli-extensions/core/fsutils"
 )
 
 func ReadTemplateFile(path string) ([]byte, error) {
-	return templates.ReadFile(path)
+	return fsutils.NewFS(&templates, "templates").ReadTemplateFile(path)
 }
 
 func NewExtensionProject(extension core.Extension) error {

@@ -122,8 +122,12 @@ func OpenFileForAppend(filePath string) (*os.File, error) {
 	return os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0600)
 }
 
+func (fs *FS) ReadTemplateFile(filePath string) ([]byte, error) {
+	return fs.ReadFile(fs.normalizePath(filePath))
+}
+
 func (fs *FS) normalizePath(filePath string) string {
-	if strings.HasPrefix(filePath, fs.root+"/") {
+	if strings.HasPrefix(filePath, fs.root + "/") {
 		return filePath
 	}
 	return filepath.Join(fs.root, filePath)
