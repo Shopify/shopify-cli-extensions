@@ -103,12 +103,29 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 				return ""
 			}
 
-			isYaml := func(path string) bool {
-				return strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml") ||
-				strings.HasSuffix(path, ".yml.tpl") || strings.HasSuffix(path, ".yaml.tpl")
+			type OutputFormat int
+			const (
+				_ OutputFormat = iota // skip the zero value
+				YAML
+				JSON
+			)
+			var outputFormat OutputFormat
+
+			isYamlTemplate := func(path string) (bool, bool) {
+				if (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
+					return true, false
+				} else if strings.HasSuffix(path, ".yml.tpl") || strings.HasSuffix(path, ".yaml.tpl") {
+					return true, true
+				}
+				return false, false
 			}
-			isJson := func(path string) bool {
-				return strings.HasSuffix(path, ".json") || strings.HasSuffix(path, ".json.tpl")
+			isJsonTemplate := func(path string) (bool, bool) {
+				if strings.HasSuffix(path, ".json") {
+					return true, false			
+				} else if strings.HasSuffix(path, ".json.tpl") {
+					return true, true			
+				}
+				return false, false			
 			}
 
 			makeFragments := func (paths ...string) []core.Fragment {
@@ -117,14 +134,20 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 					buffer := bytes.Buffer{}
 					t.ExecuteTemplate(&buffer, path, extension)
 
-					if isYaml(path) {
+					if y, t := isYamlTemplate(path); y {
 						fragment := core.Fragment{}
 						yaml.Unmarshal(buffer.Bytes(), fragment)
 						fragments = append(fragments, fragment)
-					} else if isJson(path) {
+						if t || outputFormat == 0 {
+							outputFormat = YAML
+						}
+					} else if j, t := isJsonTemplate(path); j {
 						jsonFragment := core.JsonFragment{}
 						json.Unmarshal(buffer.Bytes(), &jsonFragment.Fragment)
 						fragments = append(fragments, jsonFragment.Fragment)
+						if t || outputFormat == 0 {
+							outputFormat = JSON
+						}
 					}
 				}
 				return fragments
@@ -172,9 +195,9 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			resultFragment := deduplicate(merged)
 
 			var serializedResult []byte
-			if isYaml(paths[0]) {
+			if outputFormat == YAML {
 				serializedResult, _ = yaml.Marshal(resultFragment)
-			} else if isJson(paths[0]) {
+			} else if outputFormat == JSON {
 				serializedResult, _ = json.MarshalIndent(resultFragment, "", "  ")
 			}
 			return template.HTML(strings.TrimSpace(string(serializedResult)))
