@@ -174,7 +174,6 @@ func TestGetSingleExtension(t *testing.T) {
 	if extension.Localization != nil {
 		t.Error("expect localization to be nil without defined locales")
 	}
-
 }
 
 func TestServeAssets(t *testing.T) {

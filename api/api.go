@@ -227,7 +227,7 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 				log.Printf("failed to merge update data %v", err)
 			}
 			// manually overwite localization data
-			if castedData.Development.LocalizationStatus == "success" && castedData.Localization != nil {
+			if castedData.Development.LocalizationStatus == "success" {
 				api.Extensions[index].Localization = castedData.Localization
 				api.Extensions[index].Localization.LastUpdated = time.Now().Unix()
 			}
@@ -345,7 +345,6 @@ func (api *ExtensionsApi) listExtensions(rw http.ResponseWriter, r *http.Request
 	encoder := json.NewEncoder(rw)
 
 	extensions := getExtensionsWithUrl(api.Extensions, api.GetApiRootUrlFromRequest(r))
-	extensions = getExtensionsWithLocalization(extensions)
 
 	encoder.Encode(extensionsResponse{
 		api.getResponse(r),
@@ -490,21 +489,24 @@ func setExtensionLocalization(original core.Extension) core.Extension {
 	if err != nil {
 		log.Printf("failed to retrieve locales: %v", err)
 	}
-
 	extension.Localization = localization
 	return extension
 }
 
 func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 	path := filepath.Join(".", extension.Development.RootDir, "locales")
+	emptyResponse := &core.Localization{
+		DefaultLocale: "",
+		Translations:  make(map[string]interface{}),
+	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		// The extension does not have a locales directory.
-		return nil, nil
+		return emptyResponse, nil
 	}
 
 	fileNames, err := GetFileNames(path)
 	if err != nil {
-		return nil, err
+		return emptyResponse, err
 	}
 	translations := make(map[string]interface{})
 	defaultLocale := ""
@@ -513,7 +515,7 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 	for _, fileName := range fileNames {
 		data, err := GetMapFromJsonFile(filepath.Join(path, fileName))
 		if err != nil {
-			return nil, err
+			return emptyResponse, err
 		}
 
 		locale := strings.Split(fileName, ".")[0]
@@ -526,7 +528,7 @@ func GetLocalization(extension *core.Extension) (*core.Localization, error) {
 	}
 
 	if len(translations) == 0 {
-		return nil, nil
+		return emptyResponse, nil
 	} else {
 
 		if len(defaultLocalesFound) == 0 {
