@@ -79,6 +79,9 @@ type TargetFileReference struct {
 }
 
 func (r *TargetFileReference) Open(write WriterFunc) (err error) {
+	// The path to the target file has to be OS specific meaning seprated by / for
+	// Linux and Unix system and \ for Windows. Hence, we need to call FilePath()
+	// instead of Path().
 	file, err := os.Create(r.FilePath())
 	if err != nil {
 		return fmt.Errorf("unable to create target file %s: %w", r.FilePath(), err)

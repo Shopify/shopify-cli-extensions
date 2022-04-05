@@ -97,6 +97,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			}
 			return template.HTML(string(data))
 		},
+<<<<<<< HEAD
 		"merge": func(paths ...string) string {
 			fragments := make([]core.Fragment, 0, len(paths))
 
@@ -151,5 +152,8 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			serializedResult, _ := yaml.Marshal(result)
 			return strings.TrimSpace(string(serializedResult))
 		},
+=======
+		"upcase": strings.ToUpper,
+>>>>>>> df00dfa (Fix tests)
 	}
 }
