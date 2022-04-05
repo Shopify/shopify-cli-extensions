@@ -184,4 +184,8 @@ func GetSurface(extension *Extension) string {
 	return Admin
 }
 
-type Fragment map[interface{}]interface{}
+type Fragment map[string]interface{}
+
+type JsonFragment struct {
+	Fragment `json:"-"`
+}

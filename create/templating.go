@@ -2,6 +2,7 @@ package create
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -97,31 +98,50 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			}
 			return template.HTML(string(data))
 		},
-		"merge": func(paths ...string) string {
-			fragments := make([]core.Fragment, 0, len(paths))
-
-			for _, path := range paths {
-				buffer := bytes.Buffer{}
-				t.ExecuteTemplate(&buffer, path, extension)
-
-				fragment := make(core.Fragment)
-				yaml.Unmarshal(buffer.Bytes(), fragment)
-				fragments = append(fragments, fragment)
+		"merge": func(paths ...string) template.HTML {
+			if len(paths) == 0 {
+				return ""
 			}
 
-			mergeFn := func(fragments ...core.Fragment) core.Fragment {
-				result := fragments[0]
+			isYaml := func(path string) bool {
+				return strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml") ||
+				strings.HasSuffix(path, ".yml.tpl") || strings.HasSuffix(path, ".yaml.tpl")
+			}
+			isJson := func(path string) bool {
+				return strings.HasSuffix(path, ".json") || strings.HasSuffix(path, ".json.tpl")
+			}
+
+			makeFragments := func (paths ...string) []core.Fragment {
+				fragments := make([]core.Fragment, 0, len(paths))
+				for _, path := range paths {
+					buffer := bytes.Buffer{}
+					t.ExecuteTemplate(&buffer, path, extension)
+
+					if isYaml(path) {
+						fragment := core.Fragment{}
+						yaml.Unmarshal(buffer.Bytes(), fragment)
+						fragments = append(fragments, fragment)
+					} else if isJson(path) {
+						jsonFragment := core.JsonFragment{}
+						json.Unmarshal(buffer.Bytes(), &jsonFragment.Fragment)
+						fragments = append(fragments, jsonFragment.Fragment)
+					}
+				}
+				return fragments
+			}
+
+			merge := func (fragments ...core.Fragment) core.Fragment {
+				merged := fragments[0]
 				for _, fragment := range fragments[1:] {
-					err := mergo.Merge(&result, &fragment, mergo.WithAppendSlice)
+					err := mergo.Merge(&merged, &fragment, mergo.WithAppendSlice)
 					if err != nil {
 						fmt.Println(err)
 					}
 				}
-				return result
+				return merged
 			}
-			result := mergeFn(fragments...)
 
-			deduplicateFn := func(merged core.Fragment) core.Fragment {
+			deduplicate := func(merged core.Fragment) core.Fragment {
 				deduped := make(core.Fragment)
 				for key, value := range merged {
 					if reflect.TypeOf(value) != reflect.TypeOf([]interface{}{}) {
@@ -146,10 +166,18 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 				}
 				return deduped
 			}
-			result = deduplicateFn(result)
+			
+			fragments := makeFragments(paths...)
+			merged := merge(fragments...)
+			resultFragment := deduplicate(merged)
 
-			serializedResult, _ := yaml.Marshal(result)
-			return strings.TrimSpace(string(serializedResult))
+			var serializedResult []byte
+			if isYaml(paths[0]) {
+				serializedResult, _ = yaml.Marshal(resultFragment)
+			} else if isJson(paths[0]) {
+				serializedResult, _ = json.MarshalIndent(resultFragment, "", "  ")
+			}
+			return template.HTML(strings.TrimSpace(string(serializedResult)))
 		},
 		"upcase": strings.ToUpper,
 	}
