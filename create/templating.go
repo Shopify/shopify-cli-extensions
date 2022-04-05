@@ -97,7 +97,6 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			}
 			return template.HTML(string(data))
 		},
-<<<<<<< HEAD
 		"merge": func(paths ...string) string {
 			fragments := make([]core.Fragment, 0, len(paths))
 
@@ -110,7 +109,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 				fragments = append(fragments, fragment)
 			}
 
-			mergeFn := func (fragments ...core.Fragment) core.Fragment {
+			mergeFn := func(fragments ...core.Fragment) core.Fragment {
 				result := fragments[0]
 				for _, fragment := range fragments[1:] {
 					err := mergo.Merge(&result, &fragment, mergo.WithAppendSlice)
@@ -134,7 +133,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 					src := value.([]interface{})
 					dst := make([]interface{}, 0, len(src))
 
-					outer:
+				outer:
 					for _, srcElmt := range src {
 						for _, dstElmt := range dst {
 							if reflect.DeepEqual(srcElmt, dstElmt) {
@@ -152,8 +151,6 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			serializedResult, _ := yaml.Marshal(result)
 			return strings.TrimSpace(string(serializedResult))
 		},
-=======
 		"upcase": strings.ToUpper,
->>>>>>> df00dfa (Fix tests)
 	}
 }
