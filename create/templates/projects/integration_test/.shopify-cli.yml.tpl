@@ -1,3 +1,1 @@
-project_type: :extension
-organization_id: 0
-EXTENSION_TYPE: {{ .Type | upcase }}
+{{- template "shared/shopify-cli.yml" . -}}

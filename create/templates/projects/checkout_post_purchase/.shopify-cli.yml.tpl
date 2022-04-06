@@ -1,1 +1,1 @@
-{{template "shared/shopify-cli.yml"}}
+{{- template "shared/shopify-cli.yml" . -}}

@@ -1,4 +1,4 @@
 ---
-project_type: :extension
+EXTENSION_TYPE: {{ .Type | upcase }}
 organization_id: 0
-EXTENSION_TYPE: {{ .FormattedType }}
+project_type: :extension
