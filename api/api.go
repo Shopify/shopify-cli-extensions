@@ -227,7 +227,7 @@ func (api *ExtensionsApi) Notify(extensions []core.Extension) {
 				log.Printf("failed to merge update data %v", err)
 			}
 			// manually overwite localization data
-			if castedData.Localization != nil && api.Extensions[index].Localization.LastUpdated == castedData.Localization.LastUpdated {
+			if castedData.Localization != nil && (api.Extensions[index].Localization == nil || castedData.Localization.LastUpdated > api.Extensions[index].Localization.LastUpdated) {
 				api.Extensions[index].Localization = castedData.Localization
 			}
 			updatedExtensions = append(updatedExtensions, api.Extensions[index])
