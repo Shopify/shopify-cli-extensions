@@ -54,6 +54,11 @@ type CLI struct {
 }
 
 func (cli *CLI) build(args ...string) {
+	if err := cli.ensureValidBuildConfiguration(); err != nil {
+		fmt.Fprintf(os.Stderr, "invalid configuration: %s\n", err)
+		os.Exit(1)
+	}
+
 	builds := len(cli.config.Extensions)
 	results := make(chan build.Result)
 
@@ -79,6 +84,32 @@ func (cli *CLI) build(args ...string) {
 	} else {
 		os.Exit(0)
 	}
+}
+
+func (cli *CLI) ensureValidBuildConfiguration() error {
+	if len(cli.config.Extensions) == 0 {
+		return fmt.Errorf("no extensions found in configuration")
+	}
+
+	for id, extension := range cli.config.Extensions {
+		if extension.Title == "" {
+			return fmt.Errorf("extension at index %d has no title", id)
+		}
+
+		if extension.Development.RootDir == "" {
+			return fmt.Errorf("extension %s has no root directory", extension)
+		}
+
+		if extension.Development.BuildDir == "" {
+			return fmt.Errorf("extension %s has no build directory", extension)
+		}
+
+		if len(extension.Development.Entries) == 0 {
+			return fmt.Errorf("extension %s has no entries", extension)
+		}
+	}
+
+	return nil
 }
 
 func (cli *CLI) create(args ...string) {

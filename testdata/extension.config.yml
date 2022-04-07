@@ -5,23 +5,14 @@ store: test-shop.myshopify.com
 app:
   api_key: app_api_key
 extensions:
-  - uuid: 00000000-0000-0000-0000-000000000000
-    type: checkout_ui_extension
-    title: Checkout UI Test Extension
-    metafields:
+  - metafields:
       - namespace: my-namespace
         key: my-key
     development:
       root_dir: 'tmp/checkout_ui_extension'
       build_dir: 'build'
-      template: 'typescript-react'
-      renderer:
-        name: '@shopify/checkout-ui-extensions'
-        version: '^0.14.0'
       entries:
         main: 'src/index.tsx'
-      resource:
-        url: 'cart/1234'
   - uuid: 00000000-0000-0000-0000-000000000001
     type: product_subscription
     title: Product Subscription Test Extension
