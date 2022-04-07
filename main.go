@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Shopify/shopify-cli-extensions/api"
 	"github.com/Shopify/shopify-cli-extensions/build"
@@ -112,6 +113,7 @@ func (cli *CLI) serve(args ...string) {
 			extension := result.Extension
 
 			if result.Success {
+				extension.Localization.LastUpdated = time.Now().Unix()
 				extension.Development.LocalizationStatus = "success"
 				api.Notify([]core.Extension{extension})
 				fmt.Println(result)
