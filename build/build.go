@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/Shopify/shopify-cli-extensions/api"
@@ -134,8 +135,62 @@ func configureScript(script *exec.Cmd, extension core.Extension) error {
 
 const rwxr_xr_x = 0755
 
+func getLocalization(extension *core.Extension) (*core.Localization, error) {
+	path := filepath.Join(".", extension.Development.RootDir, "locales")
+	emptyResponse := &core.Localization{
+		DefaultLocale: "",
+		Translations:  make(map[string]interface{}),
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		// The extension does not have a locales directory.
+		return emptyResponse, nil
+	}
+
+	fileNames, err := api.GetFileNames(path)
+	if err != nil {
+		return emptyResponse, err
+	}
+	translations := make(map[string]interface{})
+	defaultLocale := ""
+	defaultLocalesFound := []string{}
+
+	for _, fileName := range fileNames {
+		data, err := api.GetMapFromJsonFile(filepath.Join(path, fileName))
+		if err != nil {
+			return emptyResponse, err
+		}
+
+		locale := strings.Split(fileName, ".")[0]
+
+		if api.IsDefaultLocale(fileName) {
+			defaultLocalesFound = append(defaultLocalesFound, locale)
+		}
+
+		translations[locale] = data
+	}
+
+	if len(translations) == 0 {
+		return emptyResponse, nil
+	} else {
+
+		if len(defaultLocalesFound) == 0 {
+			log.Println("could not determine a default locale, please ensure you have a {locale}.default.json file")
+		} else {
+			if len(defaultLocalesFound) > 1 {
+				log.Println("multiple default locales found, please ensure you only have a single {locale}.default.json file")
+			}
+			defaultLocale = defaultLocalesFound[0]
+		}
+
+		return &core.Localization{
+			DefaultLocale: defaultLocale,
+			Translations:  translations,
+		}, nil
+	}
+}
+
 func setLocalization(extension *core.Extension) error {
-	localization, err := api.GetLocalization(extension)
+	localization, err := getLocalization(extension)
 
 	if err != nil {
 		log.Println(err)
