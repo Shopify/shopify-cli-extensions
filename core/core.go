@@ -148,6 +148,10 @@ type Development struct {
 	Template           string            `json:"-" yaml:"template,omitempty"`
 }
 
+func (d Development) UsesNext() bool {
+	return strings.Contains(d.Template, "next")
+}
+
 func (d Development) UsesReact() bool {
 	return strings.Contains(d.Template, "react")
 }

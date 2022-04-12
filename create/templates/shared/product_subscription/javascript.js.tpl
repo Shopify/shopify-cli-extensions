@@ -1,4 +1,8 @@
+{{- if .Development.UsesNext -}}
 import { Text, extend } from "@shopify/admin-ui-extensions";
+{{- else -}}
+import { Text, extend } from "@shopify/app/ui-extensions/admin";
+{{- end -}}
 
 // Your extension must render all four modes
 extend("Admin::Product::SubscriptionPlan::Add", App);
