@@ -1,7 +1,7 @@
 {{- if .Development.UsesNext -}}
-import { Text, extend } from "@shopify/admin-ui-extensions";
-{{- else -}}
 import { Text, extend } from "@shopify/app/ui-extensions/admin";
+{{- else -}}
+import { Text, extend } from "@shopify/admin-ui-extensions";
 {{- end -}}
 
 // Your extension must render all four modes

@@ -8,6 +8,22 @@
  *     completes
  */
 import React from 'react';
+import React from "react";
+{{- if .Development.UsesNext -}}
+import {
+  extend,
+  render,
+  BlockStack,
+  Button,
+  CalloutBanner,
+  Heading,
+  Image,
+  Layout,
+  TextBlock,
+  TextContainer,
+  View,
+} from "@shopify/app/ui-extensions/post-purchase/react";
+{{- else -}}
 import {
   extend,
   render,
@@ -21,6 +37,7 @@ import {
   TextContainer,
   View,
 } from "@shopify/post-purchase-ui-extensions-react";
+{{- end -}}
 
 /**
  * Entry point for the `ShouldRender` Extension Point.
