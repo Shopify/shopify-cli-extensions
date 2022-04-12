@@ -1,9 +1,8 @@
-{{- if .Development.UsesNext -}}
+{{- if .Development.UsesNext }}
 import { Text, extend } from "@shopify/app/ui-extensions/admin";
-{{- else -}}
+{{- else }}
 import { Text, extend } from "@shopify/admin-ui-extensions";
-{{- end -}}
-
+{{ end }}
 // Your extension must render all four modes
 extend("Admin::Product::SubscriptionPlan::Add", App);
 extend("Admin::Product::SubscriptionPlan::Create", App);

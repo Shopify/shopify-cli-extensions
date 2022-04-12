@@ -6,7 +6,7 @@
  *     completes
  */
 
-{{- if .Development.UsesNext -}}
+{{- if .Development.UsesNext }}
 import {
   extend,
   BlockStack,
@@ -19,7 +19,7 @@ import {
   CalloutBanner,
   View,
 } from "@shopify/app/ui-extensions/post-purchase";
-{{- else -}}
+{{- else }}
 import {
   extend,
   BlockStack,
@@ -32,7 +32,7 @@ import {
   CalloutBanner,
   View,
 } from "@shopify/post-purchase-ui-extensions";
-{{- end -}}
+{{ end }}
 
 /**
  * Entry point for the `ShouldRender` Extension Point.

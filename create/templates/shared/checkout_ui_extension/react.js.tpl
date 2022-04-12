@@ -1,11 +1,9 @@
 import React from 'react';
-{{- if .Development.UsesNext -}}
+{{- if .Development.UsesNext }}
 import {useExtensionApi, render, Text} from '@shopify/app/ui-extensions/checkout/react';
-{{- else -}}
+{{- else }}
 import {useExtensionApi, render, Text} from '@shopify/checkout-ui-extensions-react';
-{{- end -}}
-
-
+{{ end }}
 render('Checkout::Dynamic::Render', () => <App />);
 
 function App() {

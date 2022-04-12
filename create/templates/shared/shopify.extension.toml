@@ -1,1 +1,1 @@
-type = {{ .Type | upcase }}
+type = "{{ .Type | upcase }}"

@@ -9,7 +9,7 @@
  */
 import React from 'react';
 import React from "react";
-{{- if .Development.UsesNext -}}
+{{- if .Development.UsesNext }}
 import {
   extend,
   render,
@@ -23,7 +23,7 @@ import {
   TextContainer,
   View,
 } from "@shopify/app/ui-extensions/post-purchase/react";
-{{- else -}}
+{{- else }}
 import {
   extend,
   render,
@@ -37,7 +37,7 @@ import {
   TextContainer,
   View,
 } from "@shopify/post-purchase-ui-extensions-react";
-{{- end -}}
+{{ end }}
 
 /**
  * Entry point for the `ShouldRender` Extension Point.

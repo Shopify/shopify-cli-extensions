@@ -1,4 +1,4 @@
-{{- template "shared/shopify.extension.toml" . -}}
+{{ template "shared/shopify.extension.toml" . }}
 
 # [[metafields]]
 # namespace: my-namespace
