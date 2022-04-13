@@ -17,7 +17,7 @@ import {
   TextContainer,
   CalloutBanner,
   View,
-} from {{ if .Extension.UsesNext }}"@shopify/app/ui-extensions/post-purchase"{{ else }}"@shopify/post-purchase-ui-extensions"{{ end }};
+} from {{ if .UsesNext }}"@shopify/app/ui-extensions/post-purchase"{{ else }}"@shopify/post-purchase-ui-extensions"{{ end }};
 
 /**
  * Entry point for the `ShouldRender` Extension Point.

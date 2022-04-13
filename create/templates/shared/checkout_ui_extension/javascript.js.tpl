@@ -1,4 +1,4 @@
-import { extend, Text } from {{ if .Extension.UsesNext }}"@shopify/app/ui-extensions/checkout"{{ else }}"@shopify/checkout-ui-extensions"{{ end }};
+import { extend, Text } from {{ if .UsesNext }}"@shopify/app/ui-extensions/checkout"{{ else }}"@shopify/checkout-ui-extensions"{{ end }};
 
 {{ end }}
 extend("Checkout::Dynamic::Render", (root, { extensionPoint, i18n }) => {

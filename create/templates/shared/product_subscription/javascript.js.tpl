@@ -1,4 +1,4 @@
-import { Text, extend } from {{ if .Extension.UsesNext }}"@shopify/app/ui-extensions/admin"{{ else }}"@shopify/admin-ui-extensions"{{ end }};
+import { Text, extend } from {{ if .UsesNext }}"@shopify/app/ui-extensions/admin"{{ else }}"@shopify/admin-ui-extensions"{{ end }};
 
 // Your extension must render all four modes
 extend("Admin::Product::SubscriptionPlan::Add", App);
