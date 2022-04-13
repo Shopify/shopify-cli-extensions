@@ -31,7 +31,7 @@ extensions:
     development:
       root_dir: 'tmp/checkout_ui_extension_next'
       build_dir: 'build'
-      template: 'typescript-react'
+      template: 'javascript-react'
       renderer:
         name: '@shopify/checkout-ui-extensions'
         version: '^0.14.0'
@@ -57,7 +57,7 @@ extensions:
     development:
       root_dir: 'tmp/product_subscription_next'
       build_dir: 'build'
-      template: 'typescript-react'
+      template: 'javascript-react'
       renderer:
         name: '@shopify/admin-ui-extensions'
         version: '^1.0.1'
@@ -78,8 +78,8 @@ extensions:
         version: '^0.13.2'
       entries:
         main: 'src/index.tsx'
-      capabilities:
-        network_access: true
+    capabilities:
+      network_access: true
   - uuid: 00000000-0000-0000-0000-000000000005
     type: checkout_post_purchase_next
     title: Post Purchase Test Extension Next
@@ -89,14 +89,14 @@ extensions:
     development:
       root_dir: 'tmp/checkout_post_purchase_next'
       build_dir: 'build'
-      template: 'typescript-react'
+      template: 'javascript-react'
       renderer:
         name: '@shopify/post-purchase-ui-extensions'
         version: '^0.13.2'
       entries:
         main: 'src/index.tsx'
-      capabilities:
-        network_access: true
+    capabilities:
+      network_access: true
   - uuid: 00000000-0000-0000-0000-000000000006
     type: beacon_extension
     title: Beacon Test Extension
