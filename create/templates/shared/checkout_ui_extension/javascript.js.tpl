@@ -1,7 +1,5 @@
-{{- if .Development.UsesNext }}
-import { extend, Text } from "@shopify/app/ui-extensions/checkout";
-{{- else }}
-import { extend, Text } from "@shopify/checkout-ui-extensions";
+import { extend, Text } from {{ if .Development.UsesNext }}"@shopify/app/ui-extensions/checkout"{{ else }}"@shopify/checkout-ui-extensions"{{ end }};
+
 {{ end }}
 extend("Checkout::Dynamic::Render", (root, { extensionPoint, i18n }) => {
   root.appendChild(

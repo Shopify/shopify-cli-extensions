@@ -6,7 +6,6 @@
  *     completes
  */
 
-{{- if .Development.UsesNext }}
 import {
   extend,
   BlockStack,
@@ -18,21 +17,7 @@ import {
   TextContainer,
   CalloutBanner,
   View,
-} from "@shopify/app/ui-extensions/post-purchase";
-{{- else }}
-import {
-  extend,
-  BlockStack,
-  Button,
-  Heading,
-  Image,
-  Layout,
-  TextBlock,
-  TextContainer,
-  CalloutBanner,
-  View,
-} from "@shopify/post-purchase-ui-extensions";
-{{ end }}
+} from {{ if .Development.UsesNext }}"@shopify/app/ui-extensions/post-purchase"{{ else }}"@shopify/post-purchase-ui-extensions"{{ end }};
 
 /**
  * Entry point for the `ShouldRender` Extension Point.

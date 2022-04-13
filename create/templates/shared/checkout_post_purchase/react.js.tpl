@@ -9,7 +9,7 @@
  */
 import React from 'react';
 import React from "react";
-{{- if .Development.UsesNext }}
+
 import {
   extend,
   render,
@@ -22,22 +22,7 @@ import {
   TextBlock,
   TextContainer,
   View,
-} from "@shopify/app/ui-extensions/post-purchase/react";
-{{- else }}
-import {
-  extend,
-  render,
-  BlockStack,
-  Button,
-  CalloutBanner,
-  Heading,
-  Image,
-  Layout,
-  TextBlock,
-  TextContainer,
-  View,
-} from "@shopify/post-purchase-ui-extensions-react";
-{{ end }}
+} from {{- if .Extension.UsesNext }}"@shopify/app/ui-extensions/post-purchase/react"{{ else }}"@shopify/post-purchase-ui-extensions-react"{{ end }};
 
 /**
  * Entry point for the `ShouldRender` Extension Point.
