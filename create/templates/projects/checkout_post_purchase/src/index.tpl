@@ -1,5 +1,5 @@
 {{- if .Development.UsesReact -}}
-{{ file "shared/checkout_post_purchase/react.js" }}
+{{ template "shared/checkout_post_purchase/react.js.tpl" . }}
 {{- else -}}
-{{ file "shared/checkout_post_purchase/javascript.js" }}
+{{ template "shared/checkout_post_purchase/javascript.js.tpl" . }}
 {{- end -}}

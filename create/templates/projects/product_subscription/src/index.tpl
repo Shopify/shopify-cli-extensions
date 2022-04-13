@@ -1,5 +1,5 @@
 {{- if .Development.UsesReact -}}
-{{ file "shared/product_subscription/react.js" }}
+{{ template "shared/product_subscription/react.js.tpl" . }}
 {{- else -}}
-{{ file "shared/product_subscription/javascript.js" }}
+{{ template "shared/product_subscription/javascript.js.tpl" . }}
 {{- end -}}
