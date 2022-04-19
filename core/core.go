@@ -152,6 +152,10 @@ func (e Extension) UsesNext() bool {
 	return strings.Contains(e.Type, "next")
 }
 
+func (e Extension) NormalizedType() string {
+	return strings.Replace(e.Type, "_next", "", -1)
+}
+
 func (d Development) UsesReact() bool {
 	return strings.Contains(d.Template, "react")
 }
