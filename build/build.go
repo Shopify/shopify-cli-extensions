@@ -19,14 +19,7 @@ import (
 const nextStepsTemplatePath = "templates/shared/%s/next-steps.txt"
 
 func Build(extension core.Extension, report ResultHandler) {
-	buildCommand := extension.Commands["build"]
-	if len(buildCommand) == 0 {
-		buildCommand = "build"
-	}
-	splitCommand := strings.Split(buildCommand, " ")
-	buildCommand, args := splitCommand[0], splitCommand[1:]
-
-	script, err := script(extension.BuildDir(), buildCommand, args...)
+	script, err := script(extension.BuildDir(), extension.NodeExecutable, "build")
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
@@ -52,7 +45,7 @@ func Build(extension core.Extension, report ResultHandler) {
 }
 
 func Watch(extension core.Extension, integrationCtx core.IntegrationContext, report ResultHandler) {
-	script, err := script(extension.BuildDir(), "develop")
+	script, err := script(extension.BuildDir(), extension.NodeExecutable, "develop")
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
@@ -72,7 +65,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 	logProcessors.Add(2)
 
 	templateBytes, _ := create.ReadTemplateFile(fmt.Sprintf(nextStepsTemplatePath, strings.ToLower(extension.Type)))
-	
+
 	go processLogs(stdout, logProcessingHandlers{
 		onCompletion: func() { logProcessors.Done() },
 		onMessage: func(message string) {
@@ -101,7 +94,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 
 // Builds 'Next Steps'
 func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.IntegrationContext) string {
-	type contextRoot struct { 	// Wraps top-level elements, allowing them to be referenced in next-steps.txt
+	type contextRoot struct { // Wraps top-level elements, allowing them to be referenced in next-steps.txt
 		core.Extension
 		core.IntegrationContext
 	}
@@ -111,7 +104,7 @@ func generateNextSteps(rawTemplate string, ext core.Extension, ctx core.Integrat
 	templ := template.New("templ")
 	templ, err := templ.Parse(rawTemplate)
 	if err == nil {
-		contextRoot := contextRoot{ ext, ctx }
+		contextRoot := contextRoot{ext, ctx}
 		templ.Execute(&buf, contextRoot)
 	}
 
