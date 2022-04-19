@@ -136,25 +136,32 @@ func configureScript(script *exec.Cmd, extension core.Extension) error {
 const rwxr_xr_x = 0755
 
 func getLocalization(extension *core.Extension) (*core.Localization, error) {
+	println("getLocalization 01")
 	path := filepath.Join(".", extension.Development.RootDir, "locales")
 	emptyResponse := &core.Localization{
 		DefaultLocale: "",
 		Translations:  make(map[string]interface{}),
 	}
+	println("getLocalization 02")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		// The extension does not have a locales directory.
 		return emptyResponse, nil
 	}
 
+	println("getLocalization 03")
 	fileNames, err := api.GetFileNames(path)
 	if err != nil {
+		println("getLocalization err Empty Response")
 		return emptyResponse, err
 	}
+	println("getLocalization 0333")
 	translations := make(map[string]interface{})
 	defaultLocale := ""
 	defaultLocalesFound := []string{}
 
+	println("getLocalization 04")
 	for _, fileName := range fileNames {
+		println("getLocalization for")
 		data, err := api.GetMapFromJsonFile(filepath.Join(path, fileName))
 		if err != nil {
 			return emptyResponse, err
@@ -168,8 +175,10 @@ func getLocalization(extension *core.Extension) (*core.Localization, error) {
 
 		translations[locale] = data
 	}
+	println("getLocalization 05")
 
 	if len(translations) == 0 {
+		println("getLocalization Return Empty")
 		return emptyResponse, nil
 	} else {
 
@@ -182,6 +191,7 @@ func getLocalization(extension *core.Extension) (*core.Localization, error) {
 			defaultLocale = defaultLocalesFound[0]
 		}
 
+		println("getLocalization Return Response")
 		return &core.Localization{
 			DefaultLocale: defaultLocale,
 			Translations:  translations,
@@ -190,6 +200,7 @@ func getLocalization(extension *core.Extension) (*core.Localization, error) {
 }
 
 func setLocalization(extension *core.Extension) error {
+	println("setLocalization 01")
 	localization, err := getLocalization(extension)
 
 	if err != nil {
@@ -197,21 +208,27 @@ func setLocalization(extension *core.Extension) error {
 		return err
 	}
 	extension.Localization = localization
+	println("setLocalization End")
 	return nil
 }
 
 func WatchLocalization(extension core.Extension, report ResultHandler) {
+	println("WatchLocalization 01")
 	directory := filepath.Join(".", extension.Development.RootDir, "locales")
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
 		// The extension does not have a locales directory.
 		return
 	}
+	println("WatchLocalization 02")
 
 	err := setLocalization(&extension)
 	if err != nil {
+		println("WatchLocalization Report SetLocalization Error")
 		report(Result{false, err.Error(), extension})
 	}
 	report(Result{true, "successfully built localization", extension})
+
+	println("WatchLocalization 03")
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -219,14 +236,19 @@ func WatchLocalization(extension core.Extension, report ResultHandler) {
 	}
 	defer watcher.Close()
 
+	println("WatchLocalization 04")
+
 	done := make(chan bool)
 	go func() {
 		for {
 			select {
 			case event, ok := <-watcher.Events:
+				println("WatchLocalization Case Event Ok")
 				if !ok {
 					return
 				}
+
+				println("WatchLocalization 05")
 
 				triggers := map[string]bool{
 					fsnotify.Create.String(): true,
@@ -237,11 +259,14 @@ func WatchLocalization(extension core.Extension, report ResultHandler) {
 				if triggers[event.Op.String()] {
 					err := setLocalization(&extension)
 					if err != nil {
+						println("WatchLocalization Report Error")
 						report(Result{false, fmt.Sprintf("could not resolve localization, error: %s\n", err.Error()), extension})
 					}
+					println("WatchLocalization Report Success")
 					report(Result{true, "successfully built localization", extension})
 				}
 			case err, ok := <-watcher.Errors:
+				println("WatchLocalization Case Err")
 				if !ok {
 					return
 				}
@@ -256,4 +281,5 @@ func WatchLocalization(extension core.Extension, report ResultHandler) {
 		log.Fatal(err)
 	}
 	<-done
+	println("WatchLocalization End")
 }
