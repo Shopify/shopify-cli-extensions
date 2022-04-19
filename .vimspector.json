@@ -1,0 +1,39 @@
+{
+  "configurations": {
+    "shopify extension build": {
+      "adapter": "delve",
+      "configuration": {
+        "name": "shopify extension build",
+        "type:": "go", 
+        "request": "launch",
+        "mode": "debug",
+        "program": ".", 
+        "args": ["build", "dave-test-app/extension.config.yml"]
+      }
+    },
+    "shopify extension serve": {
+      "adapter": "delve",
+      "configuration": {
+        "name": "shopify extension serve",
+        "type:": "go", 
+        "request": "launch",
+        "mode": "debug",
+        "program": ".", 
+        "args": ["serve", "dave-test-app/extension.config.yml"]
+      }
+    },
+    "ruby test": {
+      "adapter": "cust_vscode-ruby",
+      "configuration": {
+        "type": "Ruby",
+        "request": "launch",
+        "cwd": "${workspaceRoot}",
+        "program": "/opt/rubies/3.1.1/bin/ruby",
+        "args": ["testdata/test/package_json_test.rb"],
+        "trace": true,
+        "showDebuggerOutput": true
+      }
+    }
+  }
+}
+
