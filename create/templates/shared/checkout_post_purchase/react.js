@@ -22,7 +22,7 @@ import {
   TextBlock,
   TextContainer,
   View,
-} from {{- if .UsesNext }}"@shopify/app/ui-extensions/post-purchase/react"{{ else }}"@shopify/post-purchase-ui-extensions-react"{{ end }};
+} from {{ if .UsesNext }}"@shopify/app/ui-extensions/post-purchase/react"{{ else }}"@shopify/post-purchase-ui-extensions-react"{{ end }};
 
 /**
  * Entry point for the `ShouldRender` Extension Point.
