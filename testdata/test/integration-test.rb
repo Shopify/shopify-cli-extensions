@@ -7,11 +7,9 @@ require 'pry-byebug'
 
 module IntegrationTest
   class TestMergeConfig < Minitest::Test
-    def test_package_json_exists
-      assert File.exist?('tmp/integration_test/package.json')
-    end
-
     def test_package_json_contents
+      assert File.exist?('tmp/integration_test/package.json')
+
       package_json_contents = File.read('tmp/integration_test/package.json')
       package_json = JSON.parse(package_json_contents)
       dependencies = package_json['dependencies']
@@ -37,6 +35,8 @@ module IntegrationTest
     end
 
     def test_extension_config_yml_contents
+      assert File.exist?('tmp/integration_test/extension.config.yml')
+
       extension_config_yml = YAML.load_file('tmp/integration_test/extension.config.yml')
       extension_points = extension_config_yml['extension_points']
       metafields = extension_config_yml['metafields']
@@ -57,6 +57,23 @@ module IntegrationTest
       assert_equal('INTEGRATION_TEST', extension_config_yml['EXTENSION_TYPE'])
       assert_equal(0, extension_config_yml['organization_id'])
       assert_equal(:extension, extension_config_yml['project_type'])
+    end
+
+    def test_vscode_settings_contents
+      assert File.file?('tmp/integration_test/.vscode/settings.json')
+
+      vscode_settings_json_contents = File.read('tmp/integration_test/.vscode/settings.json')
+      settings_json = JSON.parse(vscode_settings_json_contents)
+    end
+
+    def test_vscode_extensions_contents
+      assert File.file?('tmp/integration_test/.vscode/extensions.json')
+
+      vscode_extensions_json_contents = File.read('tmp/integration_test/.vscode/extensions.json')
+      extensions_json = JSON.parse(vscode_extensions_json_contents)
+      recommendations = extensions_json['recommendations']
+      assert recommendations.include?('dbaeumer.vscode-eslint')
+      assert recommendations.include?('editorconfig.editorconfig')
     end
   end
 end
