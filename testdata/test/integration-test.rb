@@ -64,6 +64,10 @@ module IntegrationTest
 
       vscode_settings_json_contents = File.read('tmp/integration_test/.vscode/settings.json')
       settings_json = JSON.parse(vscode_settings_json_contents)
+
+      refute settings_json['editor.formatOnSave']
+      assert_equal('dbaeumer.vscode-eslint', settings_json['editor.defaultFormatter'])
+      assert settings_json['editor.codeActionsOnSave']['source.fixAll.eslint']
     end
 
     def test_vscode_extensions_contents
@@ -72,8 +76,22 @@ module IntegrationTest
       vscode_extensions_json_contents = File.read('tmp/integration_test/.vscode/extensions.json')
       extensions_json = JSON.parse(vscode_extensions_json_contents)
       recommendations = extensions_json['recommendations']
+
       assert recommendations.include?('dbaeumer.vscode-eslint')
       assert recommendations.include?('editorconfig.editorconfig')
+    end
+
+    def test_prettier_contents
+      assert File.file?('tmp/integration_test/.prettierrc')
+
+      prettier_contents = File.read('tmp/integration_test/.prettierrc')
+      prettier = JSON.parse(prettier_contents)
+
+      assert_equal('always', prettier['arrowParens'])
+      assert_equal('es5', prettier['trailingComma'])
+      assert prettier['singleQuote']
+      refute prettier['jsxBracketSameLine']
+      refute prettier['bracketSpacing']
     end
   end
 end
