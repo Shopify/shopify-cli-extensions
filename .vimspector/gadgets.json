@@ -1,0 +1,47 @@
+{
+  "adapters": {
+    "cust_vscode-ruby": {
+      "command": [
+        "node",
+        "${gadgetDir}/cust_vscode-ruby/dist/debugger/main.js"
+      ],
+      "configuration": {
+        "cwd": "${workspaceRoot}",
+        "showDebugOutput": false,
+        "trace": false
+      },
+      "name": "vscode-ruby-debug"
+    },
+    "delve": {
+      "command": [
+        "${gadgetDir}/delve/bin/dlv",
+        "dap",
+        "--listen",
+        "${listenOn}:${port}",
+        "*${dlvFlags}"
+      ],
+      "port": "${port}",
+      "tty": true,
+      "variables": {
+        "dlvFlags": "",
+        "listenOn": "127.0.0.1",
+        "port": "${unusedLocalPort}"
+      }
+    },
+    "multi-session": {
+      "host": "${host}",
+      "port": "${port}"
+    },
+    "vscode-go": {
+      "command": [
+        "node",
+        "${gadgetDir}/vscode-go/dist/debugAdapter.js"
+      ],
+      "configuration": {
+        "cwd": "${workspaceRoot}",
+        "dlvToolPath": "${gadgetDir}/delve/bin/dlv"
+      },
+      "name": "delve"
+    }
+  }
+}
