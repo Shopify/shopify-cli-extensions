@@ -470,23 +470,16 @@ func setExtensionUrls(original core.Extension, rootUrl string) core.Extension {
 }
 
 func GetFileNames(folderPath string) ([]string, error) {
-	println("GetFileNames 01")
 	files := []string{}
 	items, err := os.ReadDir(folderPath)
-	println("GetFileNames items:")
-	// println(items)
-	println(err)
-	println("GetFileNames 02")
 	if err != nil {
 		return files, err
 	}
-	println("GetFileNames 03")
 	for _, item := range items {
 		if !item.IsDir() {
 			files = append(files, item.Name())
 		}
 	}
-	println("GetFileNames End")
 	return files, nil
 }
 

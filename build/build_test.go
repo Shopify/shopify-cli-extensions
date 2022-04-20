@@ -1,9 +1,12 @@
 package build
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/Shopify/shopify-cli-extensions/core"
@@ -83,57 +86,53 @@ func TestWatch(t *testing.T) {
 }
 
 func TestWatchLocalization(t *testing.T) {
+	var wg sync.WaitGroup
+	ctx, cancel := context.WithCancel(context.Background())
+
 	extension := config.Extensions[0]
 	locales_filepath := filepath.Join(".", extension.Development.RootDir, "locales")
-
-	println("Test 01")
 
 	os.RemoveAll(locales_filepath)
 	err := os.Mkdir(locales_filepath, 0775)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// err := os.Remove(filepath.Join(extension.BuildDir(), "main.js"))
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	results := []Result{}
-	go WatchLocalization(extension, func(result Result) {
-		results = append(results, result)
-	})
-
-	println("Test 02")
-
-	// d1 := []byte("hello\ngo\n")
 	en_content := []byte("{\"key\":\"value\"}")
-	os.WriteFile(filepath.Join(locales_filepath, "en.default.json"), en_content, 0775)
-
-	println("Test 03")
-	println(len(results))
-
-	if len(results) != 1 {
-		t.Error("expected 1 result1")
+	err = os.WriteFile(filepath.Join(locales_filepath, "en.default.json"), en_content, 0775)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	println("Test 04")
+	results := []Result{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		WatchLocalization(ctx, extension, func(result Result) {
+			results = append(results, result)
+		})
+	}()
 
-	if results[0].Success {
+	// done
+	cancel()
+	// wait while all goroutines will end their job
+	wg.Wait()
+
+	if len(results) != 1 {
+		t.Error("expected 1 result")
+	}
+
+	if !results[0].Success {
 		t.Error("expected first build to succeed")
 	}
 
-	println("Test 05")
+	value, err := json.Marshal(results[0].Extension.Localization.Translations["en"])
+	if string(value) != "{\"key\":\"value\"}" {
+		t.Error("expected correct translation for 'en'")
+	}
+
+	if _, err = os.Stat(filepath.Join(locales_filepath, "en.default.json")); err != nil {
+		t.Error("expected en.default.json to exist")
+	}
 
 	os.RemoveAll(locales_filepath)
-
-	println("Test End")
-
-	// if !results[1].Success {
-	// 	t.Error("expected second build to succeed")
-	// }
-
-	// if _, err = os.Stat(filepath.Join(extension.BuildDir(), "main.js")); err != nil {
-	// 	t.Error("expected main.js to exist")
-	// }
 }

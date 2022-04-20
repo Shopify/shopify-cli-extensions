@@ -109,7 +109,7 @@ func (cli *CLI) serve(args ...string) {
 			api.Notify([]core.Extension{extension})
 		})
 
-		go build.WatchLocalization(extension, func(result build.Result) {
+		go build.WatchLocalization(ctx, extension, func(result build.Result) {
 			extension := result.Extension
 
 			if result.Success {
