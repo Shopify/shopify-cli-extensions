@@ -93,14 +93,6 @@ integration-test: tmp build
 	test -f tmp/integration_test/build/main.js
 	test -f tmp/integration_test/locales/en.default.json
 	for testfile in `find testdata/test -type f -name '*_test.rb'`; do ruby "$$testfile"; done
-	# ruby -r 'rake/testtask' -e \
-	# 	'task :test do \
-	# 		Rake::TestTask.new do |t| \
-	# 			t.libs += %w(test); \
-	# 			t.test_files = FileList["testdata/test/*_test.rb"]; \
-	# 			t.verbose = true; \
-	# 		end \
-	# 	end' | \ rake -f - test
 
 .PHONY: update-version
 update-version:
