@@ -1,5 +1,20 @@
 {
   "configurations": {
+    "attach remote debug": {
+      "adapter": "vscode-go",
+      "configuration": {
+        "type": "go",
+        "name": "attach remote debug",
+        "request": "attach",
+        "mode": "remote",
+        "host": "127.0.0.1",
+        "port": "12345",
+        "remotePath": "${workspaceRoot}",
+        "dlvFlags": [ "--api-version=2" ],
+        "trace": true,
+        "showDebuggerOutput": true
+      }
+    },
     "shopify extension build": {
       "adapter": "delve",
       "configuration": {
