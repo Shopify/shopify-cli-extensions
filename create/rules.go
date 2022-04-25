@@ -18,12 +18,6 @@ var rules = Rules{
 			} else {
 				return target.Rename("index.ts")
 			}
-		} else if ext.UsesNext() {
-			if ext.Development.UsesReact() {
-				return target.Rename("index.jsx")
-			} else {
-				return target.Rename("index.js")
-			}
 		} else {
 			return target.Rename("index.js")
 		}
