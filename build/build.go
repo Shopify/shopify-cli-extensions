@@ -56,21 +56,27 @@ func Build(extension core.Extension, report ResultHandler) {
 }
 
 func Watch(extension core.Extension, integrationCtx core.IntegrationContext, report ResultHandler) {
-	script, err := script(extension.BuildDir(), "develop")
+	var err error
+	var command *exec.Cmd
+	if extension.NodeExecutable != "" {
+		command = nodeExecutableScript(extension.NodeExecutable, "develop")
+	} else {
+		command, err = script(extension.BuildDir(), "develop")
+	}
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
 	}
 
-	stdout, _ := script.StdoutPipe()
-	stderr, _ := script.StderrPipe()
+	stdout, _ := command.StdoutPipe()
+	stderr, _ := command.StderrPipe()
 
-	if err := configureScript(script, extension); err != nil {
+	if err := configureScript(command, extension); err != nil {
 		report(Result{false, err.Error(), extension})
 	}
 	ensureBuildDirectoryExists(extension)
 
-	script.Start()
+	command.Start()
 
 	logProcessors := sync.WaitGroup{}
 	logProcessors.Add(2)
@@ -99,7 +105,7 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 		},
 	})
 
-	script.Wait()
+	command.Wait()
 	logProcessors.Wait()
 }
 
