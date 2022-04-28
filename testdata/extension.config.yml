@@ -30,14 +30,14 @@ extensions:
       - namespace: my-namespace
         key: my-key
     development:
-      root_dir: 'tmp/checkout_ui_extension_next'
-      build_dir: 'build'
+      root_dir: '.'
+      build_dir: 'tmp/checkout_ui_extension_next/build'
       template: 'javascript-react'
       renderer:
-        name: '@shopify/checkout-ui-extensions'
-        version: '^0.14.0'
+        name: '@shopify/app'
+        version: '^1.0.0'
       entries:
-        main: 'src/index.tsx'
+        main: 'tmp/checkout_ui_extension_next/src/index.js'
       resource:
         url: 'cart/1234'
   - uuid: 00000000-0000-0000-0000-000000000002
@@ -57,14 +57,14 @@ extensions:
     title: Product Subscription Test Extension Next
     node_executable: node_modules/.bin/shopify-cli-extensions
     development:
-      root_dir: 'tmp/product_subscription_next'
-      build_dir: 'build'
+      root_dir: '.'
+      build_dir: 'tmp/product_subscription_next/build'
       template: 'javascript-react'
       renderer:
-        name: '@shopify/admin-ui-extensions'
-        version: '^1.0.1'
+        name: '@shopify/app'
+        version: '^1.0.0'
       entries:
-        main: 'src/index.tsx'
+        main: 'tmp/product_subscription_next/src/index.js'
   - uuid: 00000000-0000-0000-0000-000000000004
     type: checkout_post_purchase
     title: Post Purchase Test Extension
@@ -90,14 +90,14 @@ extensions:
       - namespace: my-namespace
         key: my-key
     development:
-      root_dir: 'tmp/checkout_post_purchase_next'
-      build_dir: 'build'
+      root_dir: '.'
+      build_dir: 'tmp/checkout_post_purchase_next/build'
       template: 'javascript-react'
       renderer:
-        name: '@shopify/post-purchase-ui-extensions'
-        version: '^0.13.2'
+        name: '@shopify/app'
+        version: '^1.0.0'
       entries:
-        main: 'src/index.tsx'
+        main: 'tmp/checkout_post_purchase_next/src/index.js'
     capabilities:
       network_access: true
   - uuid: 00000000-0000-0000-0000-000000000006
