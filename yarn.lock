@@ -1770,10 +1770,10 @@
     "@remote-ui/core" "^2.1.3"
     "@shopify/ui-extensions" "^1.0.1"
 
-"@shopify/app@^1.0.0":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@shopify/app/-/app-1.1.1.tgz#f160239f2e743505830a9831650dc9e3a43a5e3f"
-  integrity sha512-+IPPAN+InWVP6JPEAHt4O+Qnd4UJRWw1oDPAKKquzRb8qIZRwFQz5yiyXNTminay+qIhXeGlepT4PEL7lzr6gA==
+"@shopify/app@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@shopify/app/-/app-2.0.1.tgz#a572fcb4bd6efbdca8c98b8deb1eedce736accca"
+  integrity sha512-TOKAf8hrJRVDlpfhTrxC/Z32hFnE9+k2nLXy07nC/tocNu+mB6mJ3q3QA9q9ObSDQEx7jTeBzPS8Tl5NyiM5+Q==
   dependencies:
     "@oclif/core" "1.3.6"
     "@shopify/admin-ui-extensions" "^1.0.1"
