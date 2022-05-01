@@ -24,13 +24,14 @@ import (
 const nextStepsTemplatePath = "templates/shared/%s/next-steps.txt"
 
 func Build(extension core.Extension, report ResultHandler) {
-	var err error
-	var command *exec.Cmd
-	if extension.NodeExecutable != "" {
-		command = nodeExecutableScript(extension.NodeExecutable, "build")
-	} else {
-		command, err = script(extension.BuildDir(), "build")
+	nodeCommand := "build"
+	args := []string{}
+	if extension.UsesNext() {
+		nodeCommand = "shopify-cli-extensions"
+		args = []string{"build"}
 	}
+
+	command, err := script(extension.BuildDir(), nodeCommand, args...)
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
@@ -56,13 +57,14 @@ func Build(extension core.Extension, report ResultHandler) {
 }
 
 func Watch(extension core.Extension, integrationCtx core.IntegrationContext, report ResultHandler) {
-	var err error
-	var command *exec.Cmd
-	if extension.NodeExecutable != "" {
-		command = nodeExecutableScript(extension.NodeExecutable, "develop")
-	} else {
-		command, err = script(extension.BuildDir(), "develop")
+	nodeCommand := "develop"
+	args := []string{}
+	if extension.UsesNext() {
+		nodeCommand = "shopify-cli-extensions"
+		args = []string{"develop"}
 	}
+
+	command, err := script(extension.BuildDir(), nodeCommand, args...)
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
