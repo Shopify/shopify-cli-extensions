@@ -25,7 +25,7 @@ extensions:
   - uuid: 00000000-0000-0000-0000-000000000001
     type: checkout_ui_extension_next
     title: Checkout UI Test Extension Next
-    node_executable: node_modules/.bin/shopify-cli-extensions
+    node_executable: packages/shopify-cli-extensions/cli.js
     metafields:
       - namespace: my-namespace
         key: my-key
@@ -55,7 +55,7 @@ extensions:
   - uuid: 00000000-0000-0000-0000-000000000003
     type: product_subscription_next
     title: Product Subscription Test Extension Next
-    node_executable: node_modules/.bin/shopify-cli-extensions
+    node_executable: packages/shopify-cli-extensions/cli.js
     development:
       root_dir: 'tmp/product_subscription_next'
       build_dir: 'build'
@@ -85,7 +85,7 @@ extensions:
   - uuid: 00000000-0000-0000-0000-000000000005
     type: checkout_post_purchase_next
     title: Post Purchase Test Extension Next
-    node_executable: node_modules/.bin/shopify-cli-extensions
+    node_executable: packages/shopify-cli-extensions/cli.js
     metafields:
       - namespace: my-namespace
         key: my-key
