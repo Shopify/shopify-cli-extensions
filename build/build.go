@@ -24,7 +24,14 @@ import (
 const nextStepsTemplatePath = "templates/shared/%s/next-steps.txt"
 
 func Build(extension core.Extension, report ResultHandler) {
-	command, err := nodeCommand("build", extension)
+	nodeCommand := "build"
+	args := []string{}
+	if extension.UsesNext() {
+		nodeCommand = "shopify-cli-extensions"
+		args = []string{"build"}
+	}
+
+	command, err := script(extension.BuildDir(), nodeCommand, args...)
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
@@ -50,7 +57,14 @@ func Build(extension core.Extension, report ResultHandler) {
 }
 
 func Watch(extension core.Extension, integrationCtx core.IntegrationContext, report ResultHandler) {
-	command, err := nodeCommand("develop", extension)
+	nodeCommand := "develop"
+	args := []string{}
+	if extension.UsesNext() {
+		nodeCommand = "shopify-cli-extensions"
+		args = []string{"develop"}
+	}
+
+	command, err := script(extension.BuildDir(), nodeCommand, args...)
 	if err != nil {
 		report(Result{false, err.Error(), extension})
 		return
@@ -95,16 +109,6 @@ func Watch(extension core.Extension, integrationCtx core.IntegrationContext, rep
 
 	command.Wait()
 	logProcessors.Wait()
-}
-
-func nodeCommand(command string, extension core.Extension) (*exec.Cmd, error) {
-	args := []string{}
-	if extension.UsesNext() {
-		args = []string{command}
-		command = "shopify-cli-extensions"
-	}
-
-	return script(extension.BuildDir(), command, args...)
 }
 
 // Builds 'Next Steps'
