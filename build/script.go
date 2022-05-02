@@ -10,6 +10,10 @@ var (
 	Command  = exec.Command
 )
 
+func nodeExecutableScript(nodeExecutable string, script string, args ...string) *exec.Cmd {
+	return Command(nodeExecutable, append([]string{script}, args...)...)
+}
+
 func script(dir, script string, args ...string) (*exec.Cmd, error) {
 	if exe, err := LookPath("yarn"); err == nil {
 		cmd := Command(exe, buildYarnArguments(script, args...)...)
