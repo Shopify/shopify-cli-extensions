@@ -149,7 +149,7 @@ type Development struct {
 }
 
 func (e Extension) UsesNext() bool {
-	return strings.Contains(e.Type, "next")
+	return strings.HasSuffix(e.Type, "_next")
 }
 
 func (e Extension) NormalizedType() string {
