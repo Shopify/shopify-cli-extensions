@@ -5,7 +5,7 @@ require 'json'
 require 'yaml'
 require 'pry-byebug'
 
-module IntegrationTest
+module ContractTest
   class TestMergeConfig < Minitest::Test
     def test_package_json_contents
       assert File.exist?('tmp/integration_test/package.json')
@@ -16,9 +16,11 @@ module IntegrationTest
       dev_dependencies = package_json['devDependencies']
       scripts = package_json['scripts']
 
+      extension_config_yml = YAML.load_file('testdata/extension.config.integration.yml')
+      expectedRendererVersion = extension_config_yml['extensions'][0]['development']['renderer']['version']
+
       assert_equal('integration_test', package_json['name'])
-      assert_equal('MIT', package_json['license'])
-      assert_equal('~> 0.14.0', dependencies['@shopify/checkout-ui-extensions-react'])
+      assert_equal(expectedRendererVersion, dependencies['@shopify/checkout-ui-extensions-react'])
       assert_equal('^17.0.0', dependencies['react'])
       assert_equal('^15.5.1', dependencies['graphql'])
       assert_equal('^2.12.4', dependencies['graphql-tag'])
