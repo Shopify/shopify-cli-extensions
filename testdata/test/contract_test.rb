@@ -3,7 +3,6 @@
 require 'minitest/autorun'
 require 'json'
 require 'yaml'
-require 'pry-byebug'
 
 module ContractTest
   class TestMergeConfig < Minitest::Test
