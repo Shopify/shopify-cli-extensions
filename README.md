@@ -131,12 +131,22 @@ extensions:
 - typescript-react
 - javascript-react
 
-### Testing the integration with the Shopify CLI
+### Testing with the local Shopify CLI
 
-The easiest way to test the integration with the [Shopify CLI](https://github.com/Shopify/shopify-cli) is to clone the aforementioned repository and
+To use the Dev Server with a local version of Shopify CLI, first follow these set up steps:
 
-1. run `rake extensions:install` to download the latest extension server binary and place it in `ext/shopify-extensions`, followed by
-2. running `shopify config feature extension_server_beta --enable` to obtain the necessary feature flag.
+1. Clone the [Shopify CLI](https://github.com/Shopify/shopify-cli) repo
+2. Set up an alias for your terminal to point to the repo's `bin/shopify`. For example, inside the `~/.zshrc`, add the following:
+
+   ```
+   alias shopify-local="~/src/github.com/Shopify/shopify-cli/bin/shopify"
+   ```
+
+3. Enable the beta flag for your local Shopify CLI by running `shopify-local config feature extension_server_beta --enable`.
+
+#### Using the latest release of Dev Server
+
+1. Inside the Shopify CLI project run `rake extensions:install` to download the latest extension server binary and place it in `ext/shopify-extensions`
 
 Afterwards, the following three commands will be executed by the new extension server:
 
@@ -144,11 +154,31 @@ Afterwards, the following three commands will be executed by the new extension s
 - `shopify extension serve`
 - `shopify extension build`
 
-**Development builds**
+#### Using a development build of the Dev Server
 
-Testing against a development build is possible, too. Simply clone this repository and make sure that it is located in the same parent directory as `shopify-cli` and named `shopify-cli-extensions`. Run `make build` in `shopify-cli-extensions` and wait for the build process to complete. Next, navigate into the Shopify CLI directory via `cd ../shopify-cli` and run `rake extensions:symlink` to create a symlink to the binary you just created. Just like before you require the above feature flag for testing.
+Testing against a development build is possible, too. Follow these steps:
 
-### DevConsole
+1. Clone this repository and make sure that it is located in the same parent directory as `shopify-cli` and named `shopify-cli-extensions`.
+2. Run `make build` in `shopify-cli-extensions` and wait for the build process to complete.
+3. Navigate into the Shopify CLI directory via `cd ../shopify-cli` and run `rake extensions:symlink` to create a symlink to the binary you just created. Just like before you require the above feature flag for testing.
+
+### Testing with the production Shopify CLI
+
+You can test a development build of the Dev Server with the production version of the Shopify CLI, first follow these set up steps:
+
+1. Clone this repository.
+2. Run `make build` in `shopify-cli-extensions` and wait for the build process to complete.
+3. Find the folder where `shopify-cli` was installed and cd into that folder. If you are using Homebrew, run `brew --prefix shopify-cli`. If you have installed it from a gem, run `gem info shopify-cli` to find the "Installed at" path. The Dev Server should be installed inside the local `ext/shopify-extensions` folder.
+4. Rename the Dev Server production binary so you have a copy of it to fallback on: `mv ext/shopify-extensions/shopify-extensions ext/shopify-extensions/shopify-extensions-prod`.
+5. Set up a symlink to the local Go binary: `ln -s ~/src/github.com/Shopify/shopify-cli-extensions/shopify-extensions shopify-extensions`
+
+Afterwards, the following three commands will be executed by the development build of the Dev Server:
+
+- `shopify extension create`
+- `shopify extension serve`
+- `shopify extension build`
+
+### Devevelopment Console
 
 #### Build
 
