@@ -8,6 +8,7 @@ package api
 import (
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/Shopify/shopify-cli-extensions/api/root"
@@ -294,41 +296,56 @@ func (api *ExtensionsApi) sendStatusUpdates(rw http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	connection := &websocketConnection{upgradedConnection, api.GetApiRootUrlFromRequest(r)}
+	connection := &websocketConnection{upgradedConnection, api.GetApiRootUrlFromRequest(r), sync.Mutex{}}
+	doOnce := sync.Once{}
 	notifications := make(chan notification)
+	done := make(chan struct{})
 
-	close := func(closeCode int, message string) error {
-		api.unregisterClient(connection, closeCode, message)
-		close(notifications)
+	closeConnection := func(closeCode int, message string) error {
+		doOnce.Do(func() {
+			close(done)
+			close(notifications)
+			api.unregisterClientAndNotify(connection, closeCode, message)
+		})
 		return nil
 	}
 
-	connection.SetCloseHandler(close)
+	connection.SetCloseHandler(closeConnection)
 
 	api.registerClient(connection, func(update notification) {
 		notifications <- update
-	}, close)
+	}, closeConnection)
 
 	notification, err := api.getNotification("connected", api.Extensions, connection.rootUrl)
 	if err != nil {
-		close(websocket.CloseNoStatusReceived, fmt.Sprintf("cannot send connected message, failed with error: %v", err))
+		closeConnection(websocket.CloseNoStatusReceived, fmt.Sprintf("cannot send connected message, failed with error: %v", err))
 	}
 	err = api.writeJSONMessage(connection, &notification)
 	if err != nil {
-		close(websocket.CloseNoStatusReceived, "cannot establish connection to client")
+		closeConnection(websocket.CloseNoStatusReceived, "cannot establish connection to client")
 		return
 	}
 
 	go api.handleClientMessages(connection)
 
-	for notification := range notifications {
-		err = api.writeJSONMessage(connection, &notification)
-		if err != nil {
-			log.Printf("error writing JSON message: %v", err)
-			break
+	for {
+		select {
+		case <-done:
+			return
+		case notification := <-notifications:
+
+			err = api.writeJSONMessage(connection, &notification)
+			if err != nil {
+				// the client has closed the connection so we can return
+				if errors.Is(err, syscall.EPIPE) {
+					return
+				}
+
+				log.Printf("error writing JSON message: %v", err)
+				break
+			}
 		}
 	}
-
 }
 
 func getExtensionsWithUrl(extensions []core.Extension, rootUrl string) []core.Extension {
@@ -388,25 +405,27 @@ func (api *ExtensionsApi) extensionRootHandler(rw http.ResponseWriter, r *http.R
 	rw.Write([]byte(fmt.Sprintf("not found: %v", err)))
 }
 
-func (api *ExtensionsApi) registerClient(connection *websocketConnection, notify notificationHandler, close closeHandler) bool {
+func (api *ExtensionsApi) registerClient(connection *websocketConnection, notify notificationHandler, close closeConnection) bool {
 	api.connections.Store(connection, client{notify, close})
 	return true
 }
 
 func (api *ExtensionsApi) unregisterClient(connection *websocketConnection, closeCode int, message string) {
-	duration := 1 * time.Second
-	deadline := time.Now().Add(duration)
-
-	connection.SetWriteDeadline(deadline)
-	connection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, message))
-
-	// TODO: Break out of this 1 second wait if the client responds correctly to the close message
-	<-time.After(duration)
 	connection.Close()
 	api.connections.Delete(connection)
 }
 
+func (api *ExtensionsApi) unregisterClientAndNotify(connection *websocketConnection, closeCode int, message string) {
+	connection.mu.Lock()
+	defer connection.mu.Unlock()
+	connection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, message))
+	api.unregisterClient(connection, closeCode, message)
+}
+
 func (api *ExtensionsApi) writeJSONMessage(connection *websocketConnection, statusUpdate *notification) error {
+	connection.mu.Lock()
+	defer connection.mu.Unlock()
+
 	message := websocketMessage{Event: statusUpdate.Event, Data: statusUpdate.Data, Version: api.Version}
 	connection.SetWriteDeadline(time.Now().Add(1 * time.Second))
 	return connection.WriteJSON(message)
@@ -434,12 +453,12 @@ func (api *ExtensionsApi) handleClientMessages(ws *websocketConnection) {
 			}
 			_, updated := api.getMergedAppMap(data.App, true)
 			if updated {
-				go api.sendUpdateEvent([]core.Extension{})
+				api.sendUpdateEvent([]core.Extension{})
 			}
-			go api.Notify(data.Extensions)
+			api.Notify(data.Extensions)
 
 		case "dispatch":
-			go api.notifyClients(func(rootUrl string) (message notification, err error) {
+			api.notifyClients(func(rootUrl string) (message notification, err error) {
 				return api.getDispatchNotification(jsonMessage.Data, rootUrl)
 			})
 		}
@@ -609,6 +628,7 @@ type Response struct {
 type websocketConnection struct {
 	*websocket.Conn
 	rootUrl string
+	mu      sync.Mutex
 }
 
 type extensionsResponse struct {
@@ -623,9 +643,9 @@ type singleExtensionResponse struct {
 
 type client struct {
 	notify notificationHandler
-	close  closeHandler
+	close  closeConnection
 }
 
 type notificationHandler func(notification)
 
-type closeHandler func(code int, text string) error
+type closeConnection func(code int, text string) error
