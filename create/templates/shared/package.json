@@ -14,5 +14,8 @@
   "scripts": {
     "build": "shopify-cli-extensions build",
     "develop": "shopify-cli-extensions develop"
-  }
+  }{{ if and .Development.UsesTypeScript .Development.UsesReact }},
+  "resolutions": {
+    "@types/react": "17.0.2"
+  }{{ end }}
 }

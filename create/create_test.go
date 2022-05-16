@@ -352,12 +352,59 @@ func TestCreateLocaleFiles(t *testing.T) {
 	})
 }
 
+func TestReactTypesResolutionInPackageJSON(t *testing.T) {
+	Command = makeDummyRunner
+	LookPath = func(file string) (string, error) {
+		return file, nil
+	}
+	rootDir := "tmp/TestReactTypesResolutionInPackageJSON"
+	extension := core.Extension{
+		Type: "checkout_ui_extension",
+		Development: core.Development{
+			Template: "typescript-react",
+			RootDir:  rootDir,
+			Renderer: core.Renderer{Name: "@shopify/checkout-ui-extension"},
+		},
+	}
+
+	err := NewExtensionProject(extension)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file, err := os.ReadFile(fmt.Sprintf("%s/package.json", rootDir))
+
+	fmt.Println(string(file))
+	fmt.Println(rootDir)
+	if err != nil {
+		t.Error(err)
+	}
+
+	var config packageJSON
+	err = json.Unmarshal(file, &config)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if config.Resolutions["@types/react"] != "17.0.2" {
+		t.Errorf("expect \"@types/react\" to be specified and match \"17.0.2\" but received: %v", config)
+	}
+
+	t.Cleanup(func() {
+		os.RemoveAll(rootDir)
+	})
+
+}
+
 type packageJSON struct {
 	Name            string            `json:"name"`
 	DevDependencies map[string]string `json:"devDependencies"`
 	Dependencies    map[string]string `json:"dependencies"`
 	License         string            `json:"license"`
 	Scripts         map[string]string `json:"scripts"`
+	Resolutions     map[string]string `json:"resolutions"`
 }
 
 type shopifyCLIYML struct {
