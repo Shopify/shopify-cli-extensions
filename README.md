@@ -150,9 +150,9 @@ To use the Dev Server with a local version of Shopify CLI, first follow these se
 
 Afterwards, the following three commands will be executed by the new extension server:
 
-- `shopify extension create`
-- `shopify extension serve`
-- `shopify extension build`
+- `shopify-local extension create`
+- `shopify-local extension serve`
+- `shopify-local extension build`
 
 #### Using a development build of the Dev Server
 
@@ -166,11 +166,12 @@ Testing against a development build is possible, too. Follow these steps:
 
 You can test a development build of the Dev Server with the production version of the Shopify CLI, first follow these set up steps:
 
+1. Enable the beta flag for your production Shopify CLI by running `shopify config feature extension_server_beta --enable`.
 1. Clone this repository.
-2. Run `make build` in `shopify-cli-extensions` and wait for the build process to complete.
-3. Find the folder where `shopify-cli` was installed and cd into that folder. If you are using Homebrew, run `brew --prefix shopify-cli`. If you have installed it from a gem, run `gem info shopify-cli` to find the "Installed at" path. The Dev Server should be installed inside the local `ext/shopify-extensions` folder.
-4. Rename the Dev Server production binary so you have a copy of it to fallback on: `mv ext/shopify-extensions/shopify-extensions ext/shopify-extensions/shopify-extensions-prod`.
-5. Set up a symlink to the local Go binary: `ln -s ~/src/github.com/Shopify/shopify-cli-extensions/shopify-extensions shopify-extensions`
+1. Run `make build` in `shopify-cli-extensions` and wait for the build process to complete.
+1. Find the folder where `shopify-cli` was installed and cd into that folder. If you are using Homebrew, run `brew --prefix shopify-cli`. If you have installed it from a gem, run `gem info shopify-cli` to find the "Installed at" path. The Dev Server should be installed inside the local `gems/shopify-cli-<version>/ext/shopify-extensions` folder.
+1. Rename the Dev Server production binary so you have a copy of it to fallback on: `mv gems/shopify-cli-<version>/ext/shopify-extensions gems/shopify-cli-<version>/ext/shopify-extensions/shopify-extensions-prod`.
+1. Set up a symlink to the local Go binary: `ln -s ~/src/github.com/Shopify/shopify-cli-extensions/shopify-extensions gems/shopify-cli-<version>/ext/shopify-extensions/shopify-extensions`
 
 Afterwards, the following three commands will be executed by the development build of the Dev Server:
 
@@ -178,7 +179,12 @@ Afterwards, the following three commands will be executed by the development bui
 - `shopify extension serve`
 - `shopify extension build`
 
-### Devevelopment Console
+To stop using the development build of the Dev Server, follow these steps:
+
+1. Remove the symlink to the local Go binary: `rm gems/shopify-cli-<version>/ext/shopify-extensions/shopify-extensions`
+1. Rename the Dev Server production binary back to its original name: `mv gems/shopify-cli-<version>/ext/shopify-extensions-prod gems/shopify-cli-<version>/ext/shopify-extensions/shopify-extensions`.
+
+### Dev Console
 
 #### Build
 
