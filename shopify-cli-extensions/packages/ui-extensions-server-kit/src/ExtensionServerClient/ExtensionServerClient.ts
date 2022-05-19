@@ -16,6 +16,8 @@ export class ExtensionServerClient implements ExtensionServer.Client {
 
   protected listeners: {[key: string]: Set<any>} = {};
 
+  protected connected = false;
+
   constructor(options: DeepPartial<ExtensionServer.Options> = {}) {
     this.id = (Math.random() + 1).toString(36).substring(7);
     this.options = {
@@ -27,31 +29,21 @@ export class ExtensionServerClient implements ExtensionServer.Client {
       },
     } as ExtensionServer.Options;
 
-    this.initializeApiClient();
-    if (this.options.connection.automaticConnect && this.options.connection.url) {
-      this.connect();
-    }
+    this.setupConnection(this.options.connection.automaticConnect);
   }
 
   public connect(options: ExtensionServer.Options = {connection: {}}) {
-    this.mergeOptions(options);
+    const newOptions = mergeOptions(this.options, options);
+    const optionsChanged = JSON.stringify(newOptions) !== JSON.stringify(this.options);
 
-    if (this.options.connection.url) {
-      this.connection?.close();
-
-      this.connection = new WebSocket(
-        this.options.connection.url,
-        this.options.connection.protocols,
-      );
-
-      if (this.api.url !== this.connection.url) {
-        this.initializeApiClient();
-      }
-
-      this.initializeConnection();
+    if (optionsChanged) {
+      this.options = newOptions;
+      this.setupConnection(true);
     }
 
-    return () => this.connection?.close();
+    return () => {
+      this.closeConnection();
+    };
   }
 
   public on<TEvent extends keyof ExtensionServer.InboundEvents>(
@@ -104,6 +96,18 @@ export class ExtensionServerClient implements ExtensionServer.Client {
   }
 
   protected initializeConnection() {
+    if (!this.connection) {
+      return;
+    }
+
+    this.connection.onopen = () => {
+      this.connected = true;
+    };
+
+    this.connection.onclose = () => {
+      this.connected = false;
+    };
+
     this.connection?.addEventListener('message', (message) => {
       try {
         const {event, data} = JSON.parse(message.data) as {
@@ -128,14 +132,40 @@ export class ExtensionServerClient implements ExtensionServer.Client {
     });
   }
 
-  protected mergeOptions(options: ExtensionServer.Options) {
-    this.options = {
-      ...this.options,
-      ...options,
-      connection: {
-        ...this.options.connection,
-        ...options.connection,
-      },
-    };
+  protected setupConnection(connectWebsocket = true) {
+    if (!this.options.connection.url) {
+      return;
+    }
+
+    if (!this.api || this.api.url !== this.connection.url) {
+      this.initializeApiClient();
+    }
+
+    if (!connectWebsocket) {
+      return;
+    }
+
+    this.closeConnection();
+
+    this.connection = new WebSocket(this.options.connection.url, this.options.connection.protocols);
+
+    this.initializeConnection();
   }
+
+  protected closeConnection() {
+    if (this.connected) {
+      this.connection?.close();
+    }
+  }
+}
+
+function mergeOptions(options: ExtensionServer.Options, newOptions: ExtensionServer.Options) {
+  return {
+    ...options,
+    ...newOptions,
+    connection: {
+      ...options.connection,
+      ...newOptions.connection,
+    },
+  };
 }
