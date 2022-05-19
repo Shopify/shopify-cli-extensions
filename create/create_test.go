@@ -74,10 +74,10 @@ func TestMergeTemplatesYAML(t *testing.T) {
 		t.Errorf("expect metafields[0] key to be \"my-key\" but received %v", config.Metafields[0].Key)
 	}
 
-	if config.Development.Build.Env["CUSTOM_VAR"] != "bar" {
+	if config.Development.Build.Env["CUSTOM_VAR"] != "foo" {
 		t.Errorf("expect build environment config to be set to \"bar\" but received %v", config.Development.Build.Env["CUSTOM_VAR"])
 	}
-	if config.Development.Develop.Env["CUSTOM_VAR"] != "foo" {
+	if config.Development.Develop.Env["CUSTOM_VAR"] != "bar" {
 		t.Errorf("expect develop environment config to be set to \"foo\" but received %v", config.Development.Develop.Env["CUSTOM_VAR"])
 	}
 
