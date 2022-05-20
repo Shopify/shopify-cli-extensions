@@ -375,8 +375,6 @@ func TestReactTypesResolutionInPackageJSON(t *testing.T) {
 
 	file, err := os.ReadFile(fmt.Sprintf("%s/package.json", rootDir))
 
-	fmt.Println(string(file))
-	fmt.Println(rootDir)
 	if err != nil {
 		t.Error(err)
 	}
@@ -388,8 +386,8 @@ func TestReactTypesResolutionInPackageJSON(t *testing.T) {
 		t.Error(err)
 	}
 
-	if config.Resolutions["@types/react"] != "17.0.2" {
-		t.Errorf("expect \"@types/react\" to be specified and match \"17.0.2\" but received: %v", config)
+	if config.Resolutions["@types/react"] != "^17.0.0" {
+		t.Errorf("expect \"@types/react\" to be specified and match \"^17.0.0\" but received: %v", config)
 	}
 
 	t.Cleanup(func() {
