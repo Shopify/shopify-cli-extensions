@@ -7,7 +7,7 @@ metafields:
 development:
   build:
     env:
-      CUSTOM_VAR: foo
+      CUSTOM_VAR: bar
   develop:
     env:
-      CUSTOM_VAR: bar
+      CUSTOM_VAR: foo

@@ -48,15 +48,15 @@ module ContractTest
       assert_equal(['Playground'], extension_config_yml['extension_points'])
       assert_equal('my-namespace', metafields[0]['namespace'])
       assert_equal('my-key', metafields[0]['key'])
-      assert_equal('foo', development_build_env['CUSTOM_VAR'])
-      assert_equal('bar', development_develop_env['CUSTOM_VAR'])
+      assert_equal('bar', development_build_env['CUSTOM_VAR'])
+      assert_equal('foo', development_develop_env['CUSTOM_VAR'])
     end
 
     def test_main_js_contents
       assert File.exist?('tmp/integration_test/build/main.js')
 
       assert File.readlines('tmp/integration_test/build/main.js')
-                 .grep(/"My custom environment variable is:\s*"\s*,\s*"foo"/).any?
+                 .grep(/"My custom environment variable is:\s*"\s*,\s*"bar"/).any?
       assert File.readlines('tmp/integration_test/build/main.js')
                  .grep(/"My custom NODE_ENV is:\s*"\s*,\s*"production"/).any?
     end
