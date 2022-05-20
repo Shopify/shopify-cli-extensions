@@ -23,7 +23,7 @@ declare global {
       //
     }
 
-    interface OutboundDispatchEvents {
+    interface DispatchEvents {
       //
     }
 
@@ -53,6 +53,10 @@ declare global {
          */
         protocols?: string | string[];
       };
+      /**
+       * If provided the extension server will only return extensions that matches the specified surface
+       */
+      surface?: Surface;
     }
 
     /**
@@ -60,6 +64,11 @@ declare global {
      * communicate with the extension server.
      */
     interface Client {
+      /**
+       * Connection options
+       */
+      options: Options;
+
       /**
        * Reconnecting WebSocket Client
        */
@@ -90,7 +99,7 @@ declare global {
       /**
        * Function to emit an event to the extension server.
        */
-      emit<TEvent extends keyof OutboundDispatchEvents>(...args: EmitArgs<TEvent>): void;
+      emit<TEvent extends keyof DispatchEvents>(...args: EmitArgs<TEvent>): void;
 
       /**
        * Function that opens a connection with the extensions server.
@@ -141,7 +150,7 @@ declare global {
         assets: Assets;
         development: Development;
         extensionPoints: string[] | null;
-        surface: string;
+        surface: Surface;
         name?: string;
         title?: string;
         type: string;
@@ -195,10 +204,10 @@ declare global {
      * In practice, this will allow TypeScript to type-check the event being emitted
      * and, if the payload isn't required, the second argument won't be necessary.
      */
-    type EmitArgs<TEvent extends keyof ExtensionServer.OutboundDispatchEvents> =
-      ExtensionServer.OutboundDispatchEvents[TEvent] extends void
+    type EmitArgs<TEvent extends keyof ExtensionServer.DispatchEvents> =
+      ExtensionServer.DispatchEvents[TEvent] extends void
         ? [event: TEvent]
-        : [event: TEvent, payload: ExtensionServer.OutboundDispatchEvents[TEvent]];
+        : [event: TEvent, payload: ExtensionServer.DispatchEvents[TEvent]];
 
     /**
      * This is a helper interface that allows us to define the static methods of a given
@@ -223,5 +232,6 @@ declare global {
     type EventUnsubscriber = () => void;
   }
 }
+export type Surface = 'checkout' | 'admin' | 'post-purchase';
 
 export {};

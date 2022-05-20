@@ -24,7 +24,7 @@ export function ExtensionServerProvider({
 
   const connect = useCallback(
     (newOptions: ExtensionServer.Options = options) => {
-      setOptions({...newOptions});
+      setOptions(newOptions);
     },
     [options],
   );

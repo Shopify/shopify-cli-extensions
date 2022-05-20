@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import {isValidSurface} from '../utilities';
 import {DeepPartial} from '../types';
 
 import {APIClient} from './APIClient';
@@ -20,14 +21,14 @@ export class ExtensionServerClient implements ExtensionServer.Client {
 
   constructor(options: DeepPartial<ExtensionServer.Options> = {}) {
     this.id = (Math.random() + 1).toString(36).substring(7);
-    this.options = {
+    this.options = getValidatedOptions({
       ...options,
       connection: {
         automaticConnect: true,
         protocols: [],
         ...(options.connection ?? {}),
       },
-    } as ExtensionServer.Options;
+    }) as ExtensionServer.Options;
 
     this.setupConnection(this.options.connection.automaticConnect);
   }
@@ -71,7 +72,7 @@ export class ExtensionServerClient implements ExtensionServer.Client {
     );
   }
 
-  public emit<TEvent extends keyof ExtensionServer.OutboundDispatchEvents>(
+  public emit<TEvent extends keyof ExtensionServer.DispatchEvents>(
     ...args: ExtensionServer.EmitArgs<TEvent>
   ): void {
     const [event, data] = args;
@@ -92,7 +93,7 @@ export class ExtensionServerClient implements ExtensionServer.Client {
       socketUrl.protocol = socketUrl.protocol === 'ws:' ? 'http:' : 'https:';
       url = socketUrl.origin;
     }
-    this.api = new APIClient(url);
+    this.api = new APIClient(url, this.options.surface);
   }
 
   protected initializeConnection() {
@@ -110,19 +111,20 @@ export class ExtensionServerClient implements ExtensionServer.Client {
 
     this.connection?.addEventListener('message', (message) => {
       try {
-        const {event, data} = JSON.parse(message.data) as {
-          event: string;
-          data: ExtensionServer.InboundEvents[keyof ExtensionServer.InboundEvents];
-        };
+        const {event, data} = JSON.parse(message.data) as ExtensionServer.ServerEvents;
+
         if (event === 'dispatch') {
-          const {type, payload} = data as {
-            type: keyof ExtensionServer.InboundEvents;
-            payload: ExtensionServer.InboundEvents[keyof ExtensionServer.InboundEvents];
-          };
-          return (this.listeners[type] ?? []).forEach((listener) => listener(payload));
+          const {type, payload} = data;
+          this.listeners[type]?.forEach((listener) => listener(payload));
+          return;
         }
 
-        this.listeners[event].forEach((listener) => listener(data));
+        const filteredExtensions = data.extensions?.filter(
+          (extension: any) => !this.options.surface || extension.surface === this.options.surface,
+        );
+        this.listeners[event]?.forEach((listener) => {
+          listener({...data, extensions: filteredExtensions});
+        });
       } catch (err) {
         console.error(
           `[ExtensionServer] Something went wrong while parsing a server message:`,
@@ -160,12 +162,21 @@ export class ExtensionServerClient implements ExtensionServer.Client {
 }
 
 function mergeOptions(options: ExtensionServer.Options, newOptions: ExtensionServer.Options) {
-  return {
+  return getValidatedOptions({
     ...options,
     ...newOptions,
     connection: {
       ...options.connection,
       ...newOptions.connection,
     },
-  };
+  });
+}
+
+function getValidatedOptions<TOptions extends DeepPartial<ExtensionServer.Options>>(
+  options: TOptions,
+): TOptions {
+  if (!isValidSurface(options.surface)) {
+    delete options.surface;
+  }
+  return options;
 }
