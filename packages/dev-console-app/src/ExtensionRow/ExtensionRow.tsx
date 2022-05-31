@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, {MouseEvent, useCallback, useState} from 'react';
 import {useI18n} from '@shopify/react-i18n';
 import {ExtensionPayload} from '@shopify/ui-extensions-server-kit';
@@ -34,7 +36,9 @@ export function ExtensionRow({
 
   const handleSelect = useCallback(
     (event?: MouseEvent) => {
-      if (event) event.stopPropagation();
+      if (event) {
+        event.stopPropagation();
+      }
       onSelect(extension);
     },
     [extension, onSelect],
@@ -47,7 +51,6 @@ export function ExtensionRow({
   return (
     <tr
       className={styles.DevToolRow}
-      onClick={handleSelect}
       onFocus={() => {
         setFocus(true);
       }}
@@ -60,9 +63,13 @@ export function ExtensionRow({
       <td>
         <Checkbox label="" checked={selected} onChange={() => handleSelect()} />
       </td>
-      <td className={textClass}>{extension.title}</td>
-      <td className={textClass}>{extension.type}</td>
-      <td>
+      <td onClick={handleSelect} className={textClass}>
+        {extension.title}
+      </td>
+      <td onClick={handleSelect} className={textClass}>
+        {extension.type}
+      </td>
+      <td onClick={handleSelect}>
         <span className={`${styles.Status} ${statusClass}`}>
           {i18n.translate(`statuses.${status}`)}
         </span>
