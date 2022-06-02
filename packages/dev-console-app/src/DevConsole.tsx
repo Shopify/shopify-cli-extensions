@@ -11,6 +11,7 @@ import {useI18n} from '@shopify/react-i18n';
 import {ExtensionPayload} from '@shopify/ui-extensions-server-kit';
 import {useDevConsoleInternal} from '@/hooks/useDevConsoleInternal';
 import {ToastProvider} from '@/hooks/useToast';
+import {IndexTable} from '@shopify/polaris';
 
 import {Checkbox} from './CheckBox';
 import {ExtensionRow} from './ExtensionRow';
@@ -124,40 +125,21 @@ export function DevConsole() {
       </aside>
     ) : null;
 
-  const ConsoleContent = () => (
-    <section className={styles.ExtensionList}>
-      <table>
-        <thead>
-          <tr>
-            <th>
-              <Checkbox
-                label={
-                  allSelected
-                    ? i18n.translate('bulkActions.deselectAll')
-                    : i18n.translate('bulkActions.selectAll')
-                }
-                checked={allSelected}
-                onChange={toggleSelectAll}
-                labelHidden
-              />
-            </th>
-            <th>{i18n.translate('extensionList.name')}</th>
-            <th>{i18n.translate('extensionList.type')}</th>
-            <th>{i18n.translate('extensionList.status')}</th>
-            <th>
-              <div className={actionSetStyles.ActionGroup}>
-                {actionHeaderMarkup}
-                <Action
-                  source={RefreshMinor}
-                  accessibilityLabel={i18n.translate('extensionList.refresh')}
-                  onAction={refreshSelectedExtensions}
-                />
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {extensions.map((extension) => {
+  const ConsoleContent = () => {
+    return (
+      <section className={styles.ExtensionList}>
+        <IndexTable
+          headings={[
+            {title: i18n.translate('extensionList.name')},
+            {title: i18n.translate('extensionList.type')},
+            {title: i18n.translate('extensionList.status')},
+            {title: 'Action Placeholder'},
+          ]}
+          onSelectionChange={toggleSelectAll}
+          itemCount={extensions.length}
+          selectedItemsCount={0}
+        >
+          {extensions.map((extension, rowIndex) => {
             const uuid = extension.uuid;
             return (
               <ExtensionRow
@@ -165,6 +147,7 @@ export function DevConsole() {
                 extension={extension}
                 onSelect={toggleSelect}
                 selected={selectedExtensionsSet.has(uuid)}
+                index={rowIndex}
                 onHighlight={focus}
                 onClearHighlight={unfocus}
                 onCloseMobileQRCode={() => setActiveMobileQRCodeExtension(undefined)}
@@ -172,10 +155,63 @@ export function DevConsole() {
               />
             );
           })}
-        </tbody>
-      </table>
-    </section>
-  );
+        </IndexTable>
+      </section>
+    );
+  };
+
+  // const ConsoleContent = () => (
+  //   <section className={styles.ExtensionList}>
+  //     <table>
+  //       <thead>
+  //         <tr>
+  //           <th>
+  //             <Checkbox
+  //               label={
+  //                 allSelected
+  //                   ? i18n.translate('bulkActions.deselectAll')
+  //                   : i18n.translate('bulkActions.selectAll')
+  //               }
+  //               checked={allSelected}
+  //               onChange={toggleSelectAll}
+  //               labelHidden
+  //             />
+  //           </th>
+  //           <th>{i18n.translate('extensionList.name')}</th>
+  //           <th>{i18n.translate('extensionList.type')}</th>
+  //           <th>{i18n.translate('extensionList.status')}</th>
+  //           <th>
+  //             <div className={actionSetStyles.ActionGroup}>
+  //               {actionHeaderMarkup}
+  //               <Action
+  //                 source={RefreshMinor}
+  //                 accessibilityLabel={i18n.translate('extensionList.refresh')}
+  //                 onAction={refreshSelectedExtensions}
+  //               />
+  //             </div>
+  //           </th>
+  //         </tr>
+  //       </thead>
+  //       <tbody>
+  //         {extensions.map((extension) => {
+  //           const uuid = extension.uuid;
+  //           return (
+  //             <ExtensionRow
+  //               key={uuid}
+  //               extension={extension}
+  //               onSelect={toggleSelect}
+  //               selected={selectedExtensionsSet.has(uuid)}
+  //               onHighlight={focus}
+  //               onClearHighlight={unfocus}
+  //               onCloseMobileQRCode={() => setActiveMobileQRCodeExtension(undefined)}
+  //               onShowMobileQRCode={setActiveMobileQRCodeExtension}
+  //             />
+  //           );
+  //         })}
+  //       </tbody>
+  //     </table>
+  //   </section>
+  // );
 
   const ConsoleEmpty = () => {
     return (
