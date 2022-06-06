@@ -149,51 +149,51 @@
     fill: var(--dc-subdued);
   }
   
-  // .Url {
-  //   color: var(--dc-text);
-  // }
+  .Url {
+    color: var(--dc-text);
+  }
 
-  // .ActionSet {
-  //   vertical-align: middle;
-  //   opacity: 0;
-  // } 
+  .ActionSet {
+    vertical-align: middle;
+    opacity: 0;
+  } 
 
-  // .ForceVisible.ActionSet,
-  // .ForceVisible .ActionSet {
-  //   opacity: 1;
-  // }
+  .ForceVisible.ActionSet,
+  .ForceVisible .ActionSet {
+    opacity: 1;
+  }
 
-  // .Hidden {
-  //   text-decoration: line-through;
-  //   color: var(--dc-subdued);
+  .Hidden {
+    text-decoration: line-through;
+    color: var(--dc-subdued);
 
-  //   .Url {
-  //     color: var(--dc-subdued);
-  //   }
-  // }
+    .Url {
+      color: var(--dc-subdued);
+    }
+  }
 
-  // .Status {
-  //   --dc-connected: #00a47c;
-  //   --dc-disconnected: #b98900;
-  //   --dc-error: #d92800;
+  .Status {
+    --dc-connected: #00a47c;
+    --dc-disconnected: #b98900;
+    --dc-error: #d92800;
 
-  //   font-size: 13px;
-  //   border-radius: var(--dc-border-radius);
-  //   padding: 0.25rem 1rem 0.5rem;
-  //   white-space: nowrap;
-  // }
+    font-size: 13px;
+    border-radius: var(--dc-border-radius);
+    padding: 0.25rem 1rem 0.5rem;
+    white-space: nowrap;
+  }
 
-  // .success {
-  //   background: var(--dc-connected);
-  // }
+  .success {
+    background: var(--dc-connected);
+  }
 
-  // .disconnected {
-  //   background: var(--dc-disconnected);
-  // }
+  .disconnected {
+    background: var(--dc-disconnected);
+  }
 
-  // .error {
-  //   background: var(--dc-error);
-  // }
+  .error {
+    background: var(--dc-error);
+  }
 }
 
 .UIExtensionsDevToolOverrides {

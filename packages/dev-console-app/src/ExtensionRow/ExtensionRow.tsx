@@ -80,8 +80,19 @@ export function ExtensionRow({
     <IndexTable.Row id={extension.uuid} selected={selected} position={index}>
       <IndexTable.Cell>{extension.title}</IndexTable.Cell>
       <IndexTable.Cell>{extension.type}</IndexTable.Cell>
-      <IndexTable.Cell>Status Placeholder</IndexTable.Cell>
-      <IndexTable.Cell>ActionSet Placeholder</IndexTable.Cell>
+      <IndexTable.Cell>
+        <span className={`${styles.Status} ${statusClass}`}>
+          {i18n.translate(`statuses.${status}`)}
+        </span>
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        <ActionSet
+          className={`${styles.ActionSet} ${isFocus ? styles.ForceVisible : ''}`}
+          selected={selected}
+          extension={extension}
+          {...actionSetProps}
+        />
+      </IndexTable.Cell>
     </IndexTable.Row>
   );
 }
