@@ -32,13 +32,30 @@ export function ExtensionRow({
     development: {hidden, status},
   } = extension;
 
-  const handleSelect = useCallback(
+  const handleRowSelect = useCallback(
     (event?: MouseEvent) => {
-      if (event) event.stopPropagation();
-      onSelect(extension);
+      if (event) {
+        event?.stopPropagation();
+      }
+
+      // Ignore the case of the checkbox itself being selected, which is handled by handleCheckBoxSelect
+      const target = event?.target as Element;
+      if (!target.className.match(/Polaris-Checkbox/)) {
+        onSelect(extension);
+      }
     },
     [extension, onSelect],
   );
+
+  const handleCheckboxSelect = useCallback(
+    (newChecked?: boolean) => {
+      if (newChecked !== selected) {
+        onSelect(extension);
+      }
+    },
+    [selected, onSelect, extension],
+  );
+
   const [isFocus, setFocus] = useState(false);
 
   const textClass = hidden ? styles.Hidden : undefined;
@@ -47,7 +64,7 @@ export function ExtensionRow({
   return (
     <tr
       className={styles.DevToolRow}
-      onClick={handleSelect}
+      onClick={handleRowSelect}
       onFocus={() => {
         setFocus(true);
       }}
@@ -58,7 +75,7 @@ export function ExtensionRow({
       onMouseLeave={onClearHighlight}
     >
       <td>
-        <Checkbox label="" checked={selected} onChange={() => handleSelect()} />
+        <Checkbox label="" checked={selected} onChange={handleCheckboxSelect} />
       </td>
       <td className={textClass}>{extension.title}</td>
       <td className={textClass}>{extension.type}</td>
