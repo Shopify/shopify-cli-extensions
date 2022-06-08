@@ -67,9 +67,23 @@ trap:
 	'trap - EXIT SIGINT SIGTERM ERR; rm -f $$TMP_FILE && kill -TERM -- -$$(cat $$TMP_FILE); exit 1;' \
 	EXIT SIGINT SIGTERM ERR ; $(MAKE) serve-dev testdata/extension.config.yml" ;\
 	}
+	
+.PHONY: pre
+pre:
+	{ \
+	TMP_FILE=pgid.tmp ;\
+	echo $$(ps -o pgid= $$PPID) > $$TMP_FILE ;\
+	sh -c "trap 'rm -f $$TMP_FILE && kill -TERM -- -$$(cat $$TMP_FILE);' EXIT SIGINT SIGTERM ERR ;\
+	$(MAKE) serve-dev testdata/extension.config.yml; exit 1;" ;\
+	}
 
 .PHONY: serve-dev
 serve-dev:
+	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
+		yarn start & make run serve $(SHOPIFILE)
+
+.PHONY: serve-dev-internal
+serve-dev-internal:
 	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
 		yarn start & make run serve $(SHOPIFILE)
 
