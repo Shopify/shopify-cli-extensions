@@ -58,32 +58,18 @@ ifeq (serve-dev,$(firstword $(MAKECMDGOALS)))
   $(eval $(SHOPIFILE):;@:)
 endif
 
-# Kill orphaned processes
 .PHONY: trap
 trap:
 	{ \
-	TMP_FILE=pgid.tmp                                      					    	                                   ;\
-	echo $$(ps -o pgid= $$PPID) > $$TMP_FILE               				   		                                       ;\
-	sh -c "trap 'trap - EXIT SIGINT SIGTERM ERR; echo PGID=$$(cat $$TMP_FILE) && rm -f $$TMP_FILE; exit 1;' EXIT SIGINT SIGTERM ERR; $(MAKE) serve-dev testdata/extension.config.yml"            ;\
-	}																												   ;\
-	# TMP_FILE = pgid.tmp;                 \
-	# for PGID in "$$(cat $$TMP_FILE)"; do \
-	# 	ps -o pid,pgid "$$PGID";         \
-	# fi;                                  \
-	# echo $$PPID >> $$TMP_FILE;           \
-	# sh -c "trap 'echo TRAP; kill -TERM -- -$$(cat $$TMP_FILE); rm -f -- $$TMP_FILE' EXIT;" ;\
-	# sh -c "trap 'trap - EXIT; echo "TRAP_INNER"; echo "TRAP_OUTER"; exit 1;' EXIT;" ;\
-	# bash -c "trap 'echo TRAP' EXIT; sleep 5;"                                       ;\
-	# sh -c "trap 'echo \"TMP_FILE: $$TMP_FILE\"; PGID=$$(cat $$TMP_FILE); rm -f $$TMP_FILE; kill -TERM -- -$$PGID;' EXIT;" ;\
-	# sh -c "trap 'trap - EXIT; PGID=$$(cat $$TMP_FILE); rm -f $$TMP_FILE; kill -TERM -- -$$PGID; exit 1' EXIT; echo \"DONE\"" ;\
+	TMP_FILE=pgid.tmp ;\
+	echo $$(ps -o pgid= $$PPID) > $$TMP_FILE ;\
+	sh -c "trap \
+	'trap - EXIT SIGINT SIGTERM ERR; rm -f $$TMP_FILE && kill -TERM -- -$$(cat $$TMP_FILE); exit 1;' \
+	EXIT SIGINT SIGTERM ERR ; $(MAKE) serve-dev testdata/extension.config.yml" ;\
+	}
 
 .PHONY: serve-dev
 serve-dev:
-	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
-		yarn start & make run serve $(SHOPIFILE)
-
-.PHONY: serve-dev-internal
-serve-dev-internal:
 	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
 		yarn start & make run serve $(SHOPIFILE)
 
