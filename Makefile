@@ -58,10 +58,47 @@ ifeq (serve-dev,$(firstword $(MAKECMDGOALS)))
   $(eval $(SHOPIFILE):;@:)
 endif
 
+# Kill orphaned processes
+.PHONY: trap
+trap:
+	{ \
+	TMP_FILE=pgid.tmp                                      					    	                                   ;\
+	echo $$(ps -o pgid= $$PPID) > $$TMP_FILE               				   		                                       ;\
+	sh -c "trap 'trap - EXIT; echo \"TMP_FILE: $$TMP_FILE\"; PGID=$$(cat $$TMP_FILE); rm -f $$TMP_FILE; kill -TERM -- -$$PGID; exit 1' EXIT; sleep 5; $(MAKE) serve-dev-autoclean testdata/extension.config.yml" ;\
+	}																												   ;\
+	# TMP_FILE = pgid.tmp;                 \
+	# for PGID in "$$(cat $$TMP_FILE)"; do \
+	# 	ps -o pid,pgid "$$PGID";         \
+	# fi;                                  \
+	# echo $$PPID >> $$TMP_FILE;           \
+	# sh -c "trap 'echo TRAP; kill -TERM -- -$$(cat $$TMP_FILE); rm -f -- $$TMP_FILE' EXIT;" ;\
+	# sh -c "trap 'trap - EXIT; echo "TRAP_INNER"; echo "TRAP_OUTER"; exit 1;' EXIT;" ;\
+	# bash -c "trap 'echo TRAP' EXIT; sleep 5;"                                       ;\
+	# sh -c "trap 'echo \"TMP_FILE: $$TMP_FILE\"; PGID=$$(cat $$TMP_FILE); rm -f $$TMP_FILE; kill -TERM -- -$$PGID;' EXIT;" ;\
+
 .PHONY: serve-dev
 serve-dev:
 	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
 		yarn start & make run serve $(SHOPIFILE)
+
+.PHONY: serve-dev-autoclean
+serve-dev-autoclean:
+	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
+		yarn start & make run serve $(SHOPIFILE)
+
+# Prevent make from interpreting kill arguments as targets:
+# https://stackoverflow.com/questions/2214575/passing-arguments-to-make-run
+# ifeq (kill,$(firstword $(MAKECMDGOALS)))
+#   KILL_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+#   $(eval $(KILL_ARGS):;@:)
+# endif
+
+.PHONY: kill
+kill:
+	# @echo ARGS: $(KILL_ARGS)
+	# ps -ww -o pgid,pid,command | grep -vw "grep" | grep -w "make $(KILL_ARGS)"
+	# for pgid in `ps -ww -o pgid,command | grep -vw "grep" | grep -w "make $(KILL_ARGS)" | cut -d' ' -f 1`; do kill -TERM -- "-$$pgid"; done
+	# for pid in `ps -ww -o pgid,pid,command $$PPID`; do echo "$$pid" > ppid.txt; done
 
 .PHONY: run
 run:
