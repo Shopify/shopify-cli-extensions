@@ -86,20 +86,6 @@ serve-dev-autoclean:
 	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
 		yarn start & make run serve $(SHOPIFILE)
 
-# Prevent make from interpreting kill arguments as targets:
-# https://stackoverflow.com/questions/2214575/passing-arguments-to-make-run
-# ifeq (kill,$(firstword $(MAKECMDGOALS)))
-#   KILL_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-#   $(eval $(KILL_ARGS):;@:)
-# endif
-
-.PHONY: kill
-kill:
-	# @echo ARGS: $(KILL_ARGS)
-	# ps -ww -o pgid,pid,command | grep -vw "grep" | grep -w "make $(KILL_ARGS)"
-	# for pgid in `ps -ww -o pgid,command | grep -vw "grep" | grep -w "make $(KILL_ARGS)" | cut -d' ' -f 1`; do kill -TERM -- "-$$pgid"; done
-	# for pid in `ps -ww -o pgid,pid,command $$PPID`; do echo "$$pid" > ppid.txt; done
-
 .PHONY: run
 run:
 	go run . $(RUN_ARGS)
