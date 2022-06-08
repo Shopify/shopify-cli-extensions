@@ -64,7 +64,7 @@ trap:
 	{ \
 	TMP_FILE=pgid.tmp                                      					    	                                   ;\
 	echo $$(ps -o pgid= $$PPID) > $$TMP_FILE               				   		                                       ;\
-	sh -c "trap 'trap - EXIT; echo \"TMP_FILE: $$TMP_FILE\"; PGID=$$(cat $$TMP_FILE); rm -f $$TMP_FILE; kill -TERM -- -$$PGID; exit 1' EXIT; sleep 5; $(MAKE) serve-dev-autoclean testdata/extension.config.yml" ;\
+	sh -c "trap 'trap - EXIT SIGINT SIGTERM ERR; echo PGID=$$(cat $$TMP_FILE) && rm -f $$TMP_FILE; exit 1;' EXIT SIGINT SIGTERM ERR; $(MAKE) serve-dev testdata/extension.config.yml"            ;\
 	}																												   ;\
 	# TMP_FILE = pgid.tmp;                 \
 	# for PGID in "$$(cat $$TMP_FILE)"; do \
@@ -75,14 +75,15 @@ trap:
 	# sh -c "trap 'trap - EXIT; echo "TRAP_INNER"; echo "TRAP_OUTER"; exit 1;' EXIT;" ;\
 	# bash -c "trap 'echo TRAP' EXIT; sleep 5;"                                       ;\
 	# sh -c "trap 'echo \"TMP_FILE: $$TMP_FILE\"; PGID=$$(cat $$TMP_FILE); rm -f $$TMP_FILE; kill -TERM -- -$$PGID;' EXIT;" ;\
+	# sh -c "trap 'trap - EXIT; PGID=$$(cat $$TMP_FILE); rm -f $$TMP_FILE; kill -TERM -- -$$PGID; exit 1' EXIT; echo \"DONE\"" ;\
 
 .PHONY: serve-dev
 serve-dev:
 	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
 		yarn start & make run serve $(SHOPIFILE)
 
-.PHONY: serve-dev-autoclean
-serve-dev-autoclean:
+.PHONY: serve-dev-internal
+serve-dev-internal:
 	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
 		yarn start & make run serve $(SHOPIFILE)
 
