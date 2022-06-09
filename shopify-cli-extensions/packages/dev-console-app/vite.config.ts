@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [reactRefresh()],
   build: {
     outDir: '../../api/dev-console',
-    assetsDir: 'dev-assets',
+    assetsDir: 'extensions/dev-console/assets',
   },
   resolve: {
     alias: {

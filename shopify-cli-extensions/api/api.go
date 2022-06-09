@@ -33,15 +33,12 @@ import (
 //go:embed dev-console/*
 var devConsole embed.FS
 
+const (
+	DevConsolePath string = "/dev-console"
+)
+
 func New(config *core.Config, apiRoot string) *ExtensionsApi {
 	mux := mux.NewRouter()
-
-	mux.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		url := r.URL
-		url.Path = "/dev-console"
-		http.Redirect(rw, r, url.String(), http.StatusTemporaryRedirect)
-	})
-
 	api := configureExtensionsApi(config, mux, apiRoot)
 
 	return api
@@ -255,6 +252,21 @@ func configureExtensionsApi(config *core.Config, router *mux.Router, apiRoot str
 		config.PublicUrl + "/extensions/",
 	}
 
+	devConsoleServerPath := getDevConsoleServerPath(apiRoot)
+	devConsoleServer := http.FileServer(http.FS(devConsole))
+
+	// Redirect root url to /extensions/dev-console
+	api.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+		url := r.URL
+		url.Path = devConsoleServerPath
+		http.Redirect(rw, r, url.String(), http.StatusTemporaryRedirect)
+	})
+
+	api.PathPrefix(devConsoleServerPath).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		r.URL.Path = getDevConsoleFilePath(r.URL.Path, apiRoot)
+		devConsoleServer.ServeHTTP(rw, r)
+	}))
+
 	api.HandleFunc(strings.TrimSuffix(apiRoot, "/"), handlerWithCors(api.extensionsHandler))
 	api.HandleFunc(apiRoot, handlerWithCors(api.extensionsHandler))
 
@@ -267,12 +279,6 @@ func configureExtensionsApi(config *core.Config, router *mux.Router, apiRoot str
 	}
 
 	api.HandleFunc(path.Join(apiRoot, "{uuid:(?:[a-z]|[0-9]|-)+\\/?}"), handlerWithCors(api.extensionRootHandler))
-
-	api.PathPrefix("/dev-console").Handler(http.FileServer(http.FS(devConsole)))
-
-	api.PathPrefix("/dev-assets/").Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		http.Redirect(rw, r, path.Join("/dev-console", r.URL.Path), http.StatusTemporaryRedirect)
-	}))
 
 	return api
 }
@@ -582,6 +588,18 @@ func withoutCache(h http.Handler) http.HandlerFunc {
 
 func handlerWithCors(responseFunc func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return withCors(http.HandlerFunc(responseFunc))
+}
+
+func getDevConsoleServerPath(apiRoot string) string {
+	return path.Join(apiRoot, DevConsolePath)
+}
+
+func getDevConsoleFilePath(requestPath string, apiRoot string) string {
+	if strings.HasPrefix(strings.TrimPrefix(requestPath, getDevConsoleServerPath(apiRoot)), "/assets") {
+		return path.Join(DevConsolePath, requestPath)
+	}
+
+	return strings.TrimPrefix(requestPath, apiRoot)
 }
 
 type ExtensionsApi struct {
