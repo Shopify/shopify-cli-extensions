@@ -58,19 +58,15 @@ ifeq (serve-dev,$(firstword $(MAKECMDGOALS)))
   $(eval $(SHOPIFILE):;@:)
 endif
 
-.PHONY: trap
-trap:
-	{ \
-	TMP_FILE=pgid.tmp ;\
-	echo $$(ps -o pgid= $$PPID) > $$TMP_FILE ;\
-	trap 'trap - SIGTERM; kill 0; wait; echo "cleaning up..."' SIGINT SIGTERM; $(MAKE) serve-dev testdata/extension.config.yml & wait ;\
-	}
-	
 .PHONY: serve-dev
 serve-dev:
-	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
-		yarn start & make run serve $(SHOPIFILE)
+	trap 'trap - SIGTERM; kill 0; wait' SIGINT SIGTERM; $(MAKE) serve-dev-internal $(SHOPIFILE) & wait
 
+ifeq (serve-dev-internal,$(firstword $(MAKECMDGOALS)))
+  SHOPIFILE := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(SHOPIFILE):;@:)
+endif
+	
 .PHONY: serve-dev-internal
 serve-dev-internal:
 	VITE_WEBSOCKET_HOST="localhost:$(shell ruby -ryaml -e "puts(YAML.load_file('$(SHOPIFILE)')['port'])")" \
