@@ -34,9 +34,7 @@ export function ExtensionRow({
 
   const handleRowSelect = useCallback(
     (event?: MouseEvent) => {
-      if (event) {
-        event.stopPropagation();
-      }
+      event?.stopPropagation();
 
       // Ignore the case of the checkbox itself being selected, which is handled by handleCheckBoxSelect
       const target = event?.target as Element;
