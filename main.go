@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,6 +27,17 @@ func init() {
 }
 
 func main() {
+	go func() {
+		sigchan := make(chan os.Signal)
+		signal.Notify(sigchan, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
+		<-sigchan
+		log.Println("Program killed !")
+
+		// do last actions and wait for all write operations to end
+
+		os.Exit(0)
+	}()
+
 	cli := CLI{}
 	cmd, args := os.Args[1], os.Args[2:]
 

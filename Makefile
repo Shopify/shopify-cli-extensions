@@ -58,6 +58,10 @@ ifeq (serve-dev,$(firstword $(MAKECMDGOALS)))
   $(eval $(SHOPIFILE):;@:)
 endif
 
+# Traps SIGINT (Ctrl-C) and SIGTERM (kill) and exits cleanly by killing the process group,
+# e.g., forked node/yarn processes. See: 
+#   https://linuxconfig.org/how-to-propagate-a-signal-to-child-processes-from-a-bash-script
+#   https://stackoverflow.com/questions/974077/how-can-i-trap-errors-and-interrupts-in-gnu-make
 .PHONY: serve-dev
 serve-dev:
 	trap 'trap - SIGTERM; kill 0; wait' SIGINT SIGTERM; $(MAKE) serve-dev-internal $(SHOPIFILE) & wait
