@@ -122,9 +122,7 @@ func (cli *CLI) serve(args ...string) {
 		server.Shutdown(ctx)
 	})
 
-	if cli.config.PublicUrl != "" {
-		fmt.Printf("Shopify CLI Extensions Server is now available at %s\n", cli.config.PublicUrl)
-	} else {
+	if cli.config.PublicUrl == "" {
 		fmt.Printf("Shopify CLI Extensions Server is now available at http://localhost:%d/\n", cli.config.Port)
 	}
 
