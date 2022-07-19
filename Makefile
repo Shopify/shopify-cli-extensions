@@ -14,7 +14,7 @@ endif
 
 .PHONY: build
 build: build-node-packages
-	go build -o ${executable}
+	go build -gcflags=all="-N -l" -o ${executable}
 
 .PHONY: package
 package:

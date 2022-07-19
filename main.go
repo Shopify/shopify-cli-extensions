@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Shopify/shopify-cli-extensions/api"
 	"github.com/Shopify/shopify-cli-extensions/build"
@@ -25,6 +26,8 @@ func init() {
 }
 
 func main() {
+	time.Sleep(30*time.Second)
+
 	cli := CLI{}
 	cmd, args := os.Args[1], os.Args[2:]
 
