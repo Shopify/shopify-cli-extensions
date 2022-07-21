@@ -16,4 +16,4 @@ PORT="12345"
 echo "Executing shopify-extensions-debug.sh ..."
 
 # NOTE: The $@ is used to pass all the arguments to the script
-dlv exec $HOME/src/github.com/shopify/shopify-cli-extensions/shopify-extensions --headless --listen="127.0.0.1:12345" --api-version=2 -- $@
+dlv exec $HOME/src/github.com/shopify/shopify-cli-extensions/shopify-extensions --headless --listen="$HOST:$PORT" --api-version=2 -- $@
