@@ -12,10 +12,17 @@ func ReadTemplateFile(path string) ([]byte, error) {
 }
 
 func NewExtensionProject(extension core.Extension) error {
-	setup := NewProcess(
+	tasks := []Task{
 		MakeDir(extension.Development.RootDir),
 		CreateProject(extension),
-		InstallDependencies(extension.Development.RootDir),
+	}
+
+	if extension.Development.InstallDependencies == nil || *extension.Development.InstallDependencies {
+		tasks = append(tasks, InstallDependencies(extension.Development.RootDir))
+	}
+
+	setup := NewProcess(
+		tasks...,
 	)
 
 	return setup.Run()

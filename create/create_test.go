@@ -317,6 +317,42 @@ func TestInstallDependencies(t *testing.T) {
 	})
 }
 
+func TestSkipDependenciesInstallation(t *testing.T) {
+	runnerWasCalled := false
+	Command = func(path, executable string, args ...string) Runner {
+		runnerWasCalled = true
+		return dummyRunner{}
+	}
+	LookPath = func(file string) (string, error) {
+		return file, nil
+	}
+	rootDir := "tmp/TestSkipDependenciesInstallation"
+	installDependencies := false
+	extension := core.Extension{
+		Type: "integration_test",
+		Development: core.Development{
+			InstallDependencies: &installDependencies,
+			Template:            "typescript-react",
+			RootDir:             rootDir,
+			Renderer:            core.Renderer{Name: "@shopify/post-purchase-ui-extension"},
+		},
+	}
+
+	err := NewExtensionProject(extension)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if runnerWasCalled == true {
+		t.Fatal("Expected runner not to be called")
+	}
+
+	t.Cleanup(func() {
+		os.RemoveAll(rootDir)
+	})
+}
+
 func TestCreateLocaleFiles(t *testing.T) {
 	Command = makeDummyRunner
 	LookPath = func(file string) (string, error) {
