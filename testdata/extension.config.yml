@@ -60,3 +60,42 @@ extensions:
         main: 'src/index.jsx'
     capabilities:
       network_access: true
+  - uuid: dev-38dbea95-3f41-440c-8896-1fc7eb8805de
+    title: ext-web-pixel
+    type: web_pixel_extension
+    external_type: web_pixel
+    metafields:
+    extension_points:
+    node_executable: ../../packages/shopify-cli-extensions/cli.js
+    surface: unknown
+    development:
+      root_dir: 'tmp/ext-web-pixel'
+      build_dir: 'build'
+      entries:
+        main: 'src/index.js'
+      renderer:
+        name: '@shopify/web-pixels-extension'
+        version: '0.1.4'
+      resource:
+        url: invalid_url
+  - uuid: dev-fac09024-f1c2-482d-a24d-cc30424507c0
+    title: ext-pos-ui
+    type: pos_ui_extension
+    external_type: pos_ui
+    metafields:
+    extension_points:
+      - Retail::SmartGrid::Tile
+      - Retail::SmartGrid::Modal
+    node_executable: ../../packages/shopify-cli-extensions/cli.js
+    surface: pos
+    development:
+      root_dir: 'tmp/ext-pos-ui'
+      build_dir: 'build'
+      template: 'javascript-react'
+      entries:
+        main: 'src/index.jsx'
+      renderer:
+        name: '@shopify/retail-ui-extensions'
+        version: '0.1.0'
+      resource:
+        url: invalid_url
