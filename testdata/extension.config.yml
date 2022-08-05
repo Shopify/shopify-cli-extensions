@@ -79,16 +79,16 @@ extensions:
       resource:
         url: invalid_url
   - uuid: 00000000-0000-0000-0000-000000000005
-    type: customer_accounts_ui_extension_next
-    title: Customer Accounts UI Test Extension Next
+    type: customer_accounts_ui_extension
+    title: Customer Accounts UI Test Extension
     node_executable: ../../packages/shopify-cli-extensions/cli.js
     surface: customer_accounts
     development:
-      root_dir: 'tmp/customer_accounts_ui_extension_next'
+      root_dir: 'tmp/customer_accounts_ui_extension'
       build_dir: 'build'
       template: 'javascript-react'
       renderer:
         name: '@shopify/app'
         version: '^1.0.0'
       entries:
-        main: 'src/index.js'
+        main: 'src/index.jsx'
