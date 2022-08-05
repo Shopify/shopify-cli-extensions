@@ -41,10 +41,10 @@ type templateEngine struct {
 	*template.Template
 }
 
-func (t *templateEngine) createProject() {
+func (t *templateEngine) createProject() error {
 	actions := NewProcess()
 
-	t.project.WalkDir(func(source *SourceFileReference) error {
+	err := t.project.WalkDir(func(source *SourceFileReference) error {
 		target := source.InferTarget(t.Extension.Development.RootDir)
 
 		if source.IsDir() {
@@ -64,10 +64,16 @@ func (t *templateEngine) createProject() {
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	if err := actions.Run(); err != nil {
 		actions.Undo()
+		return err
 	}
+
+	return nil
 }
 
 func (t *templateEngine) register(source *SourceFileReference) error {
@@ -112,7 +118,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			var outputFormat OutputFormat
 
 			isYamlTemplate := func(path string) (bool, bool) {
-				if (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
+				if strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml") {
 					return true, false
 				} else if strings.HasSuffix(path, ".yml.tpl") || strings.HasSuffix(path, ".yaml.tpl") {
 					return true, true
@@ -121,14 +127,14 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 			}
 			isJsonTemplate := func(path string) (bool, bool) {
 				if strings.HasSuffix(path, ".json") {
-					return true, false			
+					return true, false
 				} else if strings.HasSuffix(path, ".json.tpl") {
-					return true, true			
+					return true, true
 				}
-				return false, false			
+				return false, false
 			}
 
-			makeFragments := func (paths ...string) []core.Fragment {
+			makeFragments := func(paths ...string) []core.Fragment {
 				fragments := make([]core.Fragment, 0, len(paths))
 				for _, path := range paths {
 					buffer := bytes.Buffer{}
@@ -153,7 +159,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 				return fragments
 			}
 
-			merge := func (fragments ...core.Fragment) core.Fragment {
+			merge := func(fragments ...core.Fragment) core.Fragment {
 				merged := fragments[0]
 				for _, fragment := range fragments[1:] {
 					err := mergo.Merge(&merged, &fragment, mergo.WithAppendSlice)
@@ -189,7 +195,7 @@ func buildTemplateHelpers(t *template.Template, extension core.Extension, shared
 				}
 				return deduped
 			}
-			
+
 			fragments := makeFragments(paths...)
 			merged := merge(fragments...)
 			resultFragment := deduplicate(merged)
