@@ -1,2 +1,2 @@
-type = "{{ .NormalizedType }}"
+type = "{{ .ExternalType }}"
 name = "{{ .Title }}"

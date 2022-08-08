@@ -33,7 +33,7 @@ func Build(extension core.Extension, report ResultHandler) {
 
 	output, err := command.CombinedOutput()
 	if err != nil {
-		report(Result{false, string(output), extension})
+		report(Result{false, err.Error(), extension})
 		return
 	}
 
@@ -86,7 +86,9 @@ func Watch(extension core.Extension, report ResultHandler) {
 	}
 	ensureBuildDirectoryExists(extension)
 
-	command.Start()
+	if err := command.Start(); err != nil {
+		reportAndUpdateDevelopmentStatus(Result{false, err.Error(), extension}, report)
+	}
 
 	logProcessors := sync.WaitGroup{}
 	logProcessors.Add(2)

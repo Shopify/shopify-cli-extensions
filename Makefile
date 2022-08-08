@@ -81,28 +81,17 @@ build-node-packages:
 .PHONY: bootstrap
 bootstrap: tmp build
 	./shopify-extensions create testdata/extension.config.yml
-	cd tmp/checkout_ui_extension; yarn install
-	cd tmp/checkout_ui_extension; rm -r node_modules/@shopify/shopify-cli-extensions
-	cd tmp/checkout_ui_extension; cp -r ../../packages/shopify-cli-extensions node_modules/@shopify/shopify-cli-extensions
-	cd tmp/product_subscription; yarn install
-	cd tmp/product_subscription; rm -r node_modules/@shopify/shopify-cli-extensions
-	cd tmp/product_subscription; cp -r ../../packages/shopify-cli-extensions node_modules/@shopify/shopify-cli-extensions
-	cd tmp/checkout_post_purchase; yarn install
-	cd tmp/checkout_post_purchase; rm -r node_modules/@shopify/shopify-cli-extensions
-	cd tmp/checkout_post_purchase; cp -r ../../packages/shopify-cli-extensions node_modules/@shopify/shopify-cli-extensions
 
 .PHONY: integration-test
 integration-test: tmp build
 	./shopify-extensions create testdata/extension.config.integration.yml
 	cd tmp/integration_test; yarn install
-	cd tmp/integration_test; rm -r node_modules/@shopify/shopify-cli-extensions
-	cd tmp/integration_test; cp -r ../../packages/shopify-cli-extensions node_modules/@shopify/shopify-cli-extensions
-	cd tmp/integration_test; cat extension.config.yml | \
-		ruby ../../support/merge_config.rb | \
-		../../shopify-extensions build -
+	cat tmp/integration_test/shopify.ui.extension.toml | \
+		bundle exec ruby support/merge_config.rb | \
+		./shopify-extensions build -
 	test -f tmp/integration_test/build/main.js
 	test -f tmp/integration_test/locales/en.default.json
-	for testfile in `find testdata/test -type f -name '*_test.rb'`; do ruby "$$testfile"; done
+	for testfile in `find testdata/test -type f -name '*_test.rb'`; do bundle exec ruby "$$testfile"; done
 
 .PHONY: update-version
 update-version:

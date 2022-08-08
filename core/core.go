@@ -139,7 +139,7 @@ type Extension struct {
 	Assets          map[string]Asset `json:"assets" yaml:"-"`
 	Capabilities    Capabilities     `json:"capabilities" yaml:"capabilities,omitempty"`
 	Development     Development      `json:"development" yaml:"development,omitempty"`
-	ExtensionPoints []string         `json:"extensionPoints" yaml:"extension_points,omitempty"`
+	ExtensionPoints []string         `json:"extensionPoints" yaml:"extension_points,omitempty" toml:"extension_points,omitempty"`
 	Localization    *Localization    `json:"localization" yaml:"-"`
 	Metafields      []Metafield      `json:"metafields" yaml:"metafields,omitempty"`
 	Type            string           `json:"type" yaml:"type,omitempty"`
@@ -189,10 +189,6 @@ type Development struct {
 	Status             string            `json:"status" yaml:"-"`
 	LocalizationStatus string            `json:"localizationStatus" yaml:"-"`
 	Template           string            `json:"-" yaml:"template,omitempty"`
-}
-
-func (e Extension) NormalizedType() string {
-	return strings.Replace(e.ExternalType, "_next", "", -1)
 }
 
 func (d Development) UsesReact() bool {
