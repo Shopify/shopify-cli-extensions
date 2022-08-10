@@ -13,9 +13,6 @@ extension_points = [
 # key = "my-key-2"
 
 # Read more on extension settings at https://shopify.dev/api/checkout-extensions/checkout/settings
-# [settings]
-# type = "$extension:settings"
-
 # [[settings.fields]]
 # key = "heading"
 # name = "Heading"
