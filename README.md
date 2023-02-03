@@ -1,8 +1,12 @@
 # Shopify CLI Extensions
 
-`shopify-extensions` is an add-on to the Shopify CLI, which is installed automatically when installing the CLI. It is not meant to be invoked directly. Instead, invocation of `shopify-extensions` occurs through `shopify extension`. Today, `shopify-extensions`' main purpose is to power the experience of `shopify extension serve`, `shopify extension build` and augment `shopify extension create`.
+`shopify-extensions` is an add-on to the Shopify CLI 2.0, which is installed automatically when installing the CLI. It is not meant to be invoked directly. Instead, invocation of `shopify-extensions` occurs through `shopify extension`. Today, `shopify-extensions`' main purpose is to power the experience of `shopify extension serve`, `shopify extension build` and augment `shopify extension create`.
 
 The information below is mainly targeting contributors rather than users. If you want to learn more about how to build extensions and how to use the Shopify CLI in general, please consult the [official documentation](https://shopify.dev/apps/tools/cli).
+
+## CLI Deprecation & Sunset
+
+Note that Shopify CLI 2.0 is deprecated and will be sunset on May 31, 2023. We encourage using [Shopify CLI 3.0](https://github.com/Shopify/cli) to develop apps, custom storefronts, and themes.
 
 ## Getting started
 
